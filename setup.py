@@ -31,4 +31,5 @@ setup(
     entry_points={"console_scripts": ["cambio=cambio.__main__:main"]},
     test_suite="tests",
     tests_require=[],
+    zip_safe=False,
 )
