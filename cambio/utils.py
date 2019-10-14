@@ -22,6 +22,9 @@ def read_sound_classes(filename=None):
     if not filename:
         filename = path.join(_RESOURCE_DIR, "sound_classes.tsv")
 
+    # TODO: temp fix for travis
+    filename = "../resources/sound_classes.tsv"
+
     with open(filename) as tsvfile:
         reader = csv.DictReader(tsvfile, delimiter="\t")
         sound_classes = {
