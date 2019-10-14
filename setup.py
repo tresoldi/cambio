@@ -1,4 +1,5 @@
 import pathlib
+import setuptools
 from setuptools import setup
 
 # The directory containing this file
