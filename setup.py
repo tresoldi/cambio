@@ -6,7 +6,7 @@ from setuptools import setup
 LOCAL_PATH = pathlib.Path(__file__).parent
 
 # The resource directory
-RES_PATH = LOCAL_PATH.joinpath("resources")
+RES_PATH = str( LOCAL_PATH.joinpath("resources") )
 
 # The text of the README file
 README_FILE = (LOCAL_PATH / "README.md").read_text()
