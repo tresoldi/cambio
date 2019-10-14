@@ -5,9 +5,6 @@ from setuptools import setup, find_packages
 # The directory containing this file
 LOCAL_PATH = pathlib.Path(__file__).parent
 
-# The resource directory
-RES_PATH = str(LOCAL_PATH.joinpath("resources").joinpath("*.tsv"))
-
 # The text of the README file
 README_FILE = (LOCAL_PATH / "README.md").read_text()
 
@@ -28,8 +25,7 @@ setup(
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Libraries",
     ],
-    packages=find_packages(),
-    package_data={"":["resources/*.tsv"]},
+    packages=["cambio", "resources"],
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
     include_package_data=True,
     install_requires=["pyclts"],

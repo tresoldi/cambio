@@ -1,2 +1,2 @@
 include LICENSE
-recursive-include resources *
+include resources/*.tsv
