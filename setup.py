@@ -28,7 +28,7 @@ setup(
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Libraries",
     ],
-    packages=setuptools.find_packages(LOCAL_PATH),
+    packages=["cambio"],
     package_dir={'': RES_PATH},
     package_data={"cambio":[RES_PATH]},
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
