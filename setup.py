@@ -27,7 +27,7 @@ setup(
     packages=["cambio"],
     package_data={'cambio':"resources/*.tsv"},
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
-    include_package_data=True,
+    include_package_data=False,
     install_requires=["pyclts"],
     entry_points={"console_scripts": ["cambio=cambio.__main__:main"]},
     test_suite="tests",
