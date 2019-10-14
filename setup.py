@@ -25,7 +25,7 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     packages=["cambio"],
-    package_data={'':"resources/*.tsv"},
+    package_data={'cambio':"resources/*.tsv"},
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
     include_package_data=True,
     install_requires=["pyclts"],
@@ -33,5 +33,4 @@ setup(
     test_suite="tests",
     tests_require=[],
     zip_safe=False,
-    setup_requires=["setuptools_scm"],
 )
