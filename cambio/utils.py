@@ -81,6 +81,7 @@ def read_sound_changes(filename=None):
 
     return rules
 
+
 # TODO: make a default dict defaulting to the lowest freq
 # (or maybe even do a smoothing)
 def read_segment_freq(filename=None):
@@ -94,7 +95,6 @@ def read_segment_freq(filename=None):
     if not filename:
         filename = path.join(_RESOURCE_DIR, "segment_freq.tsv")
 
-
     freqs = {}
     # TODO: incorporate in enki_data
     with open(filename) as csvfile:
@@ -103,5 +103,3 @@ def read_segment_freq(filename=None):
             freqs[line["grapheme"]] = float(line["frequency"])
 
     return freqs
-
-

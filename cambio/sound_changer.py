@@ -88,10 +88,11 @@ def features2regex(positive, negative, transsys=None):
     return re_or_string
 
 
-def apply_rule(seq, rule, transsys, sclasses, features):
+def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
     # need to replace the longest first...
-    for sclass in sorted(sclasses, key=len, reverse=True):
-        rule["source"] = rule["source"].replace(sclass, sclasses[sclass])
+    if sclasses:
+        for sclass in sorted(sclasses, key=len, reverse=True):
+            rule["source"] = rule["source"].replace(sclass, sclasses[sclass])
 
     # TODO: add borders if necessary
     new_seq = re.sub(rule["source"], rule["target"], " %s " % seq)
