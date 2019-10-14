@@ -33,5 +33,5 @@ setup(
     test_suite="tests",
     tests_require=[],
     zip_safe=False,
-    setup_requires=["resources/sound_classes.tsv"],
+    setup_requires=["setuptools_scm"],
 )
