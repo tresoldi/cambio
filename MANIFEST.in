@@ -1,2 +1,2 @@
-include resources/*
+include LICENSE
 recursive-include resources *

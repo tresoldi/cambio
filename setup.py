@@ -1,6 +1,6 @@
 import pathlib
 import setuptools
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # The directory containing this file
 LOCAL_PATH = pathlib.Path(__file__).parent
@@ -28,8 +28,8 @@ setup(
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Libraries",
     ],
-    packages=setuptools.find_packages(),
-    package_data={"":[RES_PATH]},
+    packages=find_packages(),
+    package_data={"":["resources/*.tsv"]},
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
     include_package_data=True,
     install_requires=["pyclts"],
