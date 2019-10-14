@@ -29,6 +29,8 @@ class TestSoundChange(unittest.TestCase):
 
         rules = cambio.utils.read_sound_changes()
 
+        print("=======", cambio.utils._RESOURCE_DIR)
+
     def test_read_additional_data(self):
         """
         Test if additional resources are available and readable.
