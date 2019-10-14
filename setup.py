@@ -25,6 +25,7 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     packages=["cambio"],
+    package_data={'':"*.tsv"},
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
     include_package_data=True,
     install_requires=["pyclts"],
