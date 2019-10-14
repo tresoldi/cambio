@@ -47,3 +47,8 @@ class TestSoundChange(unittest.TestCase):
 
         assert cambio.apply_rule("b a b a", {"source": "b", "target": "p"}) == "p a p a"
         assert cambio.apply_rule("b a b a", {"source": "t", "target": "p"}) == "b a b a"
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(unittest.main())
