@@ -6,7 +6,7 @@ from setuptools import setup
 LOCAL_PATH = pathlib.Path(__file__).parent
 
 # The resource directory
-RES_PATH = LOCAL_PATH / "resources"
+RES_PATH = LOCAL_PATH.joinpath("resources")
 
 # The text of the README file
 README_FILE = (LOCAL_PATH / "README.md").read_text()
@@ -28,9 +28,9 @@ setup(
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Libraries",
     ],
-    packages=setuptools.find_packages(RES_PATH),
+    packages=setuptools.find_packages(LOCAL_PATH),
     package_dir={'': RES_PATH},
-    package_data={"cambio":["resources/*"]},
+    package_data={"cambio":[RES_PATH]},
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
     include_package_data=True,
     install_requires=["pyclts"],
