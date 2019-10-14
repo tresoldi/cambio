@@ -6,4 +6,5 @@ __author__ = "Tiago Tresoldi"
 __email__ = "tresoldi@shh.mpg.de"
 
 # Build the namespace
-from cambio.sound_changer import basic_change
+from cambio.sound_changer import apply_rule
+from cambio import utils
