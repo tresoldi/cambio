@@ -8,7 +8,7 @@ import random
 from pyclts import TranscriptionSystem
 
 # Import our library
-import cambio
+import alteruphono
 
 
 def main():
@@ -20,10 +20,10 @@ def main():
     # import os.path
 
     # TODO: write a reader
-    rules = cambio.utils.read_sound_changes()
+    rules = alteruphono.utils.read_sound_changes()
     bipa = TranscriptionSystem("bipa")
-    sclasses = cambio.utils.read_sound_classes()
-    features = cambio.utils.read_features()
+    sclasses = alteruphono.utils.read_sound_classes()
+    features = alteruphono.utils.read_features()
 
     # param = {}
     # vocab = tuple(enki.random_words(10, param))
@@ -33,7 +33,7 @@ def main():
         rule = random.choice(rules)
 
         new_vocab = tuple(
-            [cambio.apply_rule(word, rule, bipa, sclasses, features) for word in vocab]
+            [alteruphono.apply_rule(word, rule, bipa, sclasses, features) for word in vocab]
         )
 
         if vocab != new_vocab:

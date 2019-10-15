@@ -5,7 +5,7 @@ import csv
 from os import path
 import re
 
-from cambio import sound_changer
+from alteruphono import sound_changer
 
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py

@@ -2,24 +2,24 @@
 # encoding: utf-8
 
 """
-test_cambio
-===========
+test_alteruphono
+================
 
-Tests for the `cambio` package.
+Tests for the `alteruphono` package.
 """
 
 # Import third-party libraries
 import unittest
 
 # Import the library being test
-import cambio
+import alteruphono
 
 # TODO: test all cases in the default rules
 
 
 class TestSoundChange(unittest.TestCase):
     """
-    Class for `cambio` tests related to sound replacement.
+    Class for `alteruphono` tests related to sound replacement.
     """
 
     def test_read_rules(self):
@@ -27,9 +27,7 @@ class TestSoundChange(unittest.TestCase):
         Tests if loading rules works and if the default ones are loadable.
         """
 
-        rules = cambio.utils.read_sound_changes()
-
-        print("=======", cambio.utils._RESOURCE_DIR)
+        rules = alteruphono.utils.read_sound_changes()
 
     def test_read_additional_data(self):
         """
@@ -37,18 +35,18 @@ class TestSoundChange(unittest.TestCase):
         """
 
         # Read sound class definitions
-        cambio.utils.read_sound_classes()
+        alteruphono.utils.read_sound_classes()
 
         # Read feature definitions
-        cambio.utils.read_features()
+        alteruphono.utils.read_features()
 
     def test_basic_change(self):
         """
         Test basic sound changes.
         """
 
-        assert cambio.apply_rule("b a b a", {"source": "b", "target": "p"}) == "p a p a"
-        assert cambio.apply_rule("b a b a", {"source": "t", "target": "p"}) == "b a b a"
+        assert alteruphono.apply_rule("b a b a", {"source": "b", "target": "p"}) == "p a p a"
+        assert alteruphono.apply_rule("b a b a", {"source": "t", "target": "p"}) == "b a b a"
 
 
 if __name__ == "__main__":
