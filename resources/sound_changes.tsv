@@ -1,4 +1,4 @@
-id	source	target	frequency	example
+id	source	target	weight	test
 1	C C #	@1 #	1	a g r o ŋ g / a g r o ŋ
 2	C #	#	1	a d j aː d / a d j aː
 3	r C	r	1	i k ʔ e r j a / i k ʔ e r a

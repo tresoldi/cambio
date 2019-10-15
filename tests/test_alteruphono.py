@@ -54,6 +54,10 @@ class TestSoundChange(unittest.TestCase):
             == "b a b a"
         )
 
+    def test_random_change(self):
+        rules = alteruphono.utils.read_sound_changes()
+        alteruphono.utils.random_change(rules)
+
 
 if __name__ == "__main__":
     import sys

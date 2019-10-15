@@ -2,7 +2,9 @@
 
 # Standard imports
 import csv
+import itertools
 from os import path
+import random
 import re
 
 # Import from namespace
@@ -76,7 +78,6 @@ def read_features(filename=None):
     return features
 
 
-# TODO: add support for weight and examples
 # TODO: support for id?
 # TODO: document this format
 # TODO: add support to the PEG grammar format
@@ -93,8 +94,8 @@ def read_sound_changes(filename=None):
 
     Returns
     -------
-    features : list
-        A list of dictionaries, with each item representing a sound change.
+    features : dict
+        A dictionary of with IDs as keys and sound changes as values.
     """
 
     if not filename:
@@ -105,7 +106,7 @@ def read_sound_changes(filename=None):
     # necessary) and replacing back-reference notation in targets
     with open(filename) as csvfile:
         reader = csv.DictReader(csvfile, delimiter="\t")
-        rules = []
+        rules = {}
         for row in reader:
             source = " %s " % " ".join(
                 [
@@ -116,11 +117,80 @@ def read_sound_changes(filename=None):
 
             target = " %s " % row["target"].replace("@", "\\")
 
-            rules.append(
-                {
+            rules[row['id']] = {
                     "source": re.sub("\s+", " ", source),
                     "target": re.sub("\s+", " ", target),
+                    "weight" : float(row["weight"]),
+                    "test" : row["test"],
                 }
-            )
 
     return rules
+
+def random_choices(population, weights=None, cum_weights=None, k=1):
+    """
+    Return a `k` sized list of elements chosen from `population` with
+    replacement and according to a list of weights.
+
+    If a `weights` sequence is specified, selections are made according to the
+    relative weights. Alternatively, if a `cum_weights` sequence is given, the
+    selections are made according to the cumulative weights. For example, the
+    relative weights `[10, 5, 30, 5]` are equivalent to the cumulative weights
+    `[10, 15, 45, 50]`. Internally, the relative weights are converted to the
+    cumulative weights before making selections, so supplying the cumulative
+    weights saves work.
+
+    This function is compatible with the random.choices() function available
+    in Python's standard library from version 3.6 on. It can be replaced by
+    the standard implementation once the version requirement is updated.
+
+    Parameters
+    ----------
+    population: list
+        A list of elements from which the element(s) will be drawn.
+
+    weights: list
+        A list of any numeric type with the relative weight of each element.
+        Either `weights` or `cum_weights` must be provided.
+
+    cum_weights: list
+        A list of any numeric type with the accumulated weight of each element.
+        Either `weights` or `cum_weights` must be provided.
+
+    k: int
+        The number of elements to be drawn, with replacement.
+
+    Returns
+    -------
+    sample: list
+        A list of elements randomly drawn according to the specified weights.
+    """
+
+    # Assert that (1) the population is not empty, (2) only one type of
+    # weight information is provided.
+    assert len(population) > 0, "Population must not be empty."
+    assert not all((weights, cum_weights)), \
+        "Either only weights or only cumulative weights must be provided."
+
+    # If cumulative weights were not provided, build them from `weights`.
+    if not cum_weights:
+        cum_weights = list(itertools.accumulate(weights))
+
+    # Assert that the lengths of population and cumulative weights match.
+    assert len(population)==len(cum_weights), \
+        "Population and weight lengths do not match."
+
+    # Get a random number and see in which bin it falls. We need to use this
+    # logic which is a little more complex than something with randint()
+    # in order to allow for floating-point weights.
+    rnd = [random.uniform(0, cum_weights[-1]) for r in range(k)]
+    less_than = [[cw < r for cw in cum_weights] for r in rnd]
+
+    return [population[lt.index(False)] for lt in less_than]
+
+# TODO: more than one? with replacement?
+def random_change(rules):
+    # collect ids ands weights
+    population = list(rules.keys())
+    weights = [rule['weight'] for rule in rules.values()]
+
+    return rules[random_choices(population, weights)[0]]
