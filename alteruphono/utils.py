@@ -117,14 +117,15 @@ def read_sound_changes(filename=None):
 
             target = " %s " % row["target"].replace("@", "\\")
 
-            rules[row['id']] = {
-                    "source": re.sub("\s+", " ", source),
-                    "target": re.sub("\s+", " ", target),
-                    "weight" : float(row["weight"]),
-                    "test" : row["test"],
-                }
+            rules[row["id"]] = {
+                "source": re.sub("\s+", " ", source),
+                "target": re.sub("\s+", " ", target),
+                "weight": float(row["weight"]),
+                "test": row["test"],
+            }
 
     return rules
+
 
 def random_choices(population, weights=None, cum_weights=None, k=1):
     """
@@ -168,16 +169,18 @@ def random_choices(population, weights=None, cum_weights=None, k=1):
     # Assert that (1) the population is not empty, (2) only one type of
     # weight information is provided.
     assert len(population) > 0, "Population must not be empty."
-    assert not all((weights, cum_weights)), \
-        "Either only weights or only cumulative weights must be provided."
+    assert not all(
+        (weights, cum_weights)
+    ), "Either only weights or only cumulative weights must be provided."
 
     # If cumulative weights were not provided, build them from `weights`.
     if not cum_weights:
         cum_weights = list(itertools.accumulate(weights))
 
     # Assert that the lengths of population and cumulative weights match.
-    assert len(population)==len(cum_weights), \
-        "Population and weight lengths do not match."
+    assert len(population) == len(
+        cum_weights
+    ), "Population and weight lengths do not match."
 
     # Get a random number and see in which bin it falls. We need to use this
     # logic which is a little more complex than something with randint()
@@ -187,10 +190,11 @@ def random_choices(population, weights=None, cum_weights=None, k=1):
 
     return [population[lt.index(False)] for lt in less_than]
 
+
 # TODO: more than one? with replacement?
 def random_change(rules):
     # collect ids ands weights
     population = list(rules.keys())
-    weights = [rule['weight'] for rule in rules.values()]
+    weights = [rule["weight"] for rule in rules.values()]
 
     return rules[random_choices(population, weights)[0]]

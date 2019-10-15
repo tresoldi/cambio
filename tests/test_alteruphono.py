@@ -9,12 +9,16 @@ Tests for the `alteruphono` package.
 """
 
 # Import third-party libraries
+import logging
+import sys
 import unittest
 
 # Import the library being test
 import alteruphono
 
-# TODO: test all cases in the default rules
+# Setup logger
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+LOGGER = logging.getLogger("TestLog")
 
 
 class TestSoundChange(unittest.TestCase):
@@ -58,8 +62,24 @@ class TestSoundChange(unittest.TestCase):
         rules = alteruphono.utils.read_sound_changes()
         alteruphono.utils.random_change(rules)
 
+    def test_default_changes(self):
+        """
+        Run the embedded test of all default changes.
+        """
+
+        rules = alteruphono.utils.read_sound_changes()
+        for rule_id, rule in rules.items():
+            test_source, test_target = rule["test"].split("/")
+            test_source = test_source.strip()
+            test_target = test_target.strip()
+
+            target = alteruphono.apply_rule(
+                test_source, {"source": rule["source"], "target": rule["target"]}
+            )
+            # LOGGER.debug("%s [%s] [%s]", rule_id, target, test_target)
+            # LOGGER.debug("%s", str(rule))
+            assert target == test_target
+
 
 if __name__ == "__main__":
-    import sys
-
     sys.exit(unittest.main())

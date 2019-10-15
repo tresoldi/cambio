@@ -168,6 +168,7 @@ def features2regex(positive, negative, transsys=None):
 # TODO: deal with repeated spaces?
 # TODO: memoization
 # TODO: finish documentation
+# TODO: comment on borders in `seq`
 def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
     """
     Apply a regular expression rule to a sequence.
@@ -189,12 +190,18 @@ def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
     for sclass in sorted(sclasses, key=len, reverse=True):
         source = source.replace(sclass, sclasses[sclass])
 
+    # Add word borders if necessary, along with leading and trailing spaces
+    if "#" not in seq:
+        seq = " # %s # " % seq.strip()
+    else:
+        seq = " %s " % seq
+
     # Apply regular expression to sequence; leading and trailing spaces
     # are added to correct manipulation of boundaries
     # TODO: add word borders if necessary
     # TODO: add syllable boundaries if necessary/requested
     # TODO: add support for custom function replacements
-    new_seq = re.sub(source, rule["target"], " %s " % seq).strip()
+    new_seq = re.sub(source, rule["target"], seq)
 
     # Process tokens one by one, consuming any feature manipulation
     processed_tokens = []
@@ -258,7 +265,8 @@ def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
 
             processed_tokens.append(new_sound.grapheme)
 
-    return " ".join(processed_tokens)
+    # Join, also removing borders
+    return " ".join([tok for tok in processed_tokens if tok != "#"])
 
 
 # Load default sound classes and features, if not loaded by this time

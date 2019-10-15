@@ -322,7 +322,7 @@ id	source	target	weight	test
 321	a k	a x	1	a k a n k m i k s / a x a n k m i k s
 322	V k V	@1 @3	4	a k a n k m i k s / a a n k m i k s
 323	k #	#	4	a ə ɔ̃ l ɔ k / a ə ɔ̃ l ɔ
-324	k N	#	1	a k a n k m i k s / a k a n # i k s
+324	k N #	k #	1	a k a n k m / a k a n k
 325	k #	ç #	1	a ə ɔ̃ l ɔ k / a ə ɔ̃ l ɔ ç
 326	k i	ʂ i	1	k i k t a k s u / ʂ i k t a k s u
 327	i k	i ʂ	1	a k a n k m i k s / a k a n k m i ʂ s
@@ -479,7 +479,7 @@ id	source	target	weight	test
 478	s #	h #	1	a k a n k m i k s / a k a n k m i k h
 479	s i	h i	1	d r e d s i n d / d r e d h i n d
 480	# s	# n	1	s a s k a / n a s k a
-481	# s	r #	1	s a s k a / # a s k a
+481	# s	# r	1	s a s k a / r a s k a
 482	# s	# t	1	s a s k a / t a s k a
 483	s #	t #	2	a k a n k m i k s / a k a n k m i k t
 484	s l	x l	1	s θ i s l a / s θ i x l a
