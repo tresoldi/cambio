@@ -45,10 +45,17 @@ class TestSoundChange(unittest.TestCase):
         Test basic sound changes.
         """
 
-        assert alteruphono.apply_rule("b a b a", {"source": "b", "target": "p"}) == "p a p a"
-        assert alteruphono.apply_rule("b a b a", {"source": "t", "target": "p"}) == "b a b a"
+        assert (
+            alteruphono.apply_rule("b a b a", {"source": "b", "target": "p"})
+            == "p a p a"
+        )
+        assert (
+            alteruphono.apply_rule("b a b a", {"source": "t", "target": "p"})
+            == "b a b a"
+        )
 
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(unittest.main())

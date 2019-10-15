@@ -33,7 +33,10 @@ def main():
         rule = random.choice(rules)
 
         new_vocab = tuple(
-            [alteruphono.apply_rule(word, rule, bipa, sclasses, features) for word in vocab]
+            [
+                alteruphono.apply_rule(word, rule, bipa, sclasses, features)
+                for word in vocab
+            ]
         )
 
         if vocab != new_vocab:
