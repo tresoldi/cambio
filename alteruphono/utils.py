@@ -5,7 +5,8 @@ import csv
 from os import path
 import re
 
-from alteruphono import sound_changer
+# Import from namespace
+from . import sound_changer
 
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py
@@ -17,6 +18,18 @@ _RESOURCE_DIR = path.join(path.dirname(path.dirname(__file__)), "resources")
 def read_sound_classes(filename=None):
     """
     Read sound class definitions.
+
+    Parameters
+    ----------
+    filename : string
+        Path to the TSV file holding the sound class definition, defaulting
+        to the one provided with the library.
+
+    Returns
+    -------
+    sound_classes : dict
+        A dictionary with sound class names as keys (such as "A" or
+        "C[+voiced]") and corresponding regular expressions as values.
     """
 
     if not filename:
@@ -37,7 +50,20 @@ def read_sound_classes(filename=None):
 # TODO: rename to sound features
 def read_features(filename=None):
     """
-    Read feature definitions.
+    Read sound feature definitions.
+
+    Parameters
+    ----------
+    filename : string
+        Path to the TSV file holding the sound feature definition, defaulting
+        to the one provided with the library and based on the BIPA
+        transcription system.
+
+    Returns
+    -------
+    features : dict
+        A dictionary with feature values (such as "devoiced") as keys and
+        feature classes (such as "voicing") as values.
     """
 
     if not filename:
@@ -51,8 +77,26 @@ def read_features(filename=None):
 
 
 # TODO: add support for weight and examples
-# TODO: move to named tuple?
+# TODO: support for id?
+# TODO: document this format
+# TODO: add support to the PEG grammar format
 def read_sound_changes(filename=None):
+    """
+    Read sound changes.
+
+    Parameters
+    ----------
+    filename : string
+        Path to the TSV file holding the list of sound changes, defaulting
+        to the one provided by the library. Mandatory fields are `source` and
+        `target`.
+
+    Returns
+    -------
+    features : list
+        A list of dictionaries, with each item representing a sound change.
+    """
+
     if not filename:
         filename = path.join(_RESOURCE_DIR, "sound_changes.tsv")
 
@@ -80,26 +124,3 @@ def read_sound_changes(filename=None):
             )
 
     return rules
-
-
-# TODO: make a default dict defaulting to the lowest freq
-# (or maybe even do a smoothing)
-def read_segment_freq(filename=None):
-    """
-    Returns global frequency distribution for segments.
-
-    This is used in the generation as a starting point for the per-language
-    segment frequency, so that results are more "natural".
-    """
-
-    if not filename:
-        filename = path.join(_RESOURCE_DIR, "segment_freq.tsv")
-
-    freqs = {}
-    # TODO: incorporate in enki_data
-    with open(filename) as csvfile:
-        reader = csv.DictReader(csvfile, delimiter="\t")
-        for line in reader:
-            freqs[line["grapheme"]] = float(line["frequency"])
-
-    return freqs

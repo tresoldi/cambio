@@ -6,10 +6,36 @@ import re
 # Import 3rd party libraries
 from pyclts import TranscriptionSystem
 
+# Import from the namespace
+from . import utils
 
+# Default sound classes, features, and transcription system (some variables
+# are only populated at the end of this script, after all functions
+# have been defined)
+_SOUND_CLASSES = None
+_SOUND_FEATURES = None
+_TRANSCRIPTION = TranscriptionSystem("bipa")
+
+# TODO: add support for partial match with our notation
 def parse_features(text):
     """
-    Parse a list of feature specifications.
+    Parse a list of feature constraints.
+
+    Constraints can be definied inside optional brackets. Features are
+    separated by commas, with optional spaces around them, and have a
+    leading plus or minus sign (defaulting to plus).
+
+    Parameters
+    ----------
+    text: string
+        A string with the feature constraints specification
+
+    Returns
+    -------
+    positive: list
+        A list of features to be included.
+    negative: list
+        A list of features to be excluded.
     """
 
     # Remove any brackets from the text that was received and strip it.
@@ -40,10 +66,38 @@ def parse_features(text):
     return positive, negative
 
 
-def features2sounds(positive, negative, transsys):
+# NOTE: This function is used mostly by features2regex()
+def features2sounds(positive, negative, transsys=None):
     """
     Returns a list of graphemes matching positive and negative features.
+
+    Positive and negative are lists of features as defined in the
+    TranscriptionSystem.
+
+    For example, asking for not-rounded and not high front vowels:
+
+    >>> alteruphono.sound_changer.features2sounds(["vowel", "front"], ["rounded", "high"])
+    ['ḭːː', 'aa', 'ɛ̯', 'ĩĩ', 'ĕ', ... 'a˞', 'ẽ̞', 'iːː', 'e̯', 'aː', 'ii']
+
+    Parameters
+    ----------
+    positive : list
+        A list of strings with the features to be included.
+    negative : list
+        A list of strings with the features for be excluded.
+    transsys : TranscriptionSystem
+        The transcription system to be used, defaulting to BIPA.
+
+    Returns
+    -------
+    sounds : list
+        A list of strings with all the graphemes matching the requested
+        feature constraints.
     """
+
+    # Use the default transcription system, if none was provided
+    if not transsys:
+        transsys = _TRANSCRIPTION
 
     # Iterate over all sounds in the transcription system
     sounds = []
@@ -68,12 +122,34 @@ def features2regex(positive, negative, transsys=None):
     """
     Returns a regex string for matching graphemes according to features.
 
-    The regular expression string is sorted in inverse length order and
-    includes disjoints.
+    Positive and negative are lists of features as defined in the
+    TranscriptionSystem.
+
+    For example, asking for not-rounded and not high front vowels:
+
+    >>> alteruphono.sound_changer.features2regex(["vowel", "front"], ["rounded", "high"])
+    'ẽ̞ẽ̞|ẽ̞ː|ẽẽ|æ̃æ̃|ãã|a̰ːː|ḭːː|ĩĩ|ɛ̃ɛ̃|" ... "ă|e̤|ɛː|iː|aa|ɛ̯|ii|ḭ|æ|i|ɛ|e|a'
+
+    Parameters
+    ----------
+    positive : list
+        A list of strings with the features to be included.
+    negative : list
+        A list of strings with the features for be excluded.
+    transsys : TranscriptionSystem
+        The transcription system to be used, defaulting to BIPA.
+
+    Returns
+    -------
+    re_or_string : string
+        A string with the regular expression matching the requested feature
+        constraints. The items are sorted in inverse length order, and
+        include disjoints.
     """
 
+    # Use the default transcription system, if none was provided
     if not transsys:
-        transsys = TranscriptionSystem("bipa")
+        transsys = _TRANSCRIPTION
 
     # Get the list of sounds and sort it by inverse length, allowing the
     # regular expression engine to correctly match them. There is no need
@@ -88,16 +164,39 @@ def features2regex(positive, negative, transsys=None):
     return re_or_string
 
 
+# TODO: have transsys, sclasses, and features in a single dict
+# TODO: deal with repeated spaces?
+# TODO: memoization
+# TODO: finish documentation
 def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
-    # need to replace the longest first...
-    if sclasses:
-        for sclass in sorted(sclasses, key=len, reverse=True):
-            rule["source"] = rule["source"].replace(sclass, sclasses[sclass])
+    """
+    Apply a regular expression rule to a sequence.
+    """
 
-    # TODO: add borders if necessary
-    new_seq = re.sub(rule["source"], rule["target"], " %s " % seq)
+    # Use defaults, if not provided
+    if not transsys:
+        transsys = _TRANSCRIPTION
+    if not sclasses:
+        sclasses = _SOUND_CLASSES
+    if not features:
+        features = _SOUND_FEATURES
 
-    # Process tokens, consuming any feature manipulation
+    # Make a copy of the rule source and apply all class replacements
+    # according to the provided definitions.
+    # NOTE: We need to replace in inverse length order to avoid partial
+    #       matching of class names (which can be longer than one character)
+    source = rule["source"]
+    for sclass in sorted(sclasses, key=len, reverse=True):
+        source = source.replace(sclass, sclasses[sclass])
+
+    # Apply regular expression to sequence; leading and trailing spaces
+    # are added to correct manipulation of boundaries
+    # TODO: add word borders if necessary
+    # TODO: add syllable boundaries if necessary/requested
+    # TODO: add support for custom function replacements
+    new_seq = re.sub(source, rule["target"], " %s " % seq).strip()
+
+    # Process tokens one by one, consuming any feature manipulation
     processed_tokens = []
     for token in new_seq.split():
         # If we find brackets in the tokens, consume the feature manipulation;
@@ -115,6 +214,7 @@ def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
             #       as direct phoneme mapping, i.e. 'ph -> p'). VERY URGENT!!!
             # TODO: This is also assuming that a single feature is
             #       manipulated; we should allow for more feature operations.
+            # TODO: could use or reuse parse_features()?
             grapheme, operation = token[:-1].split("[")
             if operation[0] in "+-":
                 op_operator, op_feature = operation[0], operation[1:]
@@ -136,9 +236,11 @@ def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
             ]
             descriptors.append(op_feature)
 
-            # run fixes
-            # TODO: must be much better...
+            # Run manual fixes related to pyclts
+            # TODO: move an independent function, possibly loading external data
             if "palatal" in descriptors and "fricative" in descriptors:
+                # Fricative palatals are described as alveolo-palatal, so
+                # replace all of them
                 descriptors = [
                     feature if feature != "palatal" else "alveolo-palatal"
                     for feature in descriptors
@@ -146,12 +248,19 @@ def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
 
             if "alveolo-palatal" in descriptors and "fricative" in descriptors:
                 descriptors.append("sibilant")
+
             if "alveolar" in descriptors and "fricative" in descriptors:
                 descriptors.append("sibilant")
 
-            new_name = " ".join(descriptors)
-            new_sound = transsys[new_name]
+            # Ask the transcription system for a new grapheme based in the
+            # adapted description
+            new_sound = transsys[" ".join(descriptors)]
 
             processed_tokens.append(new_sound.grapheme)
 
     return " ".join(processed_tokens)
+
+
+# Load default sound classes and features, if not loaded by this time
+_SOUND_CLASSES = utils.read_sound_classes()
+_SOUND_FEATURES = utils.read_features()
