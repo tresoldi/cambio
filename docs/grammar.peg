@@ -1,0 +1,132 @@
+# Define a grammar for parsing sound change rules
+@@grammar::SOUND_CHANGE
+
+# We define the `start` symbol which includes the three basic elements of
+# a sound change: a `source` (mandatory), a `target` (mandatory), and a
+# `context` (optional). Sources and targets are separated by `arrow`
+# terminals, which are not captured; targets and contexts are separated
+# by `slash` terminals, also uncaptured.
+# We also match the end of string `$` to guarantee that nothing more is
+# included in the string; if the user wants to add additional material,
+# such as comments, it must be removed before the parsing.
+start =
+    | source:sequence arrow target:sequence slash context:sequence $
+    | source:sequence arrow target:sequence $
+    ;
+
+# A segment sequence is defined as a sequence of one or more segments. It
+# is implied that they are separated by a whitespace, and such we need no
+# positive gather.
+sequence = { segment }+ ;
+
+# Define a segment, which can be:
+#   - an IPA grapheme
+#   - a sound class shorthand
+#   - extra symbols such as word boundary, current position, and
+#     zero/null sound (please note that these are accepted in all
+#     sequences when parsing, including `source`, even though it makes
+#     no sense there; such verification should however be carried by
+#     the engine and not here by the parser, as it would make the
+#     grammar unnecessarily complicated)
+#   - a feature description, composed of a number of feature key/value
+#     pairs delimited by square brackets
+#   - a back-reference indicated by the at symbol ("@")
+#   - a list of alternatives delimited by curly brackets
+segment =
+    | boundary_symbol
+    | position_symbol
+    | null_symbol
+    | ipa
+    | sound_class
+    | feature_desc
+    | back_ref
+    | alternative
+    ;
+
+# Defines a feature description, composed of features separated by
+# commas. Please note that 竜 TatSu will capture this as a list if and
+# only if there is more than one item.
+feature_desc = recons:[r"*"] r"[" ",".{ feature_desc:feature }+ r"]" ;
+
+# Define a feature.
+# TODO: Currently only supporting equality as operand, needs to be
+#       updated when introducing support for numerical tiers.
+feature =
+    | value:feature_op key:feature_key
+    | key:feature_key "=" value:feature_value
+    | key:feature_key
+    ;
+
+# Defines a feature key symbol.
+# As features can change across experiments, including due to named tiers,
+# there is no point in listing the features; we will just accept any
+# valid identifier.
+feature_key = /[a-z][a-z0-9_]+/ ;
+
+# Define a feature value symbol.
+# For the time being, we are only accepting binarized values.
+feature_value =
+    | r"true"
+    | r"false"
+    ;
+
+# Define a feature operator symbol, which maps to values.
+feature_op =
+    | r"+"
+    | r"-"
+    | r"!" # diverse from
+    ;
+
+# Defines a back-reference, which can be
+#   - an index
+#   - an index plus a modifier
+back_ref =
+    | recons:[r"*"] "@" back_ref:/[0-9]+/ modifier:feature_desc
+    | recons:[r"*"] "@" back_ref:/[0-9]+/
+    ;
+
+# Defines a list of alternatives, composed of sequences separated by
+# commas. We don't have the problem of feature_desc here, of single items
+# not being captured as lists, as alternatives must by definition have more
+# than one item.
+alternative = r"{" ",".{ alternative:sequence }+ r"}" ;
+
+# Define terminals
+
+# Define "arrow" and "slash" symbols, used by `start` and not captured
+arrow = r">" | r"->" | r"-->" | r"=>" | r"==>" | r"→" | r"⇒" | r"⇢" | r"⇾" | r"»";
+slash = r"/" | r"//" ;
+
+# Define additional symbols; null symbol includes Danish ø letter
+boundary_symbol = boundary:r"#";
+position_symbol = position:r"_";
+null_symbol = null:(r"∅"|r"0"|r"ø"|r"Ø");
+
+# Define the IPA graphemes as an alternation.
+# Graphemes must be listed in inverse length order (longer to
+# shorter) in order to guarantee that those composed of two or more
+# characters will correctly be captured as such (especially in the
+# case of affricates, which will otherwise be captured as
+# plosive plus fricative).
+#
+# The alternation list can be generated from Python with the following code;
+# we sort both in inverse length and alphabetical order, as well as remove
+# some graphemes that are not suitable.
+#
+# [1]: from pyclts import TranscriptionSystem ; BIPA = TranscriptionSystem('bipa')
+# [2]: excludes = ['ǃǃ', '+', '_', '←', '→', '∼', '¯']
+# [3]: graphemes = [key for key in BIPA.sounds.keys() if key not in excludes]
+# [4]: graphemes.sort(key=lambda s:(-len(s), s))
+# [5]: print('    ipa:/%s/' % '|'.join(graphemes))
+#
+# TODO: move to a list of raw strings (i.e., no regular expression?)
+ipa =
+    recons:[r"*"]
+    ipa:/ẽ̞ẽ̞|õ̞õ̞|ø̞̃ø̞̃|ɔ̞̈ɔ̞̈|ɞ̞̃ɞ̞̃|ɤ̞̃ɤ̞̃|ɪ̈̃ɪ̈̃|ɯ̽̃ɯ̽̃|ɵ̞̃ɵ̞̃|ʊ̈̃ʊ̈̃|d̪z̪ː|d̪ːz̪|t̠ʃʼː|t̪s̪ʰ|t̪s̪ʲ|t̪s̪ʼ|t̪s̪ː|t̪ɬ̪ʰ|t̪ɬ̪ʼ|t̪ːs̪|ãã|a̰ːː|cçʰ|dz̪ː|d̠ʒʷ|d̠ʒː|d̠ʒ̤|d̪z̪|d̪ʱː|d̪ːʱ|d̪̥̚|d̪̥ⁿ|ẽẽ|e̞e̞|ẽ̞ː|ĩĩ|ḭːː|õõ|o̞o̞|õ̞ː|ts̪ʰ|ts̪ʲ|ts̪ʼ|ts̪ː|tɬ̪ʰ|tɬ̪ʼ|tʃʼː|tːs̪|tːʃʼ|t̠ʃʰ|t̠ʃʷ|t̠ʃʼ|t̠ʃː|t̪s̪|t̪ɬ̪|t̪ʰʲ|t̪ʰː|t̪ʷʰ|t̪ːʰ|ũũ|ỹỹ|æ̃æ̃|ø̃ø̃|ø̞ø̞|ø̞̃ː|ŋgǀǀ|ŋgǃǃ|ŋ̊ǀǀ|ŋ̊ǃǃ|œ̃œ̃|ɐ̃ɐ̃|ɐ̹ɐ̹|ɑ̃ɑ̃|ɒ̃ɒ̃|ɔ̃ɔ̃|ɔ̞̈ː|ɘ̃ɘ̃|ə̃ə̃|ɛ̃ɛ̃|ɜ̃ɜ̃|ɞ̃ɞ̃|ɞ̞ɞ̞|ɞ̞̃ː|ɤ̃ɤ̃|ɤ̞ɤ̞|ɤ̞̃ː|ɨ̃ɨ̃|ɪ̃ɪ̃|ɪ̈ɪ̈|ɪ̈̃ː|ɯ̃ɯ̃|ɯ̽ɯ̽|ɯ̽̃ː|ɵ̃ɵ̃|ɵ̞ɵ̞|ɵ̞̃ː|ɶ̃ɶ̃|ʉ̃ʉ̃|ʊ̃ʊ̃|ʊ̈ʊ̈|ʊ̈̃ː|ʌ̃ʌ̃|ʏ̃ʏ̃|ʰt̪ʰ|ˀŋǀǀ|ˀŋǃǃ|ⁿgǀǀ|ⁿgǃǃ|ãː|bʰː|bʱː|bʷː|bːʰ|bːʱ|bːʷ|bːˤ|bˤː|b̥ʰ|cç|dzː|dz̪|dʑː|dʒʱ|dʒʲ|dʒʷ|dʰː|dʱː|dːz|dːʑ|dːʒ|dːʰ|dːʱ|d̠ʒ|d̤ʒ|d̤ː|d̥̚|d̥ⁿ|d̪ð|d̪ɮ|d̪ʱ|d̪ʲ|d̪ː|d̪ˠ|d̪ˤ|d̪̈|d̪̚|d̪̤|d̪̰|d̪ⁿ|eːː|ẽː|e̞ː|e̞ˑ|ẽ̞|e̹ː|fʷː|fːʷ|gǃǃ|g̊ʰ|iːː|ĩː|ḭː|kwh|kǃǃ|kʷʰ|kʷʼ|kʷː|kʼʷ|kʼ|l̠ʲ|l̪ʲ|l̪ː|l̪̍|l̪̥|l̪̩|mʷː|mːʷ|mːˤ|mˤː|n̪ˠ|oz̻|oːː|õː|o̞ː|õ̞|pfʰ|pfʼ|pʰʲ|pʰː|pːʰ|qʰʷ|qʷʰ|qʷʼ|qʼʷ|qʼ↓|rːˤ|rˤː|r̪ː|r̪ˤ|r̪̥|s̪ʲ|s̪ʼ|s̪ˠ|tsʰ|tsʲ|tsʼ|tsː|ts̪|tɕʰ|tɕː|tɬʰ|tɬʼ|tɬ̪|tʂʰ|tʂː|tʃʰ|tʃʲ|tʃʷ|tʃʼ|tʃː|tʰʷ|tʲʰ|tʷʰ|tːs|tːɕ|tːʂ|tːʃ|t̠ʃ|t̪ʰ|t̪ʲ|t̪ʷ|t̪ʼ|t̪ː|t̪ˠ|t̪ˤ|t̪̚|t̪θ|t̪ⁿ|uːː|ũː|yːː|ỹː|z̪̥|²²³|²²¹|²²⁴|²²⁵|²³²|²³³|²³¹|²¹²|²¹³|²¹¹|²¹⁴|²¹⁵|²⁴²|²⁴³|²⁴¹|²⁴⁴|²⁵²|²⁵³|²⁵¹|²⁵⁴|²⁵⁵|³²²|³²³|³²⁴|³²⁵|³³²|³³¹|³³⁴|³³⁵|³¹²|³¹³|³¹¹|³¹⁴|³¹⁵|³⁴²|³⁴³|³⁴¹|³⁴⁴|³⁴⁵|³⁵²|³⁵³|³⁵¹|³⁵⁴|³⁵⁵|¹²²|¹²¹|¹³²|¹³³|¹³¹|¹¹²|¹¹³|¹¹⁴|¹¹⁵|¹⁴²|¹⁴³|¹⁴¹|¹⁴⁴|¹⁵²|¹⁵³|¹⁵¹|¹⁵⁴|¹⁵⁵|æːː|æ̃ː|øːː|ø̃ː|ø̞ː|ø̞̃|ŋgǀ|ŋgǁ|ŋgǂ|ŋgǃ|ŋgʘ|ŋǀǀ|ŋǃǃ|ŋ̊ǀ|ŋ̊ǁ|ŋ̊ǂ|ŋ̊ǃ|ŋ̊ʘ|œ̃ː|ɐ̃ː|ɐ̹ː|ɑ̃ː|ɒ̃ː|ɔ̃ː|ɔ̞̈|ɖːʐ|ɘ̃ː|ə̃ː|ɛːː|ɛ̃ː|ɛ̹̃|ɜ̃ː|ɞ̃ː|ɞ̞ː|ɞ̞̃|ɤ̃ː|ɤ̞ː|ɤ̞̃|ɨ̃ː|ɪ̃ː|ɪ̈ː|ɪ̈̃|ɬ̪ʼ|ɯ̃ː|ɯ̥̃|ɯ̽ː|ɯ̽̃|ɵ̃ː|ɵ̞ː|ɵ̞̃|ɶ̃ː|ʈʂʰ|ʈʂː|ʈʂ’|ʈʰː|ʈːʂ|ʈːʰ|ʉ̃ː|ʊ̃ː|ʊ̈ː|ʊ̈̃|ʌ̃ː|ʌ̤̃|ʌ̯ː|ʏ̃ː|ʰtʰ|ʰt̪|ˀŋǀ|ˀŋǁ|ˀŋǂ|ˀŋǃ|ˀŋʘ|⁴²²|⁴²³|⁴²⁴|⁴²⁵|⁴³³|⁴³⁴|⁴³⁵|⁴¹²|⁴¹³|⁴¹¹|⁴¹⁴|⁴¹⁵|⁴⁴²|⁴⁴³|⁴⁴¹|⁴⁴⁵|⁴⁵²|⁴⁵³|⁴⁵¹|⁴⁵⁴|⁴⁵⁵|⁵²²|⁵²³|⁵²⁴|⁵²⁵|⁵³³|⁵³⁴|⁵³⁵|⁵¹²|⁵¹³|⁵¹¹|⁵¹⁴|⁵¹⁵|⁵⁴⁴|⁵⁴⁵|⁵⁵²|⁵⁵³|⁵⁵¹|⁵⁵⁴|ⁿdʒ|ⁿd̪|ⁿd̼|ⁿgǀ|ⁿgǁ|ⁿgǂ|ⁿgǃ|ⁿgʘ|ⁿkʷ|ⁿtʃ|ⁿt̪|aa|aː|aˑ|a˞|ã|ă|ḁ|a̯|a̰|bv|bʰ|bʱ|bʲ|bʷ|bː|bˠ|b̚|b̡|b̤|b̥|b̪|bβ|bᵛ|bᵝ|bⁿ|cʰ|cʼ|cː|ç|dz|dð|dɮ|dʐ|dʑ|dʒ|dʰ|dʱ|dʲ|dː|dˤ|d̂|d̠|d̤|d̥|d̪|d̰|d̼|dᶞ|dᶻ|dᶼ|dᶽ|dⁿ|ee|eː|eˑ|ẽ|ĕ|e̞|e̤|e̥|e̯|ḛ|e̹|fʰ|fʲ|fʼ|fˈ|fː|fˠ|gǀ|gǁ|gǂ|gǃ|gɣ|gʘ|gʰ|gʱ|gʲ|gʷ|gː|gˠ|g̈|g̊|g̥|h̃|h̬|ii|iː|iˑ|ĩ|i̤|i̥|ḭ|i̹|jː|j̃|j̊|j̥|kh|kw|kx|kǀ|kǁ|kǂ|kǃ|kʘ|kʰ|kʲ|kʷ|kʼ|kː|kˣ|k̚|k̬|k|lʱ|lʲ|lː|lˠ|l̂|l̠|ḷ|l̤|l̥|l̩|l̪|l̻|l̼|mʰ|mʱ|mʲ|mʷ|mː|mˠ|ṃ|m̤|m̥|m̩|nʲ|nː|nˤ|n̂|ñ|n̊|ṇ|n̥|n̩|n̪|n̰|n̻|n̼|oo|oː|oˑ|oˤ|õ|ŏ|o̞|o̤|o̥|o̯|o̰|pf|ph|pɸ|pʰ|pʲ|pʷ|pʼ|pː|pˠ|p̚|p̪|p̬|pᶠ|pᶲ|qʰ|qʷ|qʼ|q̚|qχ|qᵡ|rʲ|rː|rˤ|r̃|r̥|r̩|r̪|r̼|sʲ|sʼ|sː|sˠ|s̩|s̪|s̬|s̻|th|ts|tɕ|tɬ|tʂ|tʃ|tʰ|tʲ|tʷ|tʼ|tː|tˢ|tˤ|t̂|t̚|t̠|t̪|t̬|t̼|tθ|tᶝ|tᶳ|tᶴ|tᶿ|tⁿ|uu|uː|uˑ|ũ|ṳ|u̥|ṵ|vʲ|vː|v̆|v̥|v̩|wː|wˠ|w̃|xʲ|xʷ|xʼ|ẋ|yy|yː|yˑ|ỹ|zʲ|z̥|z̩|z̪|²²|²³|²¹|²⁴|²⁵|³²|³³|³¹|³⁴|³⁵|¹²|¹³|¹¹|¹⁴|¹⁵|ææ|æː|æˑ|æ̃|æ̰|ðː|ð̚|ð̞|ð̼|ð͉|øø|øː|øˑ|ø̃|ø̞|ŋǀ|ŋǁ|ŋǂ|ŋǃ|ŋʘ|ŋʷ|ŋː|ŋ̊|ŋ̍|ŋ̥|ŋ̩|œœ|œː|œ̃|ȵ̊|ɐɐ|ɐː|ɐ̃|ɐ̯|ɐ̹|ɑɑ|ɑː|ɑ̃|ɑ̟|ɒɒ|ɒː|ɒ̃|ɓʲ|ɔɔ|ɔː|ɔ̃|ɔ̑|ɔ̯|ɔ̰|ɖʐ|ɖʱ|ɖ̤|ɖᶼ|ɗ̥|ɘɘ|ɘː|ɘ̃|əə|əː|ə˞|ə̃|ə̆|ə̰|ɛɛ|ɛː|ɛ̃|ɛ̑|ɛ̯|ɛ̰|ɜɜ|ɜː|ɜ̃|ɞɞ|ɞː|ɞ̃|ɞ̞|ɟʝ|ɡ̤|ɢʁ|ɢʰ|ɢʶ|ɣʷ|ɣ̊|ɣ̥|ɤɤ|ɤː|ɤ̃|ɤ̆|ɤ̑|ɤ̞|ɤ̯|ɨɨ|ɨː|ɨ̃|ɪɪ|ɪː|ɪ̃|ɪ̈|ɪ̥|ɪ̯|ɪ̰|ɪ̹|ɬʼ|ɬ̪|ɬ̼|ɭ̊|ɭ̍|ɭ̩|ɮ̼|ɯɯ|ɯː|ɯ̃|ɯ̤|ɯ̥|ɯ̯|ɯ̽|ɱ̊|ɱ̥|ɲː|ɲ̊|ɲ̍|ɲ̥|ɳ̊|ɳ̍|ɴ̥|ɴ̩|ɵɵ|ɵː|ɵ̃|ɵ̞|ɶɶ|ɶː|ɶ̃|ɹ̠|ɹ̩|ɽʱ|ɽ̈|ɾ̥|ɾ̼|ʀ̥|ʁ̞|ʁ̥|ʃʲ|ʃʼ|ʇ̼|ʈʂ|ʈʰ|ʈ̬|ʈᶳ|ʉʉ|ʉː|ʉ̃|ʉ̰|ʊʊ|ʊː|ʊ̃|ʊ̈|ʊ̥|ʊ̯|ʊ̰|ʌʌ|ʌː|ʌ̃|ʌ̆|ʌ̤|ʎ̟|ʎ̥|ʏʏ|ʏː|ʏ̃|ʒ̊|ʒ̍|ʒ̩|ʔh|ʔʲ|ʔʷ|ʙ̥|ʙ̩|ʛ̥|ʟ̥|ʦː|ʰk|ʰp|ʰt|βʷ|β̞|θː|θ̬|θ̼|χʷ|χʼ|⁴²|⁴³|⁴¹|⁴⁴|⁴⁵|⁵²|⁵³|⁵¹|⁵⁴|⁵⁵|ⁿb|ⁿd|ⁿg|ⁿk|ⁿp|ⁿt|ⁿɟ|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|²|³|¹|æ|ð|ø|ħ|ŋ|œ|ƛ|ƫ|ǀ|ǁ|ǂ|ǃ|ȡ|ȴ|ȵ|ȶ|ɐ|ɑ|ɒ|ɓ|ɔ|ɕ|ɖ|ɗ|ɘ|ə|ɛ|ɜ|ɞ|ɟ|ɠ|ɢ|ɣ|ɤ|ɥ|ɦ|ɧ|ɨ|ɪ|ɫ|ɬ|ɭ|ɮ|ɯ|ɰ|ɱ|ɲ|ɳ|ɴ|ɵ|ɶ|ɸ|ɹ|ɺ|ɻ|ɽ|ɾ|ɿ|ʀ|ʁ|ʂ|ʃ|ʄ|ʅ|ʆ|ʈ|ʉ|ʊ|ʋ|ʌ|ʍ|ʎ|ʏ|ʐ|ʑ|ʒ|ʔ|ʕ|ʘ|ʙ|ʛ|ʜ|ʝ|ʟ|ʠ|ʡ|ʢ|ʣ|ʤ|ʥ|ʦ|ʧ|ʨ|ʮ|ʯ|β|θ|χ|ᴀ|ᶀ|ᶁ|ᶂ|ᶃ|ᶄ|ᶅ|ᶆ|ᶇ|ᶈ|ᶉ|ᶊ|ᶋ|ᶌ|ᶍ|ᶎ|ᶑ|⁰|⁴|⁵|ⱱ/
+;
+
+# Define a soundclass shorthand.
+sound_class =
+    recons:[r"*"]
+    sound_class:/[A-Z][A-Z0-9]*/
+    ;
