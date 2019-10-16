@@ -71,7 +71,7 @@ def parse_features(text):
 
 
 # NOTE: This function is used mostly by features2regex()
-def features2sounds(positive, negative, transsys=None):
+def features2sounds(positive, negative, transsys):
     """
     Returns a list of graphemes matching positive and negative features.
 
@@ -90,7 +90,7 @@ def features2sounds(positive, negative, transsys=None):
     negative : list
         A list of strings with the features for be excluded.
     transsys : TranscriptionSystem
-        The transcription system to be used, defaulting to BIPA.
+        The transcription system to be used.
 
     Returns
     -------
@@ -98,10 +98,6 @@ def features2sounds(positive, negative, transsys=None):
         A list of strings with all the graphemes matching the requested
         feature constraints.
     """
-
-    # Use the default transcription system, if none was provided
-    if not transsys:
-        transsys = _TRANSCRIPTION
 
     # Iterate over all sounds in the transcription system
     sounds = []
@@ -205,6 +201,13 @@ def apply_rule(seq, source, target, **kwargs):
     transsys = kwargs.get("transsys", _TRANSCRIPTION)
     sclasses = kwargs.get("sclasses", _SOUND_CLASSES)
     features = kwargs.get("features", _SOUND_FEATURES)
+
+    # Run replacements for our system
+    source = " %s " % " ".join(
+        ["(%s)" % tok if "(" not in tok else tok for tok in source.split()]
+    )
+
+    target = " %s " % target.replace("@", "\\")
 
     # Apply all class replacements according to the provided definitions.
     # NOTE: We need to replace in inverse length order to avoid partial

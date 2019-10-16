@@ -49,14 +49,16 @@ class TestSoundChange(unittest.TestCase):
         Test basic sound changes.
         """
 
-        assert (
-            alteruphono.apply_rule("b a b a", "b", "p")
-            == "p a p a"
-        )
-        assert (
-            alteruphono.apply_rule("b a b a", "t", "p")
-            == "b a b a"
-        )
+        assert alteruphono.apply_rule("b a b a", "b", "p") == "p a p a"
+        assert alteruphono.apply_rule("b a b a", "t", "p") == "b a b a"
+
+    def test_specific_changes(self):
+        # specific changes to trigger 100% coverage
+        assert alteruphono.apply_rule("t a d a", "C", "@1[+voiced]") == "d a d a"
+
+        assert alteruphono.apply_rule("ɲ a", "C", "@1[+fricative]") == "ʑ a"
+
+        assert alteruphono.apply_rule("t a", "C", "@1[+fricative]") == "s a"
 
     def test_random_change(self):
         rules = alteruphono.utils.read_sound_changes()
@@ -82,17 +84,17 @@ class TestSoundChange(unittest.TestCase):
             test_target_wb = "# %s #" % test_target
 
             # Process and assert
-            target = alteruphono.apply_rule(
-                test_source, rule["source"], rule["target"]
-            )
+            target = alteruphono.apply_rule(test_source, rule["source"], rule["target"])
             target_wb = alteruphono.apply_rule(
-                test_source_wb, rule["source"], rule["target"])
+                test_source_wb, rule["source"], rule["target"]
+            )
 
-            #LOGGER.debug("%s [%s] [%s]", rule_id, target, test_target)
-            #LOGGER.debug("%s", str(rule))
+            # LOGGER.debug("%s [%s] [%s]", rule_id, target, test_target)
+            # LOGGER.debug("%s", str(rule))
 
             assert target == test_target
             assert target_wb == test_target_wb
+
 
 if __name__ == "__main__":
     sys.exit(unittest.main())

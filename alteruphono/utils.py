@@ -107,18 +107,9 @@ def read_sound_changes(filename=None):
         reader = csv.DictReader(csvfile, delimiter="\t")
         rules = {}
         for row in reader:
-            source = " %s " % " ".join(
-                [
-                    "(%s)" % tok if "(" not in tok else tok
-                    for tok in row["source"].split()
-                ]
-            )
-
-            target = " %s " % row["target"].replace("@", "\\")
-
             rules[row["id"]] = {
-                "source": re.sub("\s+", " ", source),
-                "target": re.sub("\s+", " ", target),
+                "source": re.sub("\s+", " ", row["source"]),
+                "target": re.sub("\s+", " ", row["target"]),
                 "weight": float(row.get("weight", 1.0)),
                 "test": row["test"],
             }
