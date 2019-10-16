@@ -9,10 +9,6 @@ evolution.
 
 *Please remember that `alteruphono` is a work-in-progress.*
 
-In detail, with `alteruphono`:
-
-    * List
-
 ## Installation
 
 In any standard Python environment, `alteruphono` can be installed with:
@@ -31,6 +27,37 @@ Sound sequences are to be given in common
 as a single string with single space-separated graphemes. The library supports
 different transcription systems, defaulting BIPA as defined
 in [pyclts](https://pypi.org/project/pyclts/).
+
+Sound changes are defined by simplified regular expressions. Check
+the `resources/sounds_changes.tsv` for an example.
+
+A basic usage, drawing a random sound change from the default collection
+and applying it, is:
+
+```python
+import alteruphono
+
+rules = alteruphono.utils.read_sound_changes()
+random_rules = [alteruphono.utils.random_change(rules) for r in range(3)]
+for rule in random_rules:
+    source = rule["source"]
+    target = rule["target"]
+    test_case = rule["test"].split("/")[0].strip()
+
+    print("%s -> %s" % (source, target))
+    print("  [%s] [%s]" % (test_case, alteruphono.apply_rule(test_case, source, target)))
+```
+
+returning:
+
+```
+V N C -> @1[+nasalized] @3
+  [a b ts a r i m b s u] [a b ts a r ĩ b s u]
+e i -> a i
+  [d i a z e i l e n] [d i a z a i l e n]
+n k|g -> ŋ @2
+  [a k a n k m i k s] [a k a ŋ k m i k s]
+```
 
 ## TODO
 
@@ -58,10 +85,6 @@ In BibTex:
   year = {2019},
 }
 ```
-
-## References
-
-abc
 
 ## Author
 
