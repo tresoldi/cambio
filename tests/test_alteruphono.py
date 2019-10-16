@@ -42,7 +42,7 @@ class TestSoundChange(unittest.TestCase):
         alteruphono.utils.read_sound_classes()
 
         # Read feature definitions
-        alteruphono.utils.read_features()
+        alteruphono.utils.read_sound_features()
 
     def test_basic_change(self):
         """
@@ -50,11 +50,11 @@ class TestSoundChange(unittest.TestCase):
         """
 
         assert (
-            alteruphono.apply_rule("b a b a", {"source": "b", "target": "p"})
+            alteruphono.apply_rule("b a b a", "b", "p")
             == "p a p a"
         )
         assert (
-            alteruphono.apply_rule("b a b a", {"source": "t", "target": "p"})
+            alteruphono.apply_rule("b a b a", "t", "p")
             == "b a b a"
         )
 
@@ -67,19 +67,32 @@ class TestSoundChange(unittest.TestCase):
         Run the embedded test of all default changes.
         """
 
+        # The tests by default have no word borders, we tests both with and
+        # without borders (which are added automatically by apply_rule)
         rules = alteruphono.utils.read_sound_changes()
         for rule_id, rule in rules.items():
             test_source, test_target = rule["test"].split("/")
+
+            # Build normal source/target
             test_source = test_source.strip()
             test_target = test_target.strip()
 
-            target = alteruphono.apply_rule(
-                test_source, {"source": rule["source"], "target": rule["target"]}
-            )
-            # LOGGER.debug("%s [%s] [%s]", rule_id, target, test_target)
-            # LOGGER.debug("%s", str(rule))
-            assert target == test_target
+            # Build word-boundary source/target
+            test_source_wb = "# %s #" % test_source
+            test_target_wb = "# %s #" % test_target
 
+            # Process and assert
+            target = alteruphono.apply_rule(
+                test_source, rule["source"], rule["target"]
+            )
+            target_wb = alteruphono.apply_rule(
+                test_source_wb, rule["source"], rule["target"])
+
+            #LOGGER.debug("%s [%s] [%s]", rule_id, target, test_target)
+            #LOGGER.debug("%s", str(rule))
+
+            assert target == test_target
+            assert target_wb == test_target_wb
 
 if __name__ == "__main__":
     sys.exit(unittest.main())

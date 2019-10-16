@@ -14,8 +14,6 @@ from . import sound_changer
 # `zip_safe=False` to setup.py
 _RESOURCE_DIR = path.join(path.dirname(path.dirname(__file__)), "resources")
 
-# TODO: use logging
-
 
 def read_sound_classes(filename=None):
     """
@@ -49,8 +47,7 @@ def read_sound_classes(filename=None):
     return sound_classes
 
 
-# TODO: rename to sound features
-def read_features(filename=None):
+def read_sound_features(filename=None):
     """
     Read sound feature definitions.
 
@@ -78,19 +75,21 @@ def read_features(filename=None):
     return features
 
 
-# TODO: support for id?
-# TODO: document this format
-# TODO: add support to the PEG grammar format
 def read_sound_changes(filename=None):
     """
     Read sound changes.
+
+    Sound changes are stored in a TSV file holding a list of sound changes.
+    Mandatory fields are, besides a unique `id`,
+    `source`, `target` and `test`, according to the
+    simpler notation. A floating-point `weight` may also be specified
+    (defaulting to 1.0 for all rules, in case it is not specified).
 
     Parameters
     ----------
     filename : string
         Path to the TSV file holding the list of sound changes, defaulting
-        to the one provided by the library. Mandatory fields are `source` and
-        `target`.
+        to the one provided by the library.
 
     Returns
     -------
@@ -120,7 +119,7 @@ def read_sound_changes(filename=None):
             rules[row["id"]] = {
                 "source": re.sub("\s+", " ", source),
                 "target": re.sub("\s+", " ", target),
-                "weight": float(row["weight"]),
+                "weight": float(row.get("weight", 1.0)),
                 "test": row["test"],
             }
 
@@ -191,7 +190,6 @@ def random_choices(population, weights=None, cum_weights=None, k=1):
     return [population[lt.index(False)] for lt in less_than]
 
 
-# TODO: more than one? with replacement?
 def random_change(rules):
     # collect ids ands weights
     population = list(rules.keys())

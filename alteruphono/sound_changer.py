@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+"""
+Module implementing the main and basic regex sound changer.
+"""
+
 # Import Python libraries
 import re
 
@@ -16,7 +20,7 @@ _SOUND_CLASSES = None
 _SOUND_FEATURES = None
 _TRANSCRIPTION = TranscriptionSystem("bipa")
 
-# TODO: add support for partial match with our notation
+
 def parse_features(text):
     """
     Parse a list of feature constraints.
@@ -164,44 +168,57 @@ def features2regex(positive, negative, transsys=None):
     return re_or_string
 
 
-# TODO: have transsys, sclasses, and features in a single dict
-# TODO: deal with repeated spaces?
+# TODO: remove hard-coding of fixes, loading internal or external data
+def fix_descriptors(descriptors):
+    # fix inconsistencies and problems with pyclts descriptors
+
+    # Run manual fixes related to pyclts
+    if "palatal" in descriptors and "fricative" in descriptors:
+        # Fricative palatals are described as alveolo-palatal, so
+        # replace all of them
+        descriptors = [
+            feature if feature != "palatal" else "alveolo-palatal"
+            for feature in descriptors
+        ]
+
+    if "alveolo-palatal" in descriptors and "fricative" in descriptors:
+        descriptors.append("sibilant")
+
+    if "alveolar" in descriptors and "fricative" in descriptors:
+        descriptors.append("sibilant")
+
+    return descriptors
+
+
 # TODO: memoization
 # TODO: finish documentation
-# TODO: comment on borders in `seq`
-def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
+def apply_rule(seq, source, target, **kwargs):
     """
     Apply a regular expression rule to a sequence.
+
+    If sequence border tokens (`#`) are not found in `seq`, they will be
+    automatically added for the purpose of rule application. If they are found,
+    they are preserved.
     """
 
     # Use defaults, if not provided
-    if not transsys:
-        transsys = _TRANSCRIPTION
-    if not sclasses:
-        sclasses = _SOUND_CLASSES
-    if not features:
-        features = _SOUND_FEATURES
+    transsys = kwargs.get("transsys", _TRANSCRIPTION)
+    sclasses = kwargs.get("sclasses", _SOUND_CLASSES)
+    features = kwargs.get("features", _SOUND_FEATURES)
 
-    # Make a copy of the rule source and apply all class replacements
-    # according to the provided definitions.
+    # Apply all class replacements according to the provided definitions.
     # NOTE: We need to replace in inverse length order to avoid partial
     #       matching of class names (which can be longer than one character)
-    source = rule["source"]
     for sclass in sorted(sclasses, key=len, reverse=True):
         source = source.replace(sclass, sclasses[sclass])
 
-    # Add word borders if necessary, along with leading and trailing spaces
-    if "#" not in seq:
-        seq = " # %s # " % seq.strip()
-    else:
-        seq = " %s " % seq
+    # Add word borders in any case -- if they are already provided, we will
+    # just have two word borders. The ones we add are removed at the end.
+    seq = " # %s # " % (seq.strip())
 
     # Apply regular expression to sequence; leading and trailing spaces
     # are added to correct manipulation of boundaries
-    # TODO: add word borders if necessary
-    # TODO: add syllable boundaries if necessary/requested
-    # TODO: add support for custom function replacements
-    new_seq = re.sub(source, rule["target"], seq)
+    new_seq = re.sub(source, target, seq)
 
     # Process tokens one by one, consuming any feature manipulation
     processed_tokens = []
@@ -243,32 +260,17 @@ def apply_rule(seq, rule, transsys=None, sclasses=None, features=None):
             ]
             descriptors.append(op_feature)
 
-            # Run manual fixes related to pyclts
-            # TODO: move an independent function, possibly loading external data
-            if "palatal" in descriptors and "fricative" in descriptors:
-                # Fricative palatals are described as alveolo-palatal, so
-                # replace all of them
-                descriptors = [
-                    feature if feature != "palatal" else "alveolo-palatal"
-                    for feature in descriptors
-                ]
-
-            if "alveolo-palatal" in descriptors and "fricative" in descriptors:
-                descriptors.append("sibilant")
-
-            if "alveolar" in descriptors and "fricative" in descriptors:
-                descriptors.append("sibilant")
+            # Fix any problem in the descriptors
+            descriptors = fix_descriptors(descriptors)
 
             # Ask the transcription system for a new grapheme based in the
             # adapted description
-            new_sound = transsys[" ".join(descriptors)]
+            processed_tokens.append(transsys[" ".join(descriptors)].grapheme)
 
-            processed_tokens.append(new_sound.grapheme)
-
-    # Join, also removing borders
-    return " ".join([tok for tok in processed_tokens if tok != "#"])
+    # Join the processed tokens, removing the borders we added
+    return " ".join(processed_tokens)[2:-2].strip()
 
 
 # Load default sound classes and features, if not loaded by this time
 _SOUND_CLASSES = utils.read_sound_classes()
-_SOUND_FEATURES = utils.read_features()
+_SOUND_FEATURES = utils.read_sound_features()

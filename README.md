@@ -26,11 +26,19 @@ if necessary. Installation in virtual environments is recommended.
 
 ## How to use
 
-*give examples*
+Sound sequences are to be given in common
+[CLDF](https://cldf.clld.org/)/[LingPy](http://lingpy.org) notation, i.e.,
+as a single string with single space-separated graphemes. The library supports
+different transcription systems, defaulting BIPA as defined
+in [pyclts](https://pypi.org/project/pyclts/).
 
 ## TODO
 
-*add list*
+  - Use `logging` everywhere
+  - Implement automatic, semi-automatic, and requested syllabification
+    based on prosody strength
+  - Implement both PEG grammars from separate repository
+  - Add support for custom replacement functions (deciding on notation)
 
 ## How to cite
 
