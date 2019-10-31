@@ -8,7 +8,7 @@ Module implementing the main and basic regex sound changer.
 import re
 
 # Import 3rd party libraries
-from pyclts import TranscriptionSystem
+from pyclts import CLTS
 
 # Import from the namespace
 from . import utils
@@ -18,7 +18,7 @@ from . import utils
 # have been defined)
 _SOUND_CLASSES = None
 _SOUND_FEATURES = None
-_TRANSCRIPTION = TranscriptionSystem("bipa")
+_TRANSCRIPTION = CLTS().bipa
 
 
 def parse_features(text):
