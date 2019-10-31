@@ -1,0 +1,132 @@
+# Define a grammar for parsing sound change rules
+@@grammar::SOUND_CHANGE
+
+# We define the `start` symbol which includes the three basic elements of
+# a sound change: a `source` (mandatory), a `target` (mandatory), and a
+# `context` (optional). Sources and targets are separated by `arrow`
+# terminals, which are not captured; targets and contexts are separated
+# by `slash` terminals, also uncaptured.
+# We also match the end of string `$` to guarantee that nothing more is
+# included in the string; if the user wants to add additional material,
+# such as comments, it must be removed before the parsing.
+start =
+    | source:sequence arrow target:sequence slash context:sequence $
+    | source:sequence arrow target:sequence $
+    ;
+
+# A segment sequence is defined as a sequence of one or more segments. It
+# is implied that they are separated by a whitespace, and such we need no
+# positive gather.
+sequence = { segment }+ ;
+
+# Define a segment, which can be:
+#   - an IPA grapheme
+#   - a sound class shorthand
+#   - extra symbols such as word boundary, current position, and
+#     zero/null sound (please note that these are accepted in all
+#     sequences when parsing, including `source`, even though it makes
+#     no sense there; such verification should however be carried by
+#     the engine and not here by the parser, as it would make the
+#     grammar unnecessarily complicated)
+#   - a feature description, composed of a number of feature key/value
+#     pairs delimited by square brackets
+#   - a back-reference indicated by the at symbol ("@")
+#   - a list of alternatives delimited by curly brackets
+segment =
+    | boundary_symbol
+    | position_symbol
+    | null_symbol
+    | ipa
+    | sound_class
+    | feature_desc
+    | back_ref
+    | alternative
+    ;
+
+# Defines a feature description, composed of features separated by
+# commas. Please note that 竜 TatSu will capture this as a list if and
+# only if there is more than one item.
+feature_desc = recons:[r"*"] r"[" ",".{ feature_desc:feature }+ r"]" ;
+
+# Define a feature.
+# TODO: Currently only supporting equality as operand, needs to be
+#       updated when introducing support for numerical tiers.
+feature =
+    | value:feature_op key:feature_key
+    | key:feature_key "=" value:feature_value
+    | key:feature_key
+    ;
+
+# Defines a feature key symbol.
+# As features can change across experiments, including due to named tiers,
+# there is no point in listing the features; we will just accept any
+# valid identifier.
+feature_key = /[a-z][a-z0-9_]+/ ;
+
+# Define a feature value symbol.
+# For the time being, we are only accepting binarized values.
+feature_value =
+    | r"true"
+    | r"false"
+    ;
+
+# Define a feature operator symbol, which maps to values.
+feature_op =
+    | r"+"
+    | r"-"
+    | r"!" # diverse from
+    ;
+
+# Defines a back-reference, which can be
+#   - an index
+#   - an index plus a modifier
+back_ref =
+    | recons:[r"*"] "@" back_ref:/[0-9]+/ modifier:feature_desc
+    | recons:[r"*"] "@" back_ref:/[0-9]+/
+    ;
+
+# Defines a list of alternatives, composed of sequences separated by
+# commas. We don't have the problem of feature_desc here, of single items
+# not being captured as lists, as alternatives must by definition have more
+# than one item.
+alternative = r"{" ",".{ alternative:sequence }+ r"}" ;
+
+# Define terminals
+
+# Define "arrow" and "slash" symbols, used by `start` and not captured
+arrow = r">" | r"->" | r"-->" | r"=>" | r"==>" | r"→" | r"⇒" | r"⇢" | r"⇾" | r"»";
+slash = r"/" | r"//" ;
+
+# Define additional symbols; null symbol includes Danish ø letter
+boundary_symbol = boundary:r"#";
+position_symbol = position:r"_";
+null_symbol = null:(r"∅"|r"0"|r"ø"|r"Ø");
+
+# Define the IPA graphemes as an alternation.
+# Graphemes must be listed in inverse length order (longer to
+# shorter) in order to guarantee that those composed of two or more
+# characters will correctly be captured as such (especially in the
+# case of affricates, which will otherwise be captured as
+# plosive plus fricative).
+#
+# The alternation list can be generated from Python with the following code;
+# we sort both in inverse length and alphabetical order, as well as remove
+# some graphemes that are not suitable.
+#
+# [1]: from pyclts import TranscriptionSystem ; BIPA = TranscriptionSystem('bipa')
+# [2]: excludes = ['ǃǃ', '+', '_', '←', '→', '∼', '¯']
+# [3]: graphemes = [key for key in BIPA.sounds.keys() if key not in excludes]
+# [4]: graphemes.sort(key=lambda s:(-len(s), s))
+# [5]: print('    ipa:/%s/' % '|'.join(graphemes))
+#
+# TODO: move to a list of raw strings (i.e., no regular expression?)
+ipa =
+    recons:[r"*"]
+    ipa:$$IPA_REPLACE$$
+;
+
+# Define a soundclass shorthand.
+sound_class =
+    recons:[r"*"]
+    sound_class:/[A-Z][A-Z0-9]*/
+    ;
