@@ -6,6 +6,8 @@ import subprocess
 
 from pyclts import CLTS
 
+# TODO: implement commend removal
+
 # Cache the path of the compile script
 # TODO: replace in the future when this is part of the general deployment
 PEG_PATH = Path(__file__).parent.absolute()
