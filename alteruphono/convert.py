@@ -161,7 +161,10 @@ def ast2text(ast, debug):
 
         # Build return text with source and targe (context will be added later,
         # if available)
-        ret_text = (
+        if target == "no sound":
+            ret_text = "the source, composed of %s, is deleted" % source
+        else:
+            ret_text = (
             "the source, composed of %s, turns into the target, composed of %s"
             % (source, target)
         )
@@ -183,7 +186,7 @@ def ast2text(ast, debug):
 
             if preceding["sequence"] and following["sequence"]:
                 ret_text = (
-                    "%s, when it is preceded by %s and it is followed by %s"
+                    "%s, when preceding %s and following %s"
                     % (
                         ret_text,
                         ast2text(preceding, debug),
@@ -191,12 +194,12 @@ def ast2text(ast, debug):
                     )
                 )
             elif preceding["sequence"]:
-                ret_text = "%s, when it is preceded by %s" % (
+                ret_text = "%s, when preceding %s" % (
                     ret_text,
                     ast2text(preceding, debug),
                 )
             else:
-                ret_text = "%s, when it is followed by %s" % (
+                ret_text = "%s, when following by %s" % (
                     ret_text,
                     ast2text(following, debug),
                 )
