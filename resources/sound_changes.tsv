@@ -693,7 +693,7 @@ id	rule	source	target	weight	test
 692	ɔ -> u / _ V	ɔ V	u @2	1	œ r t ɔ ɤ ɣ / œ r t u ɤ ɣ
 693	ɔ k -> ɤ ɣ / _ #	ɔ k #	ɤ ɣ #	1	a ə ɔ̃ l ɔ k / a ə ɔ̃ l ɤ ɣ
 694	ɤ ɣ -> ɔ k / _ #	ɤ ɣ #	ɔ k #	1	œ r t ɔ ɤ ɣ / œ r t ɔ ɔ k
-695	ã -> a / _ l|lˠ	ɔ̃ l|lˠ	ɔ @2	1	ə ã l ɔ k / ə a l ɔ k
+695	ã -> a / _ l|lˠ	ã l|lˠ	a @2	1	ə ã l ɔ k / ə a l ɔ k
 696	ə -> a / V _ V	V ə V	@1 a @3	1	a ə ɔ̃ l ɔ k / a a ɔ̃ l ɔ k
 697	a -> ə / V _ V	V a V	@1 ə @3	1	o a ə s / o ə ə s
 698	ə -> a / _ #	ə #	a #	3	ɛ n ə i ə / ɛ n ə i a

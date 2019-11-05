@@ -145,7 +145,6 @@ null_symbol = null:(r"NULL"|r"∅"|r"0"|r"ø"|r"Ø");
 ipa =
     recons:[r"*"]
     ipa:(sound_class|boundary_symbol|$$IPA_REPLACE$$)
-#    ipa:$$ IPA_REPLACE $$
 ;
 
 ## Define a soundclass shorthand.
