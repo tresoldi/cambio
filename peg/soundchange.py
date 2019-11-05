@@ -111,14 +111,25 @@ class SOUND_CHANGEParser(Parser):
     @nomemo
     def _sequence_(self):  # noqa
 
-        def block0():
+        def block1():
             self._segment_()
-        self._positive_closure(block0)
+        self._positive_closure(block1)
+        self.name_last_node('sequence')
+        self.ast._define(
+            ['sequence'],
+            []
+        )
 
     @tatsumasu()
     @leftrec
     def _segment_(self):  # noqa
         with self._choice():
+            with self._option():
+                self._sound_class_()
+            with self._option():
+                self._boundary_symbol_()
+            with self._option():
+                self._ipa_()
             with self._option():
 
                 def sep0():
@@ -129,12 +140,6 @@ class SOUND_CHANGEParser(Parser):
                 self._positive_gather(block0, sep0)
             with self._option():
                 self._alternative_()
-            with self._option():
-                self._ipa_()
-            with self._option():
-                self._sound_class_()
-            with self._option():
-                self._boundary_symbol_()
             with self._option():
                 self._position_symbol_()
             with self._option():

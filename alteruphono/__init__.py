@@ -9,3 +9,4 @@ __email__ = "tresoldi@shh.mpg.de"
 from alteruphono.sound_changer import apply_rule
 from alteruphono import utils
 from alteruphono.grammar import SOUND_CHANGEParser as Parser
+from alteruphono import convert

@@ -25,7 +25,7 @@ start =
 ## A `(sound) sequence` is defined as a sequence of one or more segments. It
 ## is implied that they are separated by a whitespace, and such we need no
 ## positive collection.
-sequence = { segment }+ ;
+sequence = sequence:{ segment }+ ;
 
 ## Define a segment, which can be:
 ##   - an IPA grapheme
@@ -46,12 +46,14 @@ sequence = { segment }+ ;
 ## TODO: discuss the status of "mapper" (previously "alternative")
 ##
 ## NOTE: significant white-space is expressed by +
+## NOTE: as `sound_class` and `boundary_symbol` as part of `ipa`, they
+##       must be listed earlier (TODO: fix?)
 segment =
-    | "+".{ segment }+
-    | alternative
-    | ipa
     | sound_class
     | boundary_symbol
+    | ipa
+    | "+".{ segment }+
+    | alternative
     | position_symbol
     | null_symbol
     | feature_desc
