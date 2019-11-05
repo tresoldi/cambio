@@ -17,7 +17,7 @@
 ## included in the string; if the user wants to add additional material,
 ## such as comments, it must be removed before the parsing.
 ## TODO: Consider allowing single-line comments in future versions.
-rule =
+start =
     | source:sequence arrow target:sequence slash context:sequence $
     | source:sequence arrow target:sequence $
     ;
@@ -144,7 +144,7 @@ null_symbol = null:(r"NULL"|r"∅"|r"0"|r"ø"|r"Ø");
 ##        symbols)
 ipa =
     recons:[r"*"]
-    ipa:(sound_class|boundary_symbol|$$IPA_REPLACE$$)
+    ipa:(sound_class|boundary_symbol|"CLTS BIPA GRAPHEMES")
 #    ipa:$$ IPA_REPLACE $$
 ;
 

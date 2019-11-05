@@ -1031,11 +1031,11 @@ strict digraph {
 		pos="325.44,2574.9 334.93,2576.8 408.35,2591.5 451.94,2600.2"];
 	n121 -> n118	 [arrowhead=none,
 		pos="325.26,2574.6 338.82,2573.7 512.61,2561.9 585.66,2556.9"];
-	rule	 [height=0.5,
-		label=rule,
+	start	 [height=0.5,
+		label=start,
 		pos="109.59,2574.7",
 		shape=parallelogram,
-		width=1.0368];
-	rule -> n121	 [arrowhead=none,
-		pos="138.72,2574.7 193.64,2574.7 310.75,2574.7 321.61,2574.7"];
+		width=1.0944];
+	start -> n121	 [arrowhead=none,
+		pos="140.04,2574.7 194.61,2574.7 307.16,2574.7 321.01,2574.7"];
 }

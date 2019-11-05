@@ -59,6 +59,9 @@ def grammar2python():
     output_file = PEG_PATH / "soundchange.py"
     subprocess.run(["tatsu", "-o", output_file.as_posix(), input_file.as_posix()])
 
+    print("Copying parser")
+    dest_file = PEG_PATH.parent / "alteruphono" / "grammar.py"
+    subprocess.run(["cp", output_file.as_posix(), dest_file.as_posix()])
 
 def grammar2graph():
     """

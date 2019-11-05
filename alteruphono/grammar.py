@@ -82,7 +82,7 @@ class SOUND_CHANGEParser(Parser):
 
     @tatsumasu()
     @nomemo
-    def _rule_(self):  # noqa
+    def _start_(self):  # noqa
         with self._choice():
             with self._option():
                 self._sequence_()
@@ -378,7 +378,7 @@ class SOUND_CHANGEParser(Parser):
 
 
 class SOUND_CHANGESemantics(object):
-    def rule(self, ast):  # noqa
+    def start(self, ast):  # noqa
         return ast
 
     def sequence(self, ast):  # noqa
@@ -435,7 +435,7 @@ class SOUND_CHANGESemantics(object):
 
 def main(filename, start=None, **kwargs):
     if start is None:
-        start = 'rule'
+        start = 'start'
     if not filename or filename == '-':
         text = sys.stdin.read()
     else:
