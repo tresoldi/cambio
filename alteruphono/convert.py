@@ -51,9 +51,11 @@ def astseq2text(ast):
 
     return ret_text
 
+
 # TODO: add a debug flag propagating through calls
-def ast2text(ast):
-    print("---------", ast)
+def ast2text(ast, debug):
+    if debug:
+        print("---------", ast)
 
     def _recons_label(ast):
         if ast.get("recons"):
@@ -64,20 +66,29 @@ def ast2text(ast):
     if ast.get("ipa"):
         # If it is a primitive `ipa`, just return the character itself,
         # also checking if it is a reconstruction
-        ret_text = "the %ssound /%s/" % (_recons_label(ast), ast["ipa"])
+        ret_text = "the %ssound /%s/" % (_recons_label(ast), ast["ipa"]["ipa"])
 
     elif ast.get("sound_class"):
         # Sound classes also have a descriptor
         ret_text = "a %ssound of class %s (%s)" % (
             _recons_label(ast),
-            ast["sound_class"],
-            SOUND_CLASS[ast["sound_class"]],
+            ast["sound_class"]["sound_class"],
+            SOUND_CLASS[ast["sound_class"]["sound_class"]],
         )
+
+        # add information on the modifier, if provided
+        # TODO: same code as backref
+        if ast["modifier"]:
+            mod_text = " (changed into %s)" % ast2text(ast["modifier"])
+        else:
+            mod_text = ""
+
+        ret_text = "%s %s" % (ret_text, mod_text)
 
     elif ast.get("boundary"):
         ret_text = "a word boundary"
 
-    elif ast.get("null"):
+    elif ast.get("empty"):
         # NOTE: more complex syntax such as "is deleted" must be handler
         # at a higher level
         ret_text = "no sound"
@@ -101,13 +112,12 @@ def ast2text(ast):
             recons_label = ""
 
         # add information on the modifier, if provided
-        mod_text = ""
-#        if ast["modifier"]:
-#            mod_text = " (changed into %s)" % ast2text(ast["modifier"])
-#        else:
-#            mod_text = ""
+        if ast["modifier"]:
+            mod_text = " (changed into %s)" % ast2text(ast["modifier"])
+        else:
+            mod_text = ""
 
-        return "the %s%s matched sound%s" % (recons_label, label, mod_text)
+        ret_text = "the %s%s matched sound%s" % (recons_label, label, mod_text)
 
     elif ast.get("feature_desc"):
         descriptors = [
@@ -123,22 +133,34 @@ def ast2text(ast):
         # for example, it is a sequence of a single grapheme). As such, we
         # collect the textual description of each alternative as a sequence,
         # before joining the text and returning.
-        descriptors = [
-            ast2text(altern) for altern in ast["alternative"]
-        ]
+        # NOTE: working around what seems to be a problem in TatSu
+        if len(ast["alternative"]) == 1:
+            ret_text = ast2text(ast["alternative"][0], debug)
+        else:
+            descriptors = [
+                ast2text(altern, debug) for altern in ast["alternative"]
+            ]
 
-        # The texual representation of alternatives is separated by commas,
-        # but we add an "or" conjuction to the last item *even* when we
-        # only have two alterantives.
-        ret_text = "either %s, or %s" % (
-            ", ".join(descriptors[:-1]),
-            descriptors[-1],
-        )
+            # The texual representation of alternatives is separated by commas,
+            # but we add an "or" conjuction to the last item *even* when we
+            # only have two alterantives.
+            if len(descriptors) == 2:
+                ret_text = "either %s or %s" % (
+                    ", ".join(descriptors[:-1]),
+                    descriptors[-1],
+                )
+            else:
+                ret_text = "either %s, or %s" % (
+                    ", ".join(descriptors[:-1]),
+                    descriptors[-1],
+                )
 
     elif ast.get("sequence"):
         # If it is a `sequence`, collect the textual representation for all
         # segments
-        segment_texts = [ast2text(segment) for segment in ast["sequence"]]
+        segment_texts = [
+            ast2text(segment, debug) for segment in ast["sequence"]
+        ]
 
         # Join the segments in a single string
         if len(segment_texts) == 1:
@@ -156,8 +178,8 @@ def ast2text(ast):
         # symbol was passed. We expect and need at least a `source` and a
         # `target` symbols, which are sequences.
 
-        source = ast2text(ast["source"])
-        target = ast2text(ast["target"])
+        source = ast2text(ast["source"], debug)
+        target = ast2text(ast["target"], debug)
 
         # Build return text with source and targe (context will be added later,
         # if available)
@@ -182,16 +204,24 @@ def ast2text(ast):
             following = {"sequence": ast["context"]["sequence"][idx + 1 :]}
 
             if preceding["sequence"] and following["sequence"]:
-                context = "preceded by %s and followed by %s" % (
-                    ast2text(preceding),
-                    ast2text(following),
+                ret_text = (
+                    "%s, when it is preceded by %s and it is followed by %s"
+                    % (
+                        ret_text,
+                        ast2text(preceding, debug),
+                        ast2text(following, debug),
+                    )
                 )
             elif preceding["sequence"]:
-                context = "preceded by %s" % ast2text(preceding)
+                ret_text = "%s, when it is preceded by %s" % (
+                    ret_text,
+                    ast2text(preceding, debug),
+                )
             else:
-                context = "followed by %s" % ast2text(following)
-
-            ret_text = "%s, when %s" % (ret_text, context)
+                ret_text = "%s, when it is followed by %s" % (
+                    ret_text,
+                    ast2text(following, debug),
+                )
 
     # Single return point for the entire function
     return ret_text
@@ -374,65 +404,3 @@ def OLDast2text(ast, profile=None):
     # print("====", ast)
 
     return
-
-
-def test():
-    # First round of tests with data not as ASTs but dictionaries
-    TESTS = [
-        # Test ipa characters
-        [{"ipa": "p"}, "the sound /p/"],
-        [{"ipa": "ts"}, "the sound /ts/"],
-        # test sound classes
-        [{"sound_class": "H"}, "a sound of class H (laryngeal)"],
-        # test feature description with different numbers of features
-        [
-            {"feature_desc": [{"key": "voiced", "value": "true"}]},
-            "a voiced sound",
-        ],
-        [
-            {"feature_desc": [{"key": "voiced", "value": "false"}]},
-            "a not voiced sound",
-        ],
-        [
-            {
-                "feature_desc": [
-                    {"key": "voiced", "value": "true"},
-                    {"key": "plosive", "value": "false"},
-                ]
-            },
-            "a voiced, not plosive sound",
-        ],
-        # test alterantives with different numbers of alternatives
-        [
-            {"alternative": [[{"ipa": "p"}], [{"ipa": "b"}]]},
-            "either the sound /p/, or the sound /b/",
-        ],
-        [
-            {"alternative": [[{"ipa": "p"}], [{"ipa": "b"}], [{"ipa": "t"}]]},
-            "either the sound /p/, the sound /b/, or the sound /t/",
-        ],
-        # test back reference with and without modification
-        [{"back_ref": "2", "modifier": None}, "the second matched sound"],
-        [
-            {
-                "back_ref": "2",
-                "modifier": {"feature_desc": [{"key": "voiced", "value": "+"}]},
-            },
-            "the second matched sound (changed into a voiced sound)",
-        ],
-        # test extra symbols
-        [{"null": "0"}, "no sound"],
-        [{"position": "_"}, "the matching sequence"],
-        [{"boundary": "#"}, "a word boundary"],
-    ]
-
-    for test in TESTS:
-        ast, expected = test
-        result = ast2text(ast)
-
-        out = "%s -> '%s'... " % (str(ast), expected)
-        if expected == result:
-            out = "%s OK" % out
-        else:
-            out = "%s FAIL ('%s')" % (out, result)
-        print(out)
