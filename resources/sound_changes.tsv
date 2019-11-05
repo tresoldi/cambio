@@ -408,7 +408,7 @@ id	rule	source	target	weight	test
 407	n -> ɲ / i|ɪ _ V	i|ɪ n V	@1 ɲ @3	1	k i n aː k t / k i ɲ aː k t
 408	n -> ɲ / ɟ _	ɟ n	ɟ ɲ	1	i n m a ɟ n ɔ / i n m a ɟ ɲ ɔ
 409	n -> θ / _ m|ŋ	n m|ŋ	θ @2	1	i n m a ɟ n ɔ / i θ m a ɟ n ɔ
-410	n -> θ / ã|ẽ|õ	n ã|ẽ|õ	θ @2	1	ð ẽ n ã n / ð ẽ θ ã n
+410	n -> θ / _ ã|ẽ|õ	n ã|ẽ|õ	θ @2	1	ð ẽ n ã n / ð ẽ θ ã n
 411	o -> a / _ C a	o C a	a @2 a	2	o k a v o u / a k a v o u
 412	o -> a / _ u	o u	a u	1	o k a v o u / o k a v a u
 413	o -> e / _ #	o #	e #	1	i m l i m k o / i m l i m k e
