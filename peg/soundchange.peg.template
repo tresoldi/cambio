@@ -49,11 +49,11 @@ sequence = sequence:{ segment }+ ;
 ## NOTE: as `sound_class` and `boundary_symbol` as part of `ipa`, they
 ##       must be listed earlier (TODO: fix?)
 segment =
+    | alternative
     | sound_class
     | boundary_symbol
     | ipa
     | "+".{ segment }+
-    | alternative
     | position_symbol
     | null_symbol
     | feature_desc
@@ -117,7 +117,9 @@ mapper = r"{" ",".{ mapper:sequence }+ r"}" ;
 ## Defines an alternative
 ## TODO: currently only supporting IPA
 ## TODO: add parentheses support
-alternative = alternative:"|".{ ipa }+ ; 
+## TODO: move boundaries here, instead of in `ipa`
+## TODO: support plus sign for segmentation boundary
+alternative = alternative:"|".{ ipa }+ ;
 
 ## Define terminals
 
@@ -129,7 +131,7 @@ slash = r"/" | r"//" ;
 ## TODO: NULL would be a valid sound class name...
 boundary_symbol = boundary:r"#";
 position_symbol = position:r"_";
-null_symbol = null:(r"NULL"|r"∅"|r"0"|r"ø"|r"Ø");
+null_symbol = null:(r":NULL:"|r"∅"|r"0"|r"ø"|r"Ø");
 
 ## Define the IPA graphemes as an alternation.
 ## Graphemes must be listed in inverse length order (longer to
@@ -151,6 +153,6 @@ ipa =
 
 ## Define a soundclass shorthand.
 sound_class =
-    recons:[r"*"]
-    sound_class:/[A-Z][A-Z0-9]*/
+    | recons:[r"*"] sound_class:/[A-Z][A-Z0-9]*/ modifier:feature_desc
+    | recons:[r"*"] sound_class:/[A-Z][A-Z0-9]*/
     ;

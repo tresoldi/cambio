@@ -68,7 +68,7 @@ class TestParser(unittest.TestCase):
         self.parser.parse("_", rule_name="position_symbol")
 
     def test_null_symbol(self):
-        self.parser.parse("NULL", rule_name="null_symbol")
+        self.parser.parse(":NULL:", rule_name="null_symbol")
         self.parser.parse("0", rule_name="null_symbol")
 
     def test_arrow(self):
@@ -117,7 +117,7 @@ class TestParser(unittest.TestCase):
         self.parser.parse("t", rule_name="segment")
         self.parser.parse("#", rule_name="segment")
         self.parser.parse("_", rule_name="segment")
-        self.parser.parse("NULL", rule_name="segment")
+        self.parser.parse(":NULL:", rule_name="segment")
         self.parser.parse("[+high,-rounded]", rule_name="segment")
         self.parser.parse("@1", rule_name="segment")
         self.parser.parse("{t,s}", rule_name="segment")

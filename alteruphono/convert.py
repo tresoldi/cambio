@@ -51,7 +51,7 @@ def astseq2text(ast):
 
     return ret_text
 
-
+# TODO: add a debug flag propagating through calls
 def ast2text(ast):
     print("---------", ast)
 
@@ -77,6 +77,38 @@ def ast2text(ast):
     elif ast.get("boundary"):
         ret_text = "a word boundary"
 
+    elif ast.get("null"):
+        # NOTE: more complex syntax such as "is deleted" must be handler
+        # at a higher level
+        ret_text = "no sound"
+
+    elif ast.get("back_ref"):
+        # get text from the index
+        idx = ast["back_ref"]
+        if idx == "1":
+            label = "first"
+        elif idx == "2":
+            label = "second"
+        elif idx == "3":
+            label = "third"
+        else:
+            label = "%sth" % idx
+
+        # add information on reconstruction
+        if ast.get("recons", None):
+            recons_label = "reconstructed "
+        else:
+            recons_label = ""
+
+        # add information on the modifier, if provided
+        mod_text = ""
+#        if ast["modifier"]:
+#            mod_text = " (changed into %s)" % ast2text(ast["modifier"])
+#        else:
+#            mod_text = ""
+
+        return "the %s%s matched sound%s" % (recons_label, label, mod_text)
+
     elif ast.get("feature_desc"):
         descriptors = [
             "not %s" % f["key"] if f["value"] in ["false", "-"] else f["key"]
@@ -85,6 +117,23 @@ def ast2text(ast):
 
         # Compile and return the textual representation of descriptors
         return "a %s%s sound" % (_recons_label(ast), ", ".join(descriptors))
+
+    elif ast.get("alternative"):
+        # Alternatives always hold sequences (even if it is a single grapheme,
+        # for example, it is a sequence of a single grapheme). As such, we
+        # collect the textual description of each alternative as a sequence,
+        # before joining the text and returning.
+        descriptors = [
+            ast2text(altern) for altern in ast["alternative"]
+        ]
+
+        # The texual representation of alternatives is separated by commas,
+        # but we add an "or" conjuction to the last item *even* when we
+        # only have two alterantives.
+        ret_text = "either %s, or %s" % (
+            ", ".join(descriptors[:-1]),
+            descriptors[-1],
+        )
 
     elif ast.get("sequence"):
         # If it is a `sequence`, collect the textual representation for all

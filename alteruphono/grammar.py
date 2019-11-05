@@ -125,6 +125,8 @@ class SOUND_CHANGEParser(Parser):
     def _segment_(self):  # noqa
         with self._choice():
             with self._option():
+                self._alternative_()
+            with self._option():
                 self._sound_class_()
             with self._option():
                 self._boundary_symbol_()
@@ -138,8 +140,6 @@ class SOUND_CHANGEParser(Parser):
                 def block0():
                     self._segment_()
                 self._positive_gather(block0, sep0)
-            with self._option():
-                self._alternative_()
             with self._option():
                 self._position_symbol_()
             with self._option():
@@ -333,7 +333,7 @@ class SOUND_CHANGEParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._token('NULL')
+                    self._token(':NULL:')
                 with self._option():
                     self._token('∅')
                 with self._option():
@@ -371,13 +371,24 @@ class SOUND_CHANGEParser(Parser):
 
     @tatsumasu()
     def _sound_class_(self):  # noqa
-        with self._optional():
-            self._token('*')
-        self.name_last_node('recons')
-        self._pattern('[A-Z][A-Z0-9]*')
-        self.name_last_node('sound_class')
+        with self._choice():
+            with self._option():
+                with self._optional():
+                    self._token('*')
+                self.name_last_node('recons')
+                self._pattern('[A-Z][A-Z0-9]*')
+                self.name_last_node('sound_class')
+                self._feature_desc_()
+                self.name_last_node('modifier')
+            with self._option():
+                with self._optional():
+                    self._token('*')
+                self.name_last_node('recons')
+                self._pattern('[A-Z][A-Z0-9]*')
+                self.name_last_node('sound_class')
+            self._error('no available options')
         self.ast._define(
-            ['recons', 'sound_class'],
+            ['modifier', 'recons', 'sound_class'],
             []
         )
 
