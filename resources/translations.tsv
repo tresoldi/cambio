@@ -21,22 +21,22 @@ the source, composed of {1}, turns into the target, composed of {2}	a fonte, com
 {1}, when preceded by {2} and followed by {3}	{1}, quando precedida por {2} e quando seguida por {3}
 {1}, when preceded by {2}	{1}, quendo precedida por {2}
 {1}, when followed by {2}	{1}, quando seguida por {2}
-affricate	africada
+affricate consonant	consoante africada
 back vowel	vogal posterior
 consonant	consoante
-voiced plosive	plosiva sonora
+voiced consonant	consoante sonora
 front vowel	vogal anterior
-fricative	fricativa
-laryngeal	laringeal
-approximant	aproximante
-velar	velar
-liquid	líquida
+fricative consonant	consoante fricativa
+glottal consonant	consoante glotal
+velar consonant	consoante velar
+lateral consonant	consoante lateral
 nasal consonant	consoante nasal
-obstruent	obstruente
-bilabial/labial	bilabial/labial
-click	clique
-resonant (sonorant)	ressonante
-plosive	plosiva
+bilabial consonant	consoante bilabial
+uvular consonant	consoante uvular
+resonant	ressonante
+plosive consonant	consoante plosiva
+voiced plosive	plosiva sonora
 voiceless plosive	plosiva surda
 vowel	vogal
-continuant	continuante
+nasal vowel	vogal nasal
+long vowel	vogal longa

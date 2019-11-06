@@ -1,20 +1,20 @@
-sound_class	features
-A	affricate
-B	vowel,back
-C	consonant
-C[+voiced]	consonant,voiced
-E	vowel,front
-F	fricative
-H	glottal
-K	velar
-L	lateral
-N	consonant,nasal
-P	bilabial
-Q	uvular
-R	consonant,-stop
-S	stop
-S[+voiced]	stop,voiced
-S[+voiceless]	stop,voiceless
-V	vowel
-V[+nasal]	vowel,nasalized
-V[+long]	vowel,long
+sound_class	description	features
+A	affricate consonant	affricate
+B	back vowel	vowel,back
+C	consonant	consonant
+C[+voiced]	voiced consonant	consonant,voiced
+E	front vowel	vowel,front
+F	fricative consonant	fricative
+H	glottal consonant	glottal
+K	velar consonant	velar
+L	lateral consonant	lateral
+N	nasal consonant	consonant,nasal
+P	bilabial consonant	bilabial
+Q	uvular consonant	uvular
+R	resonant	consonant,-stop
+S	plosive consonant	stop
+S[+voiced]	voiced plosive	stop,voiced
+S[+voiceless]	voiceless plosive	stop,voiceless
+V	vowel	vowel
+V[+nasal]	nasal vowel	vowel,nasalized
+V[+long]	long vowel	vowel,long
