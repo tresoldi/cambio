@@ -1,47 +1,72 @@
-import pprint
-import re
-import json
-from os import path
-import csv
-from collections import defaultdict
+# encoding: utf-8
 
-# alteruphono stuff
+"""
+Defines class for representing an AST with natural language.
+"""
+
+# Import Python libraries
+from collections import defaultdict
+import csv
+import re
+
+# Import `alteruphono` modules
 from . import compiler
 from . import utils
 
 
-class Translate(compiler.Compiler):
-    def __init__(self, sound_classes, lang, debug=False, **kwargs):
-        self.sound_classes = sound_classes
-        self.lang = lang
-        self.debug = debug
+def clean(text):
+    """
+    Cleans text, basically removing superflous spaces.
+    """
 
-        # load the default translations and replacements
-        transfile = kwargs.get(
-            "transfile", path.join(utils._RESOURCE_DIR, "translations.tsv")
-        )
-        replfile = kwargs.get(
-            "replfile",
-            path.join(utils._RESOURCE_DIR, "translation_replacements.tsv"),
-        )
+    return re.sub(r"\s+", " ", text).strip()
+
+
+class Translate(compiler.Compiler):
+    """
+    Compiler for representing an AST with natural language.
+
+    The class includes an essential implementation of `gettext`, loading
+    translations and replacements from the `resources/` dir, allowing
+    for easier expansion.
+    """
+
+    def __init__(self, sound_classes, debug=False, **kwargs):
+        """
+        Entry point for the `Translate` class.
+        """
+
+        # Call super()
+        super().__init__(debug)
+
+        # Load and set properties, defaulting language to English
+        self.sound_classes = sound_classes
+        self.lang = kwargs.get("lang", "en")
+
+        # Load translation data
+        transfile = utils.RESOURCE_DIR / "translations.tsv"
+        replfile = utils.RESOURCE_DIR / "translation_replacements.tsv"
 
         self._gettext = {}
-        with open(transfile) as csvfile:
+        with open(transfile.as_posix()) as csvfile:
             reader = csv.DictReader(csvfile, delimiter="\t")
             for row in reader:
                 ref = row.pop("ref")
                 self._gettext[ref] = row
 
         self._replacements = defaultdict(list)
-        with open(replfile) as csvfile:
+        with open(replfile.as_posix()) as csvfile:
             reader = csv.DictReader(csvfile, delimiter="\t")
             for row in reader:
                 self._replacements[row["language"]].append(
                     [row["source"], row["target"]]
                 )
 
-    # Translations
     def _t(self, text, *args):
+        """
+        Custom and essential implementation of a `gettext` clone.
+        """
+
         # Get translation and make argument replacement in the correct order
         translation = self._gettext[text].get(self.lang, text)
         for idx, arg in enumerate(args):
@@ -52,16 +77,21 @@ class Translate(compiler.Compiler):
     # "Local" methods
 
     def _compile_modifier(self, ast):
+        """
+        Compile a modifier; note that this is not part of `Compiler`.
+        """
+
         return self.compile(ast["modifier"])
 
     def _recons_label(self, ast):
+        """
+        Compile a "reconstrution" label, if any.
+        """
+
         if ast.get("recons"):
             return self._t("reconstructed")
 
         return ""
-
-    def _clean(self, text):
-        return re.sub("\s+", " ", text).strip()
 
     # Overriden methods
 
@@ -70,11 +100,9 @@ class Translate(compiler.Compiler):
             "the {1} sound /{2}/", self._recons_label(ast), ast["ipa"]["ipa"]
         )
 
-        return self._clean(ret_text)
+        return clean(ret_text)
 
     def compile_sound_class(self, ast):
-        # TODO: use resource sound classes, possibly passed as argument
-        # TODO: language specific sound class
         sound_class = ast["sound_class"]["sound_class"]
 
         ret_text = self._t(
@@ -89,7 +117,7 @@ class Translate(compiler.Compiler):
                 "{1} (changed into {2})", ret_text, self._compile_modifier(ast)
             )
 
-        return self._clean(ret_text)
+        return clean(ret_text)
 
     def compile_boundary(self, ast):
         return self._t("a word boundary")
@@ -118,7 +146,7 @@ class Translate(compiler.Compiler):
                 "{1} (changed into {2})", ret_text, self._compile_modifier(ast)
             )
 
-        return self._clean(ret_text)
+        return clean(ret_text)
 
     def compile_feature_desc(self, ast):
         descriptors = [
@@ -129,9 +157,8 @@ class Translate(compiler.Compiler):
         ]
 
         # Compile and return the textual representation of descriptors
-        return "a {1} {2} sound" % (
-            self._recons_label(ast),
-            ", ".join(descriptors),
+        return self._t(
+            "a {1} {2} sound", self._recons_label(ast), ", ".join(descriptors)
         )
 
     def compile_alternative(self, ast):
@@ -196,7 +223,8 @@ class Translate(compiler.Compiler):
             preceding = {"sequence": ast["context"]["sequence"][:idx]}
             following = {"sequence": ast["context"]["sequence"][idx + 1 :]}
 
-            # TODO: call sequence directly?
+            # We could call the `.compile_sequence` directly, but it is
+            # better to keep the logic of a single place handling everything.
             if preceding["sequence"]:
                 preceding_text = self.compile(preceding)
             if following["sequence"]:
@@ -206,7 +234,6 @@ class Translate(compiler.Compiler):
 
     def compile_start(self, ast):
         # Collect `source` and `target` representations
-        # TODO: call directly sequence?
         source = self.compile(ast["source"])
         target = self.compile(ast["target"])
 

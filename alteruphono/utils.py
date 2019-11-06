@@ -1,9 +1,13 @@
 # encoding: utf-8
 
+"""
+Defines auxiliary functions, structures, and data for the library.
+"""
+
 # Standard imports
 import csv
 import itertools
-from os import path
+from pathlib import Path
 import random
 import re
 
@@ -14,7 +18,7 @@ _TRANSCRIPTION = CLTS().bipa
 
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py
-_RESOURCE_DIR = path.join(path.dirname(path.dirname(__file__)), "resources")
+RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 
 def parse_features(text):
@@ -162,7 +166,9 @@ def features2regex(positive, negative, transsys=None):
 
 # TODO: remove hard-coding of fixes, loading internal or external data
 def fix_descriptors(descriptors):
-    # fix inconsistencies and problems with pyclts descriptors
+    """
+    Fix inconsistencies and problems with pyclts descriptors.
+    """
 
     # Run manual fixes related to pyclts
     if "palatal" in descriptors and "fricative" in descriptors:
@@ -200,7 +206,8 @@ def read_sound_classes(filename=None):
     """
 
     if not filename:
-        filename = path.join(_RESOURCE_DIR, "sound_classes.tsv")
+        filename = RESOURCE_DIR / "sound_classes.tsv"
+        filename = filename.as_posix()
 
     with open(filename) as tsvfile:
         reader = csv.DictReader(tsvfile, delimiter="\t")
@@ -234,7 +241,8 @@ def read_sound_features(filename=None):
     """
 
     if not filename:
-        filename = path.join(_RESOURCE_DIR, "features_bipa.tsv")
+        filename = RESOURCE_DIR / "features_bipa.tsv"
+        filename = filename.as_posix()
 
     with open(filename) as tsvfile:
         reader = csv.DictReader(tsvfile, delimiter="\t")
@@ -266,7 +274,8 @@ def read_sound_changes(filename=None):
     """
 
     if not filename:
-        filename = path.join(_RESOURCE_DIR, "sound_changes.tsv")
+        filename = RESOURCE_DIR / "sound_changes.tsv"
+        filename = filename.as_posix()
 
     # Read the raw notation adding leading and trailing spaces to source
     # and target, as well as adding capturing parentheses to source (if
@@ -276,8 +285,8 @@ def read_sound_changes(filename=None):
         rules = {}
         for row in reader:
             rules[row["id"]] = {
-                "source": re.sub("\s+", " ", row["source"]),
-                "target": re.sub("\s+", " ", row["target"]),
+                "source": re.sub(r"\s+", " ", row["source"]),
+                "target": re.sub(r"\s+", " ", row["target"]),
                 "weight": float(row.get("weight", 1.0)),
                 "test": row["test"],
             }
@@ -326,7 +335,7 @@ def random_choices(population, weights=None, cum_weights=None, k=1):
 
     # Assert that (1) the population is not empty, (2) only one type of
     # weight information is provided.
-    assert len(population) > 0, "Population must not be empty."
+    assert population, "Population must not be empty."
     assert not all(
         (weights, cum_weights)
     ), "Either only weights or only cumulative weights must be provided."
@@ -349,7 +358,11 @@ def random_choices(population, weights=None, cum_weights=None, k=1):
     return [population[lt.index(False)] for lt in less_than]
 
 
+# TODO: remove when not needed for R&D
 def random_change(rules):
+    """
+    Applies random changes to a list of rules.
+    """
     # collect ids ands weights
     population = list(rules.keys())
     weights = [rule["weight"] for rule in rules.values()]

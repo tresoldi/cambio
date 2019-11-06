@@ -36,6 +36,7 @@ def main():
             [
                 alteruphono.apply_rule(word, rule, bipa, sclasses, features)
                 for word in vocab
+                # from alteruphono.sound_changer import apply_rule
             ]
         )
 

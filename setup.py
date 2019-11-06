@@ -11,7 +11,7 @@ README_FILE = (LOCAL_PATH / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="alteruphono",
-    version="0.0.1dev",
+    version="0.2",
     description="Library for dealing with sound changes",
     long_description=README_FILE,
     long_description_content_type="text/markdown",
