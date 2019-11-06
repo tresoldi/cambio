@@ -1,10 +1,14 @@
 import pprint
 import re
 import json
+from os import path
+import csv
 
 # import tatsu
 # import soundchange as grammar
 
+# alteruphono stuff
+from . import utils
 
 class Compiler:
     def __init__(self, debug=False):
@@ -77,54 +81,26 @@ class Compiler:
 
 
 class Translate(Compiler):
-    def __init__(self, sound_classes, lang, debug=False):
+    def __init__(self, sound_classes, lang, debug=False, transfile=None):
         self.sound_classes = sound_classes
         self.lang = lang
         self.debug = debug
 
+        # load the default translations
+        if not transfile:
+            transfile = path.join(utils._RESOURCE_DIR, "translations.tsv")
+
+        self._gettext = {}
+        with open(transfile) as csvfile:
+            reader = csv.DictReader(csvfile, delimiter="\t")
+            for row in reader:
+                ref = row.pop("ref")
+                self._gettext[ref] = row
+
     # Translations
     def _t(self, text, *args):
-        # TODO: call global; use debug
-
-        d = {
-            "reconstructed": {"pt": "reconstruído"},
-            "the {1} sound /{2}/": {"pt": "o som /{2}/ {1}"},
-            "some {1} sound of class {2} ({3})": {
-                "pt": "algum som {1} da classe {2} ({3})"
-            },
-            "{1} changed into {2}": {"pt": "{1} mudado para {2}"},
-            "a word boundary": {"pt": "um delimitado de palavra"},
-            "no sound": {"pt": "nenhum som"},
-            "first": {"pt": "primeiro"},
-            "second": {"pt": "segundo"},
-            "third": {"pt": "terceiro"},
-            "the {1} {2} matched sound": {"pt": "o {2} som {1} correspondente"},
-            "the {1} matched sound of number {2}": {
-                "pt": "o som {1} correspondente de número {2}"
-            },
-            "not {1}": {"pt": "não {1}"},
-            "a {1} {2} sound": {"pt": "um som {1} {2}"},
-            "either {1} or {2}": {"pt": "que seja {1} ou {2}"},
-            "either {1}, or {2}": {"pt": "que seja {1}, ou {2}"},
-            "{1} followed by {2}": {"pt": "{1} seguido por {2}"},
-            ", followed by ": {"pt": "seguido por "},
-            "the source, composed of {1}, is deleted": {
-                "pt": "a fonte, composta por {1}, é apagada"
-            },
-            "the source, composed of {1}, turns into the target, composed of {2}": {
-                "pt": "a fonte, composta por {1}, torna-se a meta, composta por {2}"
-            },
-            "{1}, when preceded by {2} and followed by {3}": {
-                "pt": "{1}, quando precedido por {2} e seguido por {3}"
-            },
-            "{1}, when preceded by {2}": {
-                "pt": "{1}, quendo precedido por {2}"
-            },
-            "{1}, when followed by {2}": {"pt": "{1}, quando seguido por {2}"},
-        }
-
         # Get translation and make argument replacement in the correct order
-        translation = d[text].get(self.lang, text)
+        translation = self._gettext[text].get(self.lang, text)
         for idx, arg in enumerate(args):
             translation = translation.replace("{%i}" % (idx + 1), arg)
 
