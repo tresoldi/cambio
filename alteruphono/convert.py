@@ -6,7 +6,6 @@ import json
 # import soundchange as grammar
 
 
-
 class Compiler:
     def __init__(self, debug=False):
         self.debug = debug
@@ -76,10 +75,60 @@ class Compiler:
 
 #################
 
-class English(Compiler):
-    def __init__(self, sound_classes, debug=False):
+
+class Translate(Compiler):
+    def __init__(self, sound_classes, lang, debug=False):
         self.sound_classes = sound_classes
+        self.lang = lang
         self.debug = debug
+
+    # Translations
+    def _t(self, text, *args):
+        # TODO: call global; use debug
+
+        d = {
+            "reconstructed": {"pt": "reconstruído"},
+            "the {1} sound /{2}/": {"pt": "o som /{2}/ {1}"},
+            "some {1} sound of class {2} ({3})": {
+                "pt": "algum som {1} da classe {2} ({3})"
+            },
+            "{1} changed into {2}": {"pt": "{1} mudado para {2}"},
+            "a word boundary": {"pt": "um delimitado de palavra"},
+            "no sound": {"pt": "nenhum som"},
+            "first": {"pt": "primeiro"},
+            "second": {"pt": "segundo"},
+            "third": {"pt": "terceiro"},
+            "the {1} {2} matched sound": {"pt": "o {2} som {1} correspondente"},
+            "the {1} matched sound of number {2}": {
+                "pt": "o som {1} correspondente de número {2}"
+            },
+            "not {1}": {"pt": "não {1}"},
+            "a {1} {2} sound": {"pt": "um som {1} {2}"},
+            "either {1} or {2}": {"pt": "que seja {1} ou {2}"},
+            "either {1}, or {2}": {"pt": "que seja {1}, ou {2}"},
+            "{1} followed by {2}": {"pt": "{1} seguido por {2}"},
+            ", followed by ": {"pt": "seguido por "},
+            "the source, composed of {1}, is deleted": {
+                "pt": "a fonte, composta por {1}, é apagada"
+            },
+            "the source, composed of {1}, turns into the target, composed of {2}": {
+                "pt": "a fonte, composta por {1}, torna-se a meta, composta por {2}"
+            },
+            "{1}, when preceded by {2} and followed by {3}": {
+                "pt": "{1}, quando precedido por {2} e seguido por {3}"
+            },
+            "{1}, when preceded by {2}": {
+                "pt": "{1}, quendo precedido por {2}"
+            },
+            "{1}, when followed by {2}": {"pt": "{1}, quando seguido por {2}"},
+        }
+
+        # Get translation and make argument replacement in the correct order
+        translation = d[text].get(self.lang, text)
+        for idx, arg in enumerate(args):
+            translation = translation.replace("{%i}" % (idx + 1), arg)
+
+        return translation
 
     # "Local" methods
 
@@ -88,69 +137,83 @@ class English(Compiler):
 
     def _recons_label(self, ast):
         if ast.get("recons"):
-            return "reconstructed"
+            return self._t("reconstructed")
 
         return ""
 
     def _clean(self, text):
-        return re.sub("\s+", " ", text)
+        return re.sub("\s+", " ", text).strip()
 
     # Overriden methods
 
     def compile_ipa(self, ast):
-        return self._clean(
-            "the %s sound /%s/" % (self._recons_label(ast), ast["ipa"]["ipa"])
+        ret_text = self._t(
+            "the {1} sound /{2}/", self._recons_label(ast), ast["ipa"]["ipa"]
         )
+
+        return self._clean(ret_text)
 
     def compile_sound_class(self, ast):
         # TODO: use resource sound classes, possibly passed as argument
-
+        # TODO: language specific sound class
         sound_class = ast["sound_class"]["sound_class"]
 
-        ret_text = "some %s sound of class %s (%s)" % (
+        ret_text = self._t(
+            "some {1} sound of class {2} ({3})",
             self._recons_label(ast),
             sound_class,
             self.sound_classes[sound_class],
         )
 
         if ast.get("modifier"):
-            ret_text = "%s changed into %s" % self._compile_modifier(ast)
+            ret_text = self._t(
+                "{1} (changed into {2})", ret_text, self._compile_modifier(ast)
+            )
 
         return self._clean(ret_text)
 
     def compile_boundary(self, ast):
-        return "a word boundary"
+        return self._t("a word boundary")
 
     def compile_empty(self, ast):
-        return "no sound"
+        return self._t("no sound")
 
     def compile_back_ref(self, ast):
-        # Build text from index (note that it is captured as strings)
-        idx = ast["back_ref"]
-        if idx == "1":
-            idx_label = "first"
-        elif idx == "2":
-            idx_label = "second"
-        elif idx == "3":
-            idx_label = "third"
+        # Using different strings for orders less or equal to three
+        idx = int(ast["back_ref"])
+        if idx <= 3:
+            ret_text = self._t(
+                "the {1} {2} matched sound",
+                self._recons_label(ast),
+                self._t(["first", "second", "third"][idx - 1]),
+            )
         else:
-            idx_label = "%sth" % idx
-
-        ret_text = "the %s %s matched sound" % (self._recons_label(ast), idx_label)
+            ret_text = self._t(
+                "the {1} matched sound of number {2}",
+                self._recons_label,
+                ast["back_ref"],
+            )
 
         if ast.get("modifier"):
-            ret_text = "%s changed into %s" % self._compile_modifier(ast)
+            ret_text = self._t(
+                "{1} (changed into {2})", ret_text, self._compile_modifier(ast)
+            )
 
         return self._clean(ret_text)
 
     def compile_feature_desc(self, ast):
         descriptors = [
-            "not %s" % f["key"] if f["value"] in ["false", "-"] else f["key"]
+            self._t("not {1}", f["key"])
+            if f["value"] in ["false", "-"]
+            else f["key"]
             for f in ast["feature_desc"]
         ]
 
         # Compile and return the textual representation of descriptors
-        return "a %s %s sound" % (self._recons_label(ast), ", ".join(descriptors))
+        return "a {1} {2} sound" % (
+            self._recons_label(ast),
+            ", ".join(descriptors),
+        )
 
     def compile_alternative(self, ast):
         # Alternatives always hold sequences (even if it is a single grapheme,
@@ -169,12 +232,14 @@ class English(Compiler):
             # but we add an "or" conjuction to the last item *even* when we
             # only have two alterantives.
             if len(descriptors) == 2:
-                ret_text = "either %s or %s" % (
+                ret_text = self._t(
+                    "either {1} or {2}",
                     ", ".join(descriptors[:-1]),
                     descriptors[-1],
                 )
             else:
-                ret_text = "either %s, or %s" % (
+                ret_text = self._t(
+                    "either {1}, or {2}",
                     ", ".join(descriptors[:-1]),
                     descriptors[-1],
                 )
@@ -188,12 +253,11 @@ class English(Compiler):
         if len(segment_texts) == 1:
             ret_text = segment_texts[0]
         elif len(segment_texts) == 2:
-            ret_text = "%s followed by %s" % (
-                segment_texts[0],
-                segment_texts[1],
+            ret_text = self._t(
+                "{1} followed by {2}", segment_texts[0], segment_texts[1]
             )
         else:
-            ret_text = ", followed by ".join(segment_texts)
+            ret_text = self._t(", followed by ").join(segment_texts)
 
         return ret_text
 
@@ -229,26 +293,30 @@ class English(Compiler):
 
         # Build return text with source and targe (context will be added later,
         # if available)
-        if target == "no sound":
-            ret_text = "the source, composed of %s, is deleted" % source
+        if target == self._t("no sound"):
+            ret_text = self._t(
+                "the source, composed of {1}, is deleted", source
+            )
         else:
-            ret_text = (
-                "the source, composed of %s, turns into the target, composed of %s"
-                % (source, target)
+            ret_text = self._t(
+                "the source, composed of {1}, turns into the target, composed of {2}",
+                source,
+                target,
             )
 
         # Collect "context" if available (also a sequence)
         preceding, following = self.compile_context(ast)
 
         if preceding and following:
-            ret_text = "%s, when preceded by %s and followed by %s" % (
+            ret_text = self._t(
+                "{1}, when preceded by {2} and followed by {3}",
                 ret_text,
                 preceding,
                 following,
             )
         elif preceding:
-            ret_text = "%s, when preceded by %s" % (ret_text, preceding)
+            ret_text = self._t("{1}, when preceded by {2}", ret_text, preceding)
         elif following:
-            ret_text = "%s, when followed by %s" % (ret_text, following)
+            ret_text = self._t("{1}, when followed by {2}", ret_text, following)
 
         return ret_text
