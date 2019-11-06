@@ -5,30 +5,6 @@ import json
 # import tatsu
 # import soundchange as grammar
 
-# Default sound classes in our system
-# TODO: move from string to actual feature descriptor? Have an
-#       additional field?
-SOUND_CLASS = {
-    "A": "affricate",
-    "B": "back vowel",
-    "C": "consonant",
-    "D": "voiced plosive",
-    "E": "front vowel",
-    "F": "fricative",
-    "H": "laryngeal",
-    "J": "approximant",
-    "K": "velar",
-    "L": "liquid",
-    "N": "nasal consonant",
-    "O": "obstruent",
-    "P": "bilabial/labial",
-    "Q": "click",
-    "R": "resonant (sonorant)",
-    "S": "plosive",
-    "T": "voiceless plosive",
-    "V": "vowel",
-    "Z": "continuant",
-}
 
 
 class Compiler:
@@ -62,28 +38,28 @@ class Compiler:
         return ret
 
     def compile_ipa(self, ast):
-        return None
+        return NotImplemented
 
     def compile_sound_class(self, ast):
-        return None
+        return NotImplemented
 
     def compile_boundary(self, ast):
-        return None
+        return NotImplemented
 
     def compile_empty(self, ast):
-        return None
+        return NotImplemented
 
     def compile_back_ref(self, ast):
-        return None
+        return NotImplemented
 
     def compile_feature_desc(self, ast):
-        return None
+        return NotImplemented
 
     def compile_alternative(self, ast):
-        return None
+        return NotImplemented
 
     def compile_sequence(self, ast):
-        return None
+        return NotImplemented
 
     def compile_context(self, ast):
         """
@@ -92,43 +68,38 @@ class Compiler:
         following it.
         """
 
-        return None, None
+        return NotImplemented
 
     def compile_start(self, ast):
-        return None
+        return NotImplemented
 
 
 #################
 
-
-def _clean(text):
-    return re.sub("\s+", " ", text)
-
-
-def _recons_label(ast):
-    """
-    Returns the representation for the `recons`truction flag.
-    """
-
-    if ast.get("recons"):
-        return "reconstructed"
-
-    return ""
-
-
-# TODO: call the proper function when implemented
-def _modifier_label(ast):
-    """
-    Returns the representation for a modifier (feature set).
-    """
-
-    return ast2text(ast["modifier"])
-
-
 class English(Compiler):
+    def __init__(self, sound_classes, debug=False):
+        self.sound_classes = sound_classes
+        self.debug = debug
+
+    # "Local" methods
+
+    def _compile_modifier(self, ast):
+        return self.compile(ast["modifier"])
+
+    def _recons_label(self, ast):
+        if ast.get("recons"):
+            return "reconstructed"
+
+        return ""
+
+    def _clean(self, text):
+        return re.sub("\s+", " ", text)
+
+    # Overriden methods
+
     def compile_ipa(self, ast):
-        return _clean(
-            "the %s sound /%s/" % (_recons_label(ast), ast["ipa"]["ipa"])
+        return self._clean(
+            "the %s sound /%s/" % (self._recons_label(ast), ast["ipa"]["ipa"])
         )
 
     def compile_sound_class(self, ast):
@@ -137,15 +108,15 @@ class English(Compiler):
         sound_class = ast["sound_class"]["sound_class"]
 
         ret_text = "some %s sound of class %s (%s)" % (
-            _recons_label(ast),
+            self._recons_label(ast),
             sound_class,
-            SOUND_CLASS[sound_class],
+            self.sound_classes[sound_class],
         )
 
         if ast.get("modifier"):
-            ret_text = "%s changed into %s" % _modifier_label(ast)
+            ret_text = "%s changed into %s" % self._compile_modifier(ast)
 
-        return _clean(ret_text)
+        return self._clean(ret_text)
 
     def compile_boundary(self, ast):
         return "a word boundary"
@@ -165,12 +136,12 @@ class English(Compiler):
         else:
             idx_label = "%sth" % idx
 
-        ret_text = "the %s %s matched sound" % (_recons_label(ast), idx_label)
+        ret_text = "the %s %s matched sound" % (self._recons_label(ast), idx_label)
 
         if ast.get("modifier"):
-            ret_text = "%s changed into %s" % _modifier_label(ast)
+            ret_text = "%s changed into %s" % self._compile_modifier(ast)
 
-        return _clean(ret_text)
+        return self._clean(ret_text)
 
     def compile_feature_desc(self, ast):
         descriptors = [
@@ -179,7 +150,7 @@ class English(Compiler):
         ]
 
         # Compile and return the textual representation of descriptors
-        return "a %s %s sound" % (_recons_label(ast), ", ".join(descriptors))
+        return "a %s %s sound" % (self._recons_label(ast), ", ".join(descriptors))
 
     def compile_alternative(self, ast):
         # Alternatives always hold sequences (even if it is a single grapheme,
