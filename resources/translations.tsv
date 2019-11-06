@@ -12,12 +12,31 @@ the {1} {2} matched sound	o {2} som {1} correspondente
 the {1} matched sound of number {2}	o som {1} correspondente de número {2}
 not {1}	não {1}
 a {1} {2} sound	um som {1} {2}
-either {1} or {2}	que seja {1} ou {2}
-either {1}, or {2}	que seja {1}, ou {2}
+either {1} or {2}	{1} ou por {2}
+either {1}, or {2}	{1}, ou por {2}
 {1} followed by {2}	{1} seguido por {2}
 , followed by 	seguido por 
 the source, composed of {1}, is deleted	a fonte, composta por {1}, é apagada
 the source, composed of {1}, turns into the target, composed of {2}	a fonte, composta por {1}, torna-se a meta, composta por {2}
-{1}, when preceded by {2} and followed by {3}	{1}, quando precedido por {2} e seguido por {3}
-{1}, when preceded by {2}	{1}, quendo precedido por {2}
-{1}, when followed by {2}	{1}, quando seguido por {2}
+{1}, when preceded by {2} and followed by {3}	{1}, quando precedida por {2} e quando seguida por {3}
+{1}, when preceded by {2}	{1}, quendo precedida por {2}
+{1}, when followed by {2}	{1}, quando seguida por {2}
+affricate	africada
+back vowel	vogal posterior
+consonant	consoante
+voiced plosive	plosiva sonora
+front vowel	vogal anterior
+fricative	fricativa
+laryngeal	laringeal
+approximant	aproximante
+velar	velar
+liquid	líquida
+nasal consonant	consoante nasal
+obstruent	obstruente
+bilabial/labial	bilabial/labial
+click	clique
+resonant (sonorant)	ressonante
+plosive	plosiva
+voiceless plosive	plosiva surda
+vowel	vogal
+continuant	continuante

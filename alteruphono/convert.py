@@ -3,12 +3,11 @@ import re
 import json
 from os import path
 import csv
-
-# import tatsu
-# import soundchange as grammar
+from collections import defaultdict
 
 # alteruphono stuff
 from . import utils
+
 
 class Compiler:
     def __init__(self, debug=False):
@@ -77,18 +76,20 @@ class Compiler:
         return NotImplemented
 
 
-#################
-
-
 class Translate(Compiler):
-    def __init__(self, sound_classes, lang, debug=False, transfile=None):
+    def __init__(self, sound_classes, lang, debug=False, **kwargs):
         self.sound_classes = sound_classes
         self.lang = lang
         self.debug = debug
 
-        # load the default translations
-        if not transfile:
-            transfile = path.join(utils._RESOURCE_DIR, "translations.tsv")
+        # load the default translations and replacements
+        transfile = kwargs.get(
+            "transfile", path.join(utils._RESOURCE_DIR, "translations.tsv")
+        )
+        replfile = kwargs.get(
+            "replfile",
+            path.join(utils._RESOURCE_DIR, "translation_replacements.tsv"),
+        )
 
         self._gettext = {}
         with open(transfile) as csvfile:
@@ -96,6 +97,14 @@ class Translate(Compiler):
             for row in reader:
                 ref = row.pop("ref")
                 self._gettext[ref] = row
+
+        self._replacements = defaultdict(list)
+        with open(replfile) as csvfile:
+            reader = csv.DictReader(csvfile, delimiter="\t")
+            for row in reader:
+                self._replacements[row["language"]].append(
+                    [row["source"], row["target"]]
+                )
 
     # Translations
     def _t(self, text, *args):
@@ -138,7 +147,7 @@ class Translate(Compiler):
             "some {1} sound of class {2} ({3})",
             self._recons_label(ast),
             sound_class,
-            self.sound_classes[sound_class],
+            self._t(self.sound_classes[sound_class]),
         )
 
         if ast.get("modifier"):
@@ -294,5 +303,9 @@ class Translate(Compiler):
             ret_text = self._t("{1}, when preceded by {2}", ret_text, preceding)
         elif following:
             ret_text = self._t("{1}, when followed by {2}", ret_text, following)
+
+        # Apply language-specific replacements before returning
+        for entry in self._replacements[self.lang]:
+            ret_text = ret_text.replace(*entry)
 
         return ret_text
