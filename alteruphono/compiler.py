@@ -51,6 +51,8 @@ class Compiler:
             ret = self.compile_boundary(ast)
         elif ast.get("empty"):
             ret = self.compile_empty(ast)
+        elif ast.get("position"):
+            ret = self.compile_position(ast)
         elif ast.get("back_ref"):
             ret = self.compile_back_ref(ast)
         elif ast.get("feature_desc"):
@@ -89,6 +91,13 @@ class Compiler:
     def compile_empty(self, ast):
         """
         Compile an `empty` ast.
+        """
+        # pylint: disable=unused-argument,no-self-use
+        return NotImplemented
+
+    def compile_position(self, ast):
+        """
+        Compile a `position` ast.
         """
         # pylint: disable=unused-argument,no-self-use
         return NotImplemented
