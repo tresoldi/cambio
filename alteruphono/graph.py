@@ -214,10 +214,8 @@ class GraphAutomata(compiler.Compiler):
         self._clear_status()
 
         # Add nodes for source and target, as well as context if found
-        self.nodes["source"] = "source"
-        self.nodes["target"] = "target"
-        self.edges.append(["start", "source"])
-        self.edges.append(["start", "target"])
+        self._add_node("source", "source", "start")
+        self._add_node("target", "target", "start")
 
         # Add `source` nodes and edges
         self._add_sequence(self.compile(ast["source"]), "source")
