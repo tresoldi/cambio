@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Defines class for representing an AST with natural language.
+Defines class for representing an AST with constrained natural language.
 """
 
 # Import Python libraries

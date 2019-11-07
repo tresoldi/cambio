@@ -62,10 +62,17 @@ n k|g -> ŋ @2
 ## TODO
 
 For version 2.0:
-  - Consider moving to ANTLR
-  - For the grammar, consider removing direct sound match in `segment`,
-    only using `alternative` (potentially renamed to `expression` and dealt
-    with in an appropriate way)
+    - Consider moving to ANTLR
+    - For the grammar, consider removing direct sound match in `segment`,
+      only using `alternative` (potentially renamed to `expression` and dealt
+      with in an appropriate way)
+
+    - In Graphviz output
+        - Accept a strng with a description (could be the output of the
+          NLAutomata)
+        - Draw borders around `source`, `target`, and `context`
+        - Add indices to sequences, at least optionally
+        - Accept definitions of sound classes and IPA, at least in English
 
 Old version
 

@@ -1,12 +1,32 @@
+# encoding: "utf-8"
+
+"""
+Defines class for representing graphically representing an AST with Graphviz.
+
+Note that, by design, this module and its automata does *not* use any
+graphviz integration library, but generates graph source code in the
+DOT language, optionally also compiling the graph itself with
+the installed version of `graphviz`, called as a subprocess.
+"""
+
+# Import Python libraries
+import pathlib
+import subprocess
+import tempfile
+
 # Import `alteruphono` modules
 from . import compiler
 
-# TODO: npte on no graphviz dependency
-# TODO: accept a string with a description (could be the other transducer)
-# TODO: allow writing to file (and maybe even calling graphviz)
-# TODO: single function to append new node and its edge
-# TODO: draw border
-# TODO: add indices?
+# DOT source code template
+_TEMPLATE = """digraph G {
+graph [layout="dot",ordering="out",splines="polyline"] ;
+%s
+%s
+{rank=same;%s} ;
+{rank=same;%s} ;
+}"""
+
+
 class GraphAutomata(compiler.Compiler):
     """
     Compiler for generating a .dot representation of an AST.
@@ -29,6 +49,11 @@ class GraphAutomata(compiler.Compiler):
         # Internalize/clear internal variables
         self._clear_status()
 
+    def __str__(self):
+        buf = "nodes: %s;edges: %s" % (self.nodes, self.edges)
+
+        return buf
+
     def _clear_status(self):
         self.nodes = {}
         self.edges = []
@@ -37,96 +62,123 @@ class GraphAutomata(compiler.Compiler):
         self.nodes[name] = label
         self.edges.append([parent, name])
 
-    # TODO: better logic for `label_letter` etc.
     def _add_sequence(self, sequence, label):
-        letter = label[0].upper()
-
         # Add `source` nodes and edges
         for idx, segment in enumerate(sequence):
-            # check if it is an list (i.e., an alternative), also
-            # considering that the alternative could be a single item
-            # TODO: better checking than with isinstnace
-            node_name = "%s%i" % (letter, idx)
-            if isinstance(segment, list):
-                # single items
-                if len(segment) == 1:
-                    self._add_node(node_name, segment[0], label)
-                else:
-                    # all items in the alternative
-                    self._add_node(node_name, "alternative", label)
-                    for alt_idx, alternative in enumerate(segment):
-                        self._add_node("%sa%i" % (node_name, alt_idx), alternative, node_name)
+            # Check if the sequence is an alternative, returned as a list,
+            # or a singleton. Single-item lists, which related to how
+            # the grammar and the parser capture the code, are treated as
+            # single entry items (which means that the edge will link
+            # the `label` to them directly, instead of having an
+            # intermediate `alternative` node).
+            node_name = "%s%i" % (label[0].upper(), idx)
+
+            # Already preparing for grammar changes, singletons are
+            # transformed into single-item lists (as they should be returned)
+            # by the parser in the future.
+            if not isinstance(segment, list):
+                segment = [segment]
+
+            # Single-items are added directly; alternatives need an
+            # intermediate node.
+            if len(segment) == 1:
+                self._add_node(node_name, segment[0], label)
             else:
-                self._add_node(node_name, segment, label)
+                self._add_node(node_name, "alternative", label)
+                for alt_idx, alternative in enumerate(segment):
+                    self._add_node(
+                        "%sa%i" % (node_name, alt_idx), alternative, node_name
+                    )
 
-    # "Local" methods
-
-    def build_dot(self):
+    def dot_source(self):
         """
         Returns the DOT representation of the graph internally determined.
         """
 
-        # List all nodes
+        # Fail if we have no nodes/edges
+        if not self.nodes and not self.edges:
+            raise ValueError("Nothing to compile (was `.compile() called?`)")
+
+        # Build a list of all nodes
         nodes_str = [
             '\t%s [label="%s"] ;' % (key, value)
             for key, value in self.nodes.items()
         ]
 
-        # List all edges
-        # NOTE: takes care of ports, if any
+        # Build a list of all edges, taking care of Graphviz ports
+        # (e.g. ":s") if they are used
         edges_str = []
         for edge in self.edges:
-            node_source = edge[0].split(":")
-            node_target = edge[1].split(":")
-            if len(node_source) == 1:
-                node_source = '"%s"' % node_source[0]
+            source_label = edge[0].split(":", 1)
+            if len(source_label) == 1:
+                source_label_str = '"%s"' % source_label[0]
             else:
-                node_source = '"%s":%s' % (node_source[0], node_source[1])
+                source_label_str = '"%s":%s' % (
+                    source_label[0],
+                    source_label[1],
+                )
 
-            if len(node_target) == 1:
-                node_target = '"%s"' % node_target[0]
+            target_label = edge[1].split(":", 1)
+            if len(target_label) == 1:
+                target_label_str = '"%s"' % target_label[0]
             else:
-                node_target = '"%s":%s' % (node_target[0], node_target[1])
+                target_label_str = '"%s":%s' % (
+                    target_label[0],
+                    target_label[1],
+                )
 
-            edges_str.append("\t%s -> %s ;" % (node_source, node_target))
+            edges_str.append(
+                "\t%s -> %s ;" % (source_label_str, target_label_str)
+            )
 
-        # List ranks for all segments (alternatives go one level below)
-        # (make sure everything is in the same line,
-        # especially when back-reference edges are involved)
-        # TODO: better selection of alternatives, involves node name
-        segment_rank_str = "{rank=same;%s} ;" % ";".join(
-            [node for node in self.nodes if node[0] in "STC"
-            and "a" not in node]
-        )
-
-        alternative_rank_str = "{rank=same;%s}" % ";".join(
-            [node for node in self.nodes if node[0] in "STC"
-            and "a" in node]
-        )
+        # List ranks for all segments directly coming from
+        # {source,target,context}, and for all alternatives (which should be
+        # one level below). We first select all non-high level nodes,
+        # and then filter appropriately.
+        rank_nodes = [node for node in self.nodes if node[0] in "STC"]
+        seg_rank = [node for node in rank_nodes if "a" not in node]
+        alt_rank = [node for node in rank_nodes if "a" in node]
 
         # Build final string
-        buf = """
-        digraph G {
-            graph [layout="dot",ordering="out",splines="polyline"] ;
-            %s
-            %s
-            %s
-            %s
-        }""" % (
+        buf = _TEMPLATE % (
             "\n".join(nodes_str),
             "\n".join(edges_str),
-            segment_rank_str,
-            alternative_rank_str,
+            ";".join(seg_rank),
+            ";".join(alt_rank),
         )
 
         return buf
+
+    def output(self, output_file):
+        """
+        Generates a visualization by calling the local `graphviz`.
+
+        The filetype will be decided from the extension of the `filename`.
+        """
+
+        # Obtain the source and make it writable
+        dot_source = self.dot_source()
+        dot_source = dot_source.encode("utf-8")
+
+        # Write to a named temporary file so we can call `graphviz`
+        handler = tempfile.NamedTemporaryFile()
+        handler.write(dot_source)
+        handler.flush()
+
+        # Get the filetype from the extension and call graphviz
+        suffix = pathlib.PurePosixPath(output_file).suffix
+        subprocess.run(
+            ["dot", "-T%s" % suffix[1:], "-o", output_file, handler.name]
+        )
+
+        # Close the temporary file
+        handler.close()
 
     # Overriden methods
 
     def compile_ipa(self, ast):
         return "(ipa:%s)" % ast["ipa"]["ipa"]
 
-    # TODO: take list of definitions as well, at least en?
     def compile_sound_class(self, ast):
         return "(SC:%s)" % ast["sound_class"]["sound_class"]
 
@@ -143,7 +195,7 @@ class GraphAutomata(compiler.Compiler):
         return "@%s" % ast["back_ref"]
 
     def compile_feature_desc(self, ast):
-        return "[%s]" % ast["feature_desc"]
+        return "(%s)" % ast["feature_desc"]
 
     def compile_sequence(self, ast):
         return [self.compile(segment) for segment in ast["sequence"]]
@@ -151,7 +203,7 @@ class GraphAutomata(compiler.Compiler):
     def compile_alternative(self, ast):
         return [self.compile(altern) for altern in ast["alternative"]]
 
-    def compile_contex(self, ast):
+    def compile_context(self, ast):
         if ast.get("context"):
             return self.compile(ast["context"])
 
@@ -174,18 +226,13 @@ class GraphAutomata(compiler.Compiler):
         # NOTE: no alternatives here, as it is target
         self._add_sequence(self.compile(ast["target"]), "target")
         # Add `context` nodes and edges, if any
-        context = self.compile_contex(ast)
+        context = self.compile_context(ast)
         if context:
             self.edges.append(["start", "context"])
             self._add_sequence(context, "context")
 
         # Add edges for back-references
-        # TODO: proper back-reference notation
         for node_name, node_text in self.nodes.items():
             if node_text[0] == "@":
                 idx = int(node_text[1:]) - 1
                 self.edges.append(["S%i:s" % idx, "%s:s" % node_name])
-
-        ret = {"s": self.nodes, "e": self.edges}
-        #        pprint.pprint(ret)
-        return str(ret)
