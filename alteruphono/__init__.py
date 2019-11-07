@@ -15,5 +15,6 @@ from alteruphono import compiler
 from alteruphono import utils
 from alteruphono.grammar import SOUND_CHANGEParser as Parser
 
-from alteruphono.natural import NLAutomata
 from alteruphono.graph import GraphAutomata
+from alteruphono.natural import NLAutomata
+from alteruphono.reconstruction import ReconsAutomata
