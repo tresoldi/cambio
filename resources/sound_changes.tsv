@@ -37,7 +37,7 @@ id	rule	source	target	weight	test
 36	a -> e / _ i	a i	e i	1	a i a tʃ i h e / e i a tʃ i h e
 37	a -> e / _ j #	a j #	e j #	1	p i b a j / p i b e j
 38	a -> e / _ m	a m	e m	1	a m u f a u / e m u f a u
-39	a -> e / _p 	a p	e p	1	a k e l e j a p a / a k e l e j e p a
+39	a -> e / _ p 	a p	e p	1	a k e l e j a p a / a k e l e j e p a
 40	a -> i / _ C i	a C i	i @2 i	2	a b ts a r i m b s u / a b ts i r i m b s u
 41	a -> i / i C _	i C a	i @2 i	1	i ʎ a ʁ i ʃ o ʃ / i ʎ i ʁ i ʃ o ʃ
 42	i a -> iː	i a	iː	1	a i a tʃ i h e / a iː tʃ i h e
