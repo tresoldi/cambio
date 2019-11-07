@@ -12,6 +12,8 @@ __email__ = "tresoldi@shh.mpg.de"
 
 # Build the namespace
 from alteruphono import compiler
-from alteruphono import convert
 from alteruphono import utils
 from alteruphono.grammar import SOUND_CHANGEParser as Parser
+
+from alteruphono.natural import NLAutomata
+from alteruphono.graph import GraphAutomata
