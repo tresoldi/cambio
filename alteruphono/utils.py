@@ -21,6 +21,14 @@ _TRANSCRIPTION = CLTS().bipa
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 
+def clean_text(text):
+    """
+    Cleans text, basically removing superflous spaces.
+    """
+
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def parse_features(text):
     """
     Parse a list of feature constraints.
@@ -356,15 +364,3 @@ def random_choices(population, weights=None, cum_weights=None, k=1):
     less_than = [[cw < r for cw in cum_weights] for r in rnd]
 
     return [population[lt.index(False)] for lt in less_than]
-
-
-# TODO: remove when not needed for R&D
-def random_change(rules):
-    """
-    Applies random changes to a list of rules.
-    """
-    # collect ids ands weights
-    population = list(rules.keys())
-    weights = [rule["weight"] for rule in rules.values()]
-
-    return rules[random_choices(population, weights)[0]]

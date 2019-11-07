@@ -7,22 +7,11 @@ Defines class for representing an AST with natural language.
 # Import Python libraries
 from collections import defaultdict
 import csv
-import pprint
 import re
 
 # Import `alteruphono` modules
 from . import compiler
 from . import utils
-
-
-
-# TODO: move to utils
-def clean(text):
-    """
-    Cleans text, basically removing superflous spaces.
-    """
-
-    return re.sub(r"\s+", " ", text).strip()
 
 
 class NLAutomata(compiler.Compiler):
@@ -103,7 +92,7 @@ class NLAutomata(compiler.Compiler):
             "the {1} sound /{2}/", self._recons_label(ast), ast["ipa"]["ipa"]
         )
 
-        return clean(ret_text)
+        return utils.clean_text(ret_text)
 
     def compile_sound_class(self, ast):
         sound_class = ast["sound_class"]["sound_class"]
@@ -120,7 +109,7 @@ class NLAutomata(compiler.Compiler):
                 "{1} (changed into {2})", ret_text, self._compile_modifier(ast)
             )
 
-        return clean(ret_text)
+        return utils.clean_text(ret_text)
 
     def compile_boundary(self, ast):
         return self._t("a word boundary")
@@ -149,7 +138,7 @@ class NLAutomata(compiler.Compiler):
                 "{1} (changed into {2})", ret_text, self._compile_modifier(ast)
             )
 
-        return clean(ret_text)
+        return utils.clean_text(ret_text)
 
     def compile_feature_desc(self, ast):
         descriptors = [
