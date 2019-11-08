@@ -57,8 +57,8 @@ class Compiler:
             ret = self.compile_back_ref(ast)
         elif ast.get("feature_desc"):
             ret = self.compile_feature_desc(ast)
-        elif ast.get("alternative"):
-            ret = self.compile_alternative(ast)
+        elif ast.get("expression"):
+            ret = self.compile_expression(ast)
         elif ast.get("sequence"):
             ret = self.compile_sequence(ast)
         elif ast.get("source") and ast.get("target"):
@@ -116,9 +116,9 @@ class Compiler:
         # pylint: disable=unused-argument,no-self-use
         return NotImplemented
 
-    def compile_alternative(self, ast):
+    def compile_expression(self, ast):
         """
-        Compile an `alternative` ast.
+        Compile an `expression` ast.
         """
         # pylint: disable=unused-argument,no-self-use
         return NotImplemented

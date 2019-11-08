@@ -65,12 +65,12 @@ class GraphAutomata(compiler.Compiler):
     def _add_sequence(self, sequence, label):
         # Add `source` nodes and edges
         for idx, segment in enumerate(sequence):
-            # Check if the sequence is an alternative, returned as a list,
+            # Check if the sequence is an expression, returned as a list,
             # or a singleton. Single-item lists, which related to how
             # the grammar and the parser capture the code, are treated as
             # single entry items (which means that the edge will link
             # the `label` to them directly, instead of having an
-            # intermediate `alternative` node).
+            # intermediate `expression` node).
             node_name = "%s%i" % (label[0].upper(), idx)
 
             # Already preparing for grammar changes, singletons are
@@ -79,12 +79,12 @@ class GraphAutomata(compiler.Compiler):
             if not isinstance(segment, list):
                 segment = [segment]
 
-            # Single-items are added directly; alternatives need an
+            # Single-items are added directly; expressions need an
             # intermediate node.
             if len(segment) == 1:
                 self._add_node(node_name, segment[0], label)
             else:
-                self._add_node(node_name, "alternative", label)
+                self._add_node(node_name, "expression", label)
                 for alt_idx, alternative in enumerate(segment):
                     self._add_node(
                         "%sa%i" % (node_name, alt_idx), alternative, node_name
@@ -200,8 +200,8 @@ class GraphAutomata(compiler.Compiler):
     def compile_sequence(self, ast):
         return [self.compile(segment) for segment in ast["sequence"]]
 
-    def compile_alternative(self, ast):
-        return [self.compile(altern) for altern in ast["alternative"]]
+    def compile_expression(self, ast):
+        return [self.compile(altern) for altern in ast["expression"]]
 
     def compile_context(self, ast):
         if ast.get("context"):
@@ -221,8 +221,8 @@ class GraphAutomata(compiler.Compiler):
         self._add_sequence(self.compile(ast["source"]), "source")
 
         # Add `target` nodes and edges
-        # NOTE: no alternatives here, as it is target
         self._add_sequence(self.compile(ast["target"]), "target")
+
         # Add `context` nodes and edges, if any
         context = self.compile_context(ast)
         if context:

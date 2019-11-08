@@ -153,20 +153,21 @@ class NLAutomata(compiler.Compiler):
             "a {1} {2} sound", self._recons_label(ast), ", ".join(descriptors)
         )
 
-    def compile_alternative(self, ast):
-        # Alternatives always hold sequences (even if it is a single grapheme,
-        # for example, it is a sequence of a single grapheme). As such, we
-        # collect the textual description of each alternative as a sequence,
+    def compile_expression(self, ast):
+        # Expressions always hold multiple items (even if it is a
+        # single grapheme, for example, it will be returned as a single-item
+        # list). As such, we
+        # collect the textual description of each expression as a sequence,
         # before joining the text and returning.
         # NOTE: working around what seems to be a problem in TatSu
-        if len(ast["alternative"]) == 1:
-            ret_text = self.compile(ast["alternative"][0])
+        if len(ast["expression"]) == 1:
+            ret_text = self.compile(ast["expression"][0])
         else:
             descriptors = [
-                self.compile(altern) for altern in ast["alternative"]
+                self.compile(altern) for altern in ast["expression"]
             ]
 
-            # The texual representation of alternatives is separated by commas,
+            # The texual representation of expressions is separated by commas,
             # but we add an "or" conjuction to the last item *even* when we
             # only have two alterantives.
             if len(descriptors) == 2:
