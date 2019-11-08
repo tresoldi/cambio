@@ -2,7 +2,7 @@ ref	pt
 reconstructed	reconstruído
 the {1} sound /{2}/	o som /{2}/ {1}
 some {1} sound of class {2} ({3})	algum som {1} da classe {2} ({3})
-{1} changed into {2}	{1} mudado para {2}
+{1} (changed into {2})	{1} (mudado para {2})
 a word boundary	um delimitador de palavra
 no sound	nenhum som
 first	primeiro
@@ -15,7 +15,7 @@ a {1} {2} sound	um som {1} {2}
 either {1} or {2}	{1} ou por {2}
 either {1}, or {2}	{1}, ou por {2}
 {1} followed by {2}	{1} seguido por {2}
-, followed by 	seguido por 
+, followed by 	seguido por
 the source, composed of {1}, is deleted	a fonte, composta por {1}, é apagada
 the source, composed of {1}, turns into the target, composed of {2}	a fonte, composta por {1}, torna-se a meta, composta por {2}
 {1}, when preceded by {2} and followed by {3}	{1}, quando precedida por {2} e quando seguida por {3}

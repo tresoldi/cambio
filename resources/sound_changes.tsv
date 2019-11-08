@@ -1,5 +1,5 @@
 id	rule	source	target	weight	test
-1	C C -> @1 / _ #	C C #	@1 #	1	a g r o ŋ g / a g r o ŋ
+1	C N -> @1 / _ #	C C #	@1 #	1	a g r o ŋ g / a g r o ŋ
 2	C -> :null: / _ #	C #	#	1	a d j aː d / a d j aː
 3	C -> :null: / r _	r C	r	1	i k ʔ e r j a / i k ʔ e r a
 4	s C -> :null: / _ #	s C #	#	1	g e g s i s k / g e g s i

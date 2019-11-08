@@ -84,7 +84,7 @@ class GraphAutomata(compiler.Compiler):
             if len(segment) == 1:
                 self._add_node(node_name, segment[0], label)
             else:
-                self._add_node(node_name, "expression", label)
+                self._add_node(node_name, "alternative", label)
                 for alt_idx, alternative in enumerate(segment):
                     self._add_node(
                         "%sa%i" % (node_name, alt_idx), alternative, node_name
