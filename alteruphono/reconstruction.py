@@ -18,8 +18,9 @@ class Primitive:
     def __init__(self, value=None):
         self.value = value
 
-    def output(self):
+    def to_regex(self):
         return NotImplemented
+
 
 class IterPrimitive(Primitive):
     def __init__(self, value):
@@ -33,11 +34,12 @@ class IterPrimitive(Primitive):
         return self
 
     def __next__(self):
-        if self.i == len(self.value)-1:
+        if self.i == len(self.value) - 1:
             raise StopIteration
 
         self.i += 1
         return self.value[self.i]
+
 
 class IPA(Primitive):
     def __init__(self, value):
@@ -46,7 +48,7 @@ class IPA(Primitive):
     def __repr__(self):
         return "(I:%s)" % self.value
 
-    def output(self):
+    def to_regex(self):
         return "/%s/" % self.value
 
 
@@ -57,7 +59,7 @@ class SoundClass(Primitive):
     def __repr__(self):
         return "(C:%s)" % self.value
 
-    def output(self):
+    def to_regex(self):
         return "%s" % self.value
 
 
@@ -68,7 +70,7 @@ class BackRef(Primitive):
     def __repr__(self):
         return "(@:%i)" % self.value
 
-    def output(self):
+    def to_regex(self):
         return "@%i" % self.value
 
 
@@ -79,7 +81,7 @@ class Boundary(Primitive):
     def __repr__(self):
         return "(B:#)"
 
-    def output(self):
+    def to_regex(self):
         return None
 
 
@@ -90,7 +92,7 @@ class Empty(Primitive):
     def __repr__(self):
         return "(∅)"
 
-    def output(self):
+    def to_regex(self):
         return None
 
 
@@ -101,9 +103,9 @@ class Expression(IterPrimitive):
     def __repr__(self):
         return "{%s}" % ";".join([repr(v) for v in self.value])
 
-    def output(self):
-        # TODO: depends if source/target and output?
-        return NotImplemented
+    def to_regex(self):
+        return "|".join([segment.to_regex() for segment in self.value])
+
 
 class Sequence(IterPrimitive):
     def __init__(self, value):
@@ -112,9 +114,8 @@ class Sequence(IterPrimitive):
     def __repr__(self):
         return "-%s-" % "-".join([repr(v) for v in self.value])
 
-    def output(self):
-        # TODO: depends if source/target and output?
-        return NotImplemented
+    def to_regex(self):
+        return " ".join([segment.to_regex() for segment in self.value])
 
 
 class ReconsAutomata(compiler.Compiler):
@@ -170,9 +171,8 @@ class ReconsAutomata(compiler.Compiler):
 
     def compile_context(self, ast):
         if not ast.get("context"):
-            # Return empty iterator
-            left = Sequence([])
-            right = Sequence([])
+            left = []
+            right = []
         else:
             # We first look for the index of the positional "_" segment in
             # context, so that we can separate preceding and following parts;
@@ -191,30 +191,67 @@ class ReconsAutomata(compiler.Compiler):
             left = Sequence([self.compile(alt) for alt in seq[:idx]])
             right = Sequence([self.compile(alt) for alt in seq[idx + 1 :]])
 
+        # Make every segment in the sequence a single-item list, unless
+        # it is an expression. This will allow to decompose the left and
+        # right context with `itertools.product()` within the
+        # `.compile_start()` method
+        left = [
+            [segment] if not isinstance(segment, Expression) else segment
+            for segment in left
+        ]
+        right = [
+            [segment] if not isinstance(segment, Expression) else segment
+            for segment in right
+        ]
+
         return left, right
 
     def compile_start(self, ast):
         # Collect `source` and `target` blocks
         source = self.compile(ast["source"])
         target = self.compile(ast["target"])
-        print("S:", source)
-        print("T:", target)
+        print("S:", len(source), source)
+        print("T:", len(target), target)
 
         # Collect "context" if available (also a sequence), split in
-        # `preceding` (to the left) and `following` (to the right) parts.
+        # preceding (to the `left`) and following (to the `right`) parts.
         # These are used for source context, as the target context will
         # be composed entirely of back-references due to alternatives
         # (e.g., with a rule `a -> e / _ i/u` allows mappings like
-        # `a i -> e i` but *not* `a i -> e u`).
+        # `a i -> e i` but *not* `a i -> e u`). From there, we can obtain
+        # a list of left and right patterns that will be combined with
+        # source and target later.
         left, right = self.compile_context(ast)
-        print("L:", left)
-        print("R:", right)
         left_pat = list(itertools.product(*left))
         right_pat = list(itertools.product(*right))
-#        left = [opt for opt in list(itertools.product(*left)) if opt]
-#        right = [opt for opt in list(itertools.product(*right)) if opt]
-        print("Lp:", left_pat)
-        print("Rp:", right_pat)
+        print("Lpat:", len(left_pat), left_pat)
+        print("Rpat:", len(right_pat), right_pat)
+
+        # Build the source and target pattern. As regexes will take care
+        # of alternatives in the parts that are actually replaced, here
+        # we don't need to decompose alternative expressions as in the
+        # case of context. We also remove empty entries resulting from the
+        # product here.
+        source_pat = [
+            [segment for segment in pat if segment]
+            for pat in itertools.product(left_pat, [source], right_pat)
+        ]
+        target_pat = [
+            [segment for segment in pat if segment]
+            for pat in itertools.product(left_pat, [target], right_pat)
+        ]
+
+        # Map all patterns to regular expressions
+        source_rx = [
+            [segment.to_regex() for segment in pattern]
+            for pattern in itertools.chain.from_iterable(source_pat)
+        ]
+
+        for idx, (p, r, t) in enumerate(zip(source_pat, source_rx, target_pat)):
+            print("#%i [%s] -> [%s]" % (idx, p, t))
+            print([type(v) for v in p])
+            print(r)
+
         return
 
         # Build the regular expression patterns; in the initial product,
