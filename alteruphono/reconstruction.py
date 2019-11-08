@@ -49,7 +49,7 @@ class IPA(Primitive):
         return "(I:%s)" % self.value
 
     def to_regex(self):
-        return "/%s/" % self.value
+        return self.value
 
 
 class SoundClass(Primitive):
@@ -60,6 +60,8 @@ class SoundClass(Primitive):
         return "(C:%s)" % self.value
 
     def to_regex(self):
+        # TODO: map to sound class
+        # TODO: modifier operations
         return "%s" % self.value
 
 
@@ -71,7 +73,7 @@ class BackRef(Primitive):
         return "(@:%i)" % self.value
 
     def to_regex(self):
-        return "@%i" % self.value
+        return "\\%i" % self.value
 
 
 class Boundary(Primitive):
@@ -82,7 +84,7 @@ class Boundary(Primitive):
         return "(B:#)"
 
     def to_regex(self):
-        return None
+        return "#"
 
 
 class Empty(Primitive):
@@ -93,7 +95,7 @@ class Empty(Primitive):
         return "(∅)"
 
     def to_regex(self):
-        return None
+        return ""
 
 
 class Expression(IterPrimitive):
@@ -233,49 +235,38 @@ class ReconsAutomata(compiler.Compiler):
         # case of context. We also remove empty entries resulting from the
         # product here.
         source_pat = [
-            [segment for segment in pat if segment]
+            list(
+                itertools.chain.from_iterable(
+                    [segment for segment in pat if segment]
+                )
+            )
             for pat in itertools.product(left_pat, [source], right_pat)
         ]
         target_pat = [
-            [segment for segment in pat if segment]
+            list(
+                itertools.chain.from_iterable(
+                    [segment for segment in pat if segment]
+                )
+            )
             for pat in itertools.product(left_pat, [target], right_pat)
         ]
 
-        # Map all patterns to regular expressions
+        # Map all patterns to regular expressions, skipping over empty
+        # values (such as :null:)
         source_rx = [
-            [segment.to_regex() for segment in pattern]
-            for pattern in itertools.chain.from_iterable(source_pat)
+            [segment.to_regex() for segment in pattern if segment.to_regex()]
+            for pattern in source_pat
+        ]
+        target_rx = [
+            [segment.to_regex() for segment in pattern if segment.to_regex()]
+            for pattern in target_pat
         ]
 
-        for idx, (p, r, t) in enumerate(zip(source_pat, source_rx, target_pat)):
+        for idx, (p, t, p_rx, t_rx) in enumerate(
+            zip(source_pat, target_pat, source_rx, target_rx)
+        ):
             print("#%i [%s] -> [%s]" % (idx, p, t))
             print([type(v) for v in p])
-            print(r)
+            print(p_rx, t_rx)
 
         return
-
-        # Build the regular expression patterns; in the initial product,
-        # we need a list comprehension to clean the pattern, as
-        # `itertools.product()` will return an empty list if any of the
-        # elements is an empty list itself.
-        #        source_pat = [part for part in [left, source, right] if part]
-        #        print("-", len(source_pat), source_pat)
-        #        source_prod = list(itertools.product(source_pat))
-        #        print("sprod:", len(source_prod), source_prod)
-
-        source_prod = list(itertools.product([left], [source], [right]))
-        print("sprod:", len(source_prod), source_prod)
-
-        # Map all patterns to regular expression strings
-        source_regexes = [
-            " ".join([str(v[0]) for v in pat if v]) for pat in source_prod
-        ]
-        for i, (pat, reg) in enumerate(zip(source_prod, source_regexes)):
-            print("Sp #%i: %s -> [%s]" % (i, pat, reg))
-
-        # Build source and target patterns, removing empty items
-        # TODO: replace the `:null:` check if/when moving to objects
-        #        source_pat = [e for e in left + source + right if e and e != ":null:"]
-        #        target_pat = [e for e in left + target + right if e and e != ":null:"]
-
-        return left + source + right
