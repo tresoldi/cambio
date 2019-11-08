@@ -53,16 +53,17 @@ class IPA(Primitive):
 
 
 class SoundClass(Primitive):
-    def __init__(self, value):
+    def __init__(self, value, sound_classes):
         super().__init__(value)
+
+        self.sound_classes = sound_classes
 
     def __repr__(self):
         return "(C:%s)" % self.value
 
     def to_regex(self):
-        # TODO: map to sound class
         # TODO: modifier operations
-        return "%s" % self.value
+        return self.sound_classes[self.value]["description"]
 
 
 class BackRef(Primitive):
@@ -125,7 +126,7 @@ class ReconsAutomata(compiler.Compiler):
     Compiler for compiling ASTs into sets of reconstruction replacements.
     """
 
-    def __init__(self, debug=False):
+    def __init__(self, sound_classes, debug=False):
         """
         Entry point for the `Graph` class.
         """
@@ -133,12 +134,14 @@ class ReconsAutomata(compiler.Compiler):
         # Call super()
         super().__init__(debug)
 
+        self.sound_classes = sound_classes
+
     def compile_ipa(self, ast):
         return IPA(ast["ipa"]["ipa"])
 
     def compile_sound_class(self, ast):
         # TODO: pass and handle modifier
-        return SoundClass(ast["sound_class"]["sound_class"])
+        return SoundClass(ast["sound_class"]["sound_class"], self.sound_classes)
 
     def compile_boundary(self, ast):
         return Boundary()
@@ -232,8 +235,15 @@ class ReconsAutomata(compiler.Compiler):
         # Build the source and target pattern. As regexes will take care
         # of alternatives in the parts that are actually replaced, here
         # we don't need to decompose alternative expressions as in the
-        # case of context. We also remove empty entries resulting from the
-        # product here.
+        # case of context.
+        # As the source and target might be entangled -- e.g., if the
+        # source context is # `# S _`, the only way to know which sound of
+        # class S (which can also carry modifiers) was matched is to
+        # capture an reference it. As the source and target themselves
+        # can use back-references, we need to first use two different
+        # series of back-references (one for source/target and another
+        # for context), mapping to a single one once the strings are
+        # ready.
         source_pat = [
             list(
                 itertools.chain.from_iterable(
@@ -252,7 +262,7 @@ class ReconsAutomata(compiler.Compiler):
         ]
 
         # Map all patterns to regular expressions, skipping over empty
-        # values (such as :null:)
+        # values (such as ":null:")
         source_rx = [
             [segment.to_regex() for segment in pattern if segment.to_regex()]
             for pattern in source_pat
