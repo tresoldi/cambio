@@ -260,7 +260,7 @@ class ReconsAutomata(compiler.Compiler):
 
     def compile_context(self, ast):
         # By default, no left nor right context
-        left_seq, right_seq = [], []
+        left_seq, right_seq = Sequence([]), Sequence([])
 
         if ast.get("context"):
             # We first look for the index of the positional "_" segment in
@@ -281,18 +281,22 @@ class ReconsAutomata(compiler.Compiler):
         # right context with `itertools.product()` within the
         # `.compile_start()` method
         # TODO: given what we have now, is this needed?
-        left = Sequence(
-            [
-                [segment] if not isinstance(segment, Expression) else segment
-                for segment in left_seq
-            ]
-        )
-        right = Sequence(
-            [
-                [segment] if not isinstance(segment, Expression) else segment
-                for segment in right_seq
-            ]
-        )
+#        left = Sequence(
+#            [
+#                [segment] if not isinstance(segment, Expression) else segment
+#                for segment in left_seq
+#            ]
+#        )
+#        right = Sequence(
+#            [
+#                [segment] if not isinstance(segment, Expression) else segment
+#                for segment in right_seq
+#            ]
+#        )
+
+        left, right = left_seq, right_seq
+        print("left", left)
+        print("right", right)
 
         return left, right
 
