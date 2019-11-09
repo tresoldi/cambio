@@ -69,6 +69,8 @@ For version 2.0:
     - For the grammar, consider removing direct sound match in `segment`,
       only using `alternative` (potentially renamed to `expression` and dealt
       with in an appropriate way)
+    - don't collect a `context`, but `left` and `right` already in the
+      AST (i.e., remove the `position` symbol)
 
     - In Graphviz output
         - Accept a strng with a description (could be the output of the

@@ -2,6 +2,13 @@
 
 """
 Defines class for building reconstruction replacements from ASTs.
+
+Internally, both forward and back reconstructions work by first
+translating the ASTs into simple objects, all inheriting from
+class `Primitive`, which offer a `.__repr__()` method, for debugging,
+and a `.to_regex()` method for generating the regular expression
+representation. `IterPrimitive` works as a list, allowing to
+collect either Expressions or Sequences.
 """
 # Import Python standard libraries
 import itertools
@@ -9,15 +16,7 @@ from string import ascii_lowercase
 
 # Import `alteruphono` modules
 from . import compiler
-
-# TODO: move to utils
-# define a label iterator
-# -> "a", "b", ..., "aa", "ab", ..., "zz", "aaa", "aab", ...
-# def label_iter():
-#    for length in itertools.count(1):
-#        for chars in itertools.product(ascii_lowercase, repeat=length):
-#          yield "".join(chars)
-
+from . import utils
 
 # Define primitives for the automata: these are passed between the methods
 # when building the multiple potential sequences, but also have an
@@ -25,15 +24,38 @@ from . import compiler
 # expression when building the output itself. IterPrimitive is the
 # one which works like a list (iterable).
 class Primitive:
+    """
+    Class for representing an AST primitive.
+    """
+
     def __init__(self, value=None):
+        """
+        Initializes a primitive for an AST element.
+        """
+
         self.value = value
 
+    def __repr__(self):
+        """
+        Returns a textual representation of the primitive, for debugging.
+        """
+
+        return NotImplemented
+
     def to_regex(self, **kwargs):
-        # NOTE: should include the capture if needed, etc.
+        """
+        Return a raw string with the regex representation of the primitive.
+        """
+
         return NotImplemented
 
 
+# TODO: move to system list-iterator, also checking if a list is passed
 class IterPrimitive(Primitive):
+    """
+    Class for representing an iterable AST primitive.
+    """
+
     def __init__(self, value):
         self.value = value
 
@@ -41,10 +63,17 @@ class IterPrimitive(Primitive):
         return len(self.value)
 
     def __iter__(self):
+        """
+        Standard __iter__() method, returning itself.
+        """
+
         self.i = -1
         return self
 
     def __next__(self):
+        """
+        Standard __next__ method.
+        """
         if self.i == len(self.value) - 1:
             raise StopIteration
 
@@ -53,6 +82,10 @@ class IterPrimitive(Primitive):
 
 
 class IPA(Primitive):
+    """
+    Class for representing an IPA grapheme.
+    """
+
     def __init__(self, value):
         super().__init__(value)
 
@@ -63,7 +96,12 @@ class IPA(Primitive):
         return r"%s" % self.value
 
 
+# TODO: implement modifier operations
 class SoundClass(Primitive):
+    """
+    Class for representing a sound class.
+    """
+
     def __init__(self, value, sound_classes):
         super().__init__(value)
 
@@ -73,13 +111,16 @@ class SoundClass(Primitive):
         return "(C:%s)" % self.value
 
     def to_regex(self, **kwargs):
-        # TODO: modifier operations
-        v = self.sound_classes[self.value]["description"]
-        v = ":%s:" % self.value
-        return r"%s" % v
+        regex = self.sound_classes[self.value]["regex"]
+        regex = ":%s:" % self.value
+        return r"%s" % regex
 
 
 class BackRef(Primitive):
+    """
+    Class for representing a back-referece.
+    """
+
     def __init__(self, value):
         super().__init__(value)
 
@@ -92,6 +133,10 @@ class BackRef(Primitive):
 
 
 class Boundary(Primitive):
+    """
+    Class for representing a boundary.
+    """
+
     def __init(self):
         super().__init__()
 
@@ -103,6 +148,10 @@ class Boundary(Primitive):
 
 
 class Empty(Primitive):
+    """
+    Class for representing an empty symbol (deletion).
+    """
+
     def __init(self):
         super().__init__()
 
@@ -114,6 +163,10 @@ class Empty(Primitive):
 
 
 class Expression(IterPrimitive):
+    """
+    Class for representing an expression.
+    """
+
     def __init__(self, value):
         super().__init__(value)
 
@@ -121,35 +174,31 @@ class Expression(IterPrimitive):
         return "{%s}" % ";".join([repr(v) for v in self.value])
 
     def to_regex(self, **kwargs):
-        # TODO: what to do if captures inside captures here
-        v = "|".join([segment.to_regex() for segment in self.value])
-        return "%s" % v
+        # TODO: check if we need to pass `kwargs`
+        alternatives = "|".join([segment.to_regex() for segment in self.value])
+        return r"%s" % alternatives
 
 
 class Sequence(IterPrimitive):
+    """
+    Class for representing a sequence.
+    """
+
     def __init__(self, value):
         super().__init__(value)
 
     def __repr__(self):
         return "-%s-" % "-".join([repr(v) for v in self.value])
 
-    def to_regex(self, capture, **kwargs):
-        # TODO: comment about offset
+    def to_regex(self, capture=None, **kwargs):
         offset = kwargs.get("offset", None)
 
-        # TODO: no capture here, right? passed from segment
-        # TODO: note that we group-capture even boundaries
-        # TODO: should default to `capture=None`?
-
-        # Have a capture group around everything, even backreferences
-        # NOTE: `if segment` allows to skip over empty symbols
-        v = [
-            segment.to_regex(offset=offset) for segment in self.value if segment
-        ]
+        # Collect the regex representation of all segments
+        seq = [segment.to_regex(offset=offset) for segment in self.value]
         if capture:
-            v = [r"(%s)" % seg_r for seg_r in v]
+            seq = [r"(%s)" % segment_rx for segment_rx in seq]
 
-        return r" ".join(v)
+        return r" ".join(seq)
 
 
 class ReconsAutomata(compiler.Compiler):
@@ -165,13 +214,15 @@ class ReconsAutomata(compiler.Compiler):
         # Call super()
         super().__init__(debug)
 
+        # Store the sound class mapping, that will be given to every
+        # SoundClass primitive we might run into.
         self.sound_classes = sound_classes
 
     def compile_ipa(self, ast):
         return IPA(ast["ipa"]["ipa"])
 
     def compile_sound_class(self, ast):
-        # TODO: pass and handle modifier
+        # TODO: pass and handle modifiers
         return SoundClass(ast["sound_class"]["sound_class"], self.sound_classes)
 
     def compile_boundary(self, ast):
@@ -184,7 +235,7 @@ class ReconsAutomata(compiler.Compiler):
         return "_pos_"
 
     def compile_back_ref(self, ast):
-        # TODO: pass and handle modifier
+        # TODO: pass and handle modifiers
         return BackRef(int(ast["back_ref"]))
 
     def compile_feature_desc(self, ast):
@@ -195,21 +246,23 @@ class ReconsAutomata(compiler.Compiler):
 
     def compile_expression(self, ast):
         # Alternatives always hold sequences (even if it is a single grapheme,
-        # for example, it is a sequence of a single grapheme). As such, we
-        # collect the textual description of each alternative as a sequence,
-        # before joining the text and returning.
-        if len(ast["expression"]) == 1:
-            ret = self.compile(ast["expression"][0])
-        else:
-            ret = Expression([self.compile(alt) for alt in ast["expression"]])
+        # for example, it is a sequence of a single grapheme), and we
+        # collect them as lists (i.e., Expressions) in all cases.
 
+        # TODO: remove this code once ready
+        #        if len(ast["expression"]) == 1:
+        #            ret = self.compile(ast["expression"][0])
+        #        else:
+        #            ret = Expression([self.compile(alt) for alt in ast["expression"]])
+
+        ret = Expression([self.compile(alt) for alt in ast["expression"]])
         return ret
 
     def compile_context(self, ast):
-        if not ast.get("context"):
-            left = []
-            right = []
-        else:
+        # By default, no left nor right context
+        left_seq, right_seq = [], []
+
+        if ast.get("context"):
             # We first look for the index of the positional "_" segment in
             # context, so that we can separate preceding and following parts;
             # we build "fake" AST trees as Python dictionaries, making it
@@ -219,153 +272,64 @@ class ReconsAutomata(compiler.Compiler):
                 segment.get("position") is not None for segment in seq
             ].index(True)
 
-            # For context, we want an Expression even when dealing with
-            # single item lists, as, contrary to sequences in source and
-            # target, this needs to be decomposed "by hand" before
-            # generating the regular expressions or list of string
-            # replacements (see comment and example in `.compile_start()`)
-            left = Sequence([self.compile(alt) for alt in seq[:idx]])
-            right = Sequence([self.compile(alt) for alt in seq[idx + 1 :]])
+            # Collect all segments left and right
+            left_seq = Sequence([self.compile(seg) for seg in seq[:idx]])
+            right_seq = Sequence([self.compile(seg) for seg in seq[idx + 1 :]])
 
         # Make every segment in the sequence a single-item list, unless
         # it is an expression. This will allow to decompose the left and
         # right context with `itertools.product()` within the
         # `.compile_start()` method
-        left = [
-            [segment] if not isinstance(segment, Expression) else segment
-            for segment in left
-        ]
-        right = [
-            [segment] if not isinstance(segment, Expression) else segment
-            for segment in right
-        ]
+        # TODO: given what we have now, is this needed?
+        left = Sequence(
+            [
+                [segment] if not isinstance(segment, Expression) else segment
+                for segment in left_seq
+            ]
+        )
+        right = Sequence(
+            [
+                [segment] if not isinstance(segment, Expression) else segment
+                for segment in right_seq
+            ]
+        )
 
         return left, right
 
     def compile_start(self, ast):
-        # Define the `cap`ture `label` iterator that will be used for
-        # this `start` symbol. Due to context entanglement and back-referneces,
-        # as described in the comments below, all capture groups of the
-        # regex must be named (luckily, Python captures groups both under the
-        # name and the index).
-        # Using a single infinite iterator as this guarantees
-        # that no duplicates will be used (even though the capture labels
-        # won't always start with a,b,c, which might make debugging a
-        # a little more complex).
-        # capture_iter = label_iter()
-
-        # Collect "context" if available, split in
-        # preceding (to the `left`) and following (to the `right`) parts.
-        # In normal, forward reconstruction, these will be used for
-        # the source context, as the target one will consist entirely of
-        # back-references due to the need to carry alterantives
-        # be composed entirely of back-references due to alternatives
-        # (e.g., with a rule `a -> e / _ i/u` allows mappings like
-        # `a i -> e i` but *not* `a i -> e u`). From there, we can obtain
-        # a list of left and right patterns that will be combined with
-        # source and target later.
-        # TODO: note that we don't allow back-references in the context --
-        #       if those are really needed (for cases like
-        #       "C > \1[+voice] / V C \1"), they will need to be specified
-        #       as source/target (in this case,
-        #       "V C \1 > \1 \2[+voice] \1")
-        left, right = self.compile_context(ast)
-        left_pat = list(itertools.product(*left))
-        right_pat = list(itertools.product(*right))
-        print("L:", left, type(left))
-        print("R:", right, type(right))
-        print("Lpat:", len(left_pat), left_pat, type(left_pat))
-        print("Rpat:", len(right_pat), right_pat, type(right_pat))
-
-        # As the source and target might be entangled -- e.g., if the
-        # source context is # `# S _`, the only way to know which sound of
-        # class S (which can also carry modifiers) was matched is to
-        # capture an reference it. As the source and target themselves
-        # can use back-references, we need to first use two different
-        # series of back-references (one for source/target and another
-        # for context), mapping to a single one once the strings are
-        # ready.
-        left_patterns = [
-            Sequence([segment for segment in pat if segment])
-            for pat in left_pat
-            if pat
-        ]
-        right_patterns = [
-            Sequence([segment for segment in pat if segment])
-            for pat in right_pat
-            if pat
-        ]
-
-        print(
-            "Lpts:",
-            len(left_patterns),
-            left_patterns,
-            [len(p) for p in left_patterns],
-        )
-        print(
-            "Rpts:",
-            len(right_patterns),
-            right_patterns,
-            [len(p) for p in right_patterns],
-        )
-
-        # get source and target
+        # Collect compiled `source` and `target`, as well as
+        # `left` and `right` contexts if available
         source = self.compile(ast["source"])
         target = self.compile(ast["target"])
+        left, right = self.compile_context(ast)
 
-        # collect [source_offset, target_offset, left+source, left+target]
-        # pairs first, fixing
-        # the backrefences in `source` and `target` by the offSets of
-        # `left`
-        # TODO: target segments should all be captures (sound classes, etc.),
-        # as ----> #53 ['a -> æ / _ C e']
-        # 0 S: [(a) (:C:) (e)]
-        # 0 T: [æ :C: e]
-        temp = []
-        if not left_patterns:
-            source_rx = source.to_regex(offset=0, capture=True)
-            target_rx = target.to_regex(offset=0, capture=False)
-            temp.append(
-                [len(source) - 1, len(target) - 1, source_rx, target_rx]
-            )
-        else:
-            for pattern in left_patterns:
-                left_rx = pattern.to_regex(capture=True)
-                source_rx = source.to_regex(offset=len(pattern), capture=True)
-                target_rx = target.to_regex(offset=len(pattern), capture=False)
-                temp.append(
-                    [
-                        len(pattern) + len(source),
-                        len(pattern) + len(target),
-                        "%s %s" % (left_rx, source_rx),
-                        "%s %s" % (left_rx, target_rx),
-                    ]
-                )
+        # Build the left and right sequences for target, composed entirely
+        # of back references
+        target_left = Sequence([BackRef(i + 1) for i, _ in enumerate(left)])
+        target_right = Sequence([BackRef(i + 1) for i, _ in enumerate(right)])
 
-        # add the right parts, with the offsets, collecting
-        # all regex source/target pairs
-        # TODO: there should be no back-reference in right_pat, right?
-        pairs = []
-        for option in temp:
-            if not right_patterns:
-                pairs.append([option[2], option[3]])
-            else:
-                for pattern in right_patterns:
-                    source_right_rx = pattern.to_regex(
-                        offset=option[0] - 1, capture=True
-                    )
-                    target_right_rx = pattern.to_regex(
-                        offset=option[1] - 1, capture=False
-                    )
+        # Cache lens
+        offset_left = len(left)
+        offset_middle = len(left) + len(source)
 
-                    # TODO: should strip here
-                    pairs.append(
-                        [
-                            "%s %s" % (option[2], source_right_rx),
-                            "%s %s" % (option[3], target_right_rx),
-                        ]
-                    )
+        # Build the source and target regexes
+        source_rx = " ".join(
+            [
+                left.to_regex(offset=0, capture=True),
+                source.to_regex(offset=offset_left, capture=True),
+                right.to_regex(offset=offset_middle, capture=True),
+            ]
+        )
 
-        for idx, pair in enumerate(pairs):
-            print("#%i S: [%s]" % (idx, pair[0]))
-            print("#%i T: [%s]" % (idx, pair[1]))
+        target_rx = " ".join(
+            [
+                target_left.to_regex(offset=0),
+                target.to_regex(offset=offset_left),
+                target_right.to_regex(offset=offset_middle),
+            ]
+        )
+
+        source_rx = utils.clean_regex(source_rx)
+        target_rx = utils.clean_regex(target_rx)
+
+        return source_rx, target_rx
