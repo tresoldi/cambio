@@ -10,9 +10,6 @@ and a `.to_regex()` method for generating the regular expression
 representation. `IterPrimitive` works as a list, allowing to
 collect either Expressions or Sequences.
 """
-# Import Python standard libraries
-import itertools
-from string import ascii_lowercase
 
 # Import `alteruphono` modules
 from . import compiler
@@ -27,6 +24,7 @@ class Primitive:
     """
     Class for representing an AST primitive.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, value=None):
         """
@@ -46,6 +44,7 @@ class Primitive:
         """
         Return a raw string with the regex representation of the primitive.
         """
+        # pylint: disable=no-self-use,unused-argument
 
         return NotImplemented
 
@@ -55,9 +54,14 @@ class IterPrimitive(Primitive):
     """
     Class for representing an iterable AST primitive.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
-        self.value = value
+        # pylint: disable=useless-super-delegation
+        super().__init__(value)
+
+        # Initialize the iter counter to -1
+        self.i = -1
 
     def __len__(self):
         return len(self.value)
@@ -67,7 +71,6 @@ class IterPrimitive(Primitive):
         Standard __iter__() method, returning itself.
         """
 
-        self.i = -1
         return self
 
     def __next__(self):
@@ -85,8 +88,10 @@ class IPA(Primitive):
     """
     Class for representing an IPA grapheme.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
+        # pylint: disable=useless-super-delegation
         super().__init__(value)
 
     def __repr__(self):
@@ -101,8 +106,10 @@ class SoundClass(Primitive):
     """
     Class for representing a sound class.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, value, sound_classes):
+        # pylint: disable=useless-super-delegation
         super().__init__(value)
 
         self.sound_classes = sound_classes
@@ -120,8 +127,10 @@ class BackRef(Primitive):
     """
     Class for representing a back-referece.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
+        # pylint: disable=useless-super-delegation
         super().__init__(value)
 
     def __repr__(self):
@@ -136,8 +145,10 @@ class Boundary(Primitive):
     """
     Class for representing a boundary.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init(self):
+        # pylint: disable=useless-super-delegation
         super().__init__()
 
     def __repr__(self):
@@ -151,8 +162,10 @@ class Empty(Primitive):
     """
     Class for representing an empty symbol (deletion).
     """
+    # pylint: disable=too-few-public-methods
 
     def __init(self):
+        # pylint: disable=useless-super-delegation
         super().__init__()
 
     def __repr__(self):
@@ -166,8 +179,10 @@ class Expression(IterPrimitive):
     """
     Class for representing an expression.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
+        # pylint: disable=useless-super-delegation
         super().__init__(value)
 
     def __repr__(self):
@@ -183,15 +198,18 @@ class Sequence(IterPrimitive):
     """
     Class for representing a sequence.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
+        # pylint: disable=useless-super-delegation
         super().__init__(value)
 
     def __repr__(self):
         return "-%s-" % "-".join([repr(v) for v in self.value])
 
-    def to_regex(self, capture=None, **kwargs):
+    def to_regex(self, **kwargs):
         offset = kwargs.get("offset", None)
+        capture = kwargs.get("capture", None)
 
         # Collect the regex representation of all segments
         seq = [segment.to_regex(offset=offset) for segment in self.value]
@@ -248,19 +266,11 @@ class ReconsAutomata(compiler.Compiler):
         # Alternatives always hold sequences (even if it is a single grapheme,
         # for example, it is a sequence of a single grapheme), and we
         # collect them as lists (i.e., Expressions) in all cases.
-
-        # TODO: remove this code once ready
-        #        if len(ast["expression"]) == 1:
-        #            ret = self.compile(ast["expression"][0])
-        #        else:
-        #            ret = Expression([self.compile(alt) for alt in ast["expression"]])
-
-        ret = Expression([self.compile(alt) for alt in ast["expression"]])
-        return ret
+        return Expression([self.compile(alt) for alt in ast["expression"]])
 
     def compile_context(self, ast):
         # By default, no left nor right context
-        left_seq, right_seq = Sequence([]), Sequence([])
+        left, right = Sequence([]), Sequence([])
 
         if ast.get("context"):
             # We first look for the index of the positional "_" segment in
@@ -273,30 +283,8 @@ class ReconsAutomata(compiler.Compiler):
             ].index(True)
 
             # Collect all segments left and right
-            left_seq = Sequence([self.compile(seg) for seg in seq[:idx]])
-            right_seq = Sequence([self.compile(seg) for seg in seq[idx + 1 :]])
-
-        # Make every segment in the sequence a single-item list, unless
-        # it is an expression. This will allow to decompose the left and
-        # right context with `itertools.product()` within the
-        # `.compile_start()` method
-        # TODO: given what we have now, is this needed?
-#        left = Sequence(
-#            [
-#                [segment] if not isinstance(segment, Expression) else segment
-#                for segment in left_seq
-#            ]
-#        )
-#        right = Sequence(
-#            [
-#                [segment] if not isinstance(segment, Expression) else segment
-#                for segment in right_seq
-#            ]
-#        )
-
-        left, right = left_seq, right_seq
-        print("left", left)
-        print("right", right)
+            left = Sequence([self.compile(seg) for seg in seq[:idx]])
+            right = Sequence([self.compile(seg) for seg in seq[idx + 1 :]])
 
         return left, right
 
