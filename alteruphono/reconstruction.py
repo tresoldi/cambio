@@ -5,9 +5,19 @@ Defines class for building reconstruction replacements from ASTs.
 """
 # Import Python standard libraries
 import itertools
+from string import ascii_lowercase
 
 # Import `alteruphono` modules
 from . import compiler
+
+# TODO: move to utils
+# define a label iterator
+# -> "a", "b", ..., "aa", "ab", ..., "zz", "aaa", "aab", ...
+# def label_iter():
+#    for length in itertools.count(1):
+#        for chars in itertools.product(ascii_lowercase, repeat=length):
+#          yield "".join(chars)
+
 
 # Define primitives for the automata: these are passed between the methods
 # when building the multiple potential sequences, but also have an
@@ -18,7 +28,8 @@ class Primitive:
     def __init__(self, value=None):
         self.value = value
 
-    def to_regex(self):
+    def to_regex(self, **kwargs):
+        # NOTE: should include the capture if needed, etc.
         return NotImplemented
 
 
@@ -48,8 +59,8 @@ class IPA(Primitive):
     def __repr__(self):
         return "(I:%s)" % self.value
 
-    def to_regex(self):
-        return self.value
+    def to_regex(self, **kwargs):
+        return r"%s" % self.value
 
 
 class SoundClass(Primitive):
@@ -61,9 +72,11 @@ class SoundClass(Primitive):
     def __repr__(self):
         return "(C:%s)" % self.value
 
-    def to_regex(self):
+    def to_regex(self, **kwargs):
         # TODO: modifier operations
-        return self.sound_classes[self.value]["description"]
+        v = self.sound_classes[self.value]["description"]
+        v = ":%s:" % self.value
+        return r"%s" % v
 
 
 class BackRef(Primitive):
@@ -73,8 +86,9 @@ class BackRef(Primitive):
     def __repr__(self):
         return "(@:%i)" % self.value
 
-    def to_regex(self):
-        return "\\%i" % self.value
+    def to_regex(self, **kwargs):
+        offset = kwargs.get("offset", 0)
+        return r"\%i" % (self.value + offset)
 
 
 class Boundary(Primitive):
@@ -84,8 +98,8 @@ class Boundary(Primitive):
     def __repr__(self):
         return "(B:#)"
 
-    def to_regex(self):
-        return "#"
+    def to_regex(self, **kwargs):
+        return r"#"
 
 
 class Empty(Primitive):
@@ -95,8 +109,8 @@ class Empty(Primitive):
     def __repr__(self):
         return "(∅)"
 
-    def to_regex(self):
-        return ""
+    def to_regex(self, **kwargs):
+        return r""
 
 
 class Expression(IterPrimitive):
@@ -106,8 +120,10 @@ class Expression(IterPrimitive):
     def __repr__(self):
         return "{%s}" % ";".join([repr(v) for v in self.value])
 
-    def to_regex(self):
-        return "|".join([segment.to_regex() for segment in self.value])
+    def to_regex(self, **kwargs):
+        # TODO: what to do if captures inside captures here
+        v = "|".join([segment.to_regex() for segment in self.value])
+        return "%s" % v
 
 
 class Sequence(IterPrimitive):
@@ -117,8 +133,23 @@ class Sequence(IterPrimitive):
     def __repr__(self):
         return "-%s-" % "-".join([repr(v) for v in self.value])
 
-    def to_regex(self):
-        return " ".join([segment.to_regex() for segment in self.value])
+    def to_regex(self, capture, **kwargs):
+        # TODO: comment about offset
+        offset = kwargs.get("offset", None)
+
+        # TODO: no capture here, right? passed from segment
+        # TODO: note that we group-capture even boundaries
+        # TODO: should default to `capture=None`?
+
+        # Have a capture group around everything, even backreferences
+        # NOTE: `if segment` allows to skip over empty symbols
+        v = [
+            segment.to_regex(offset=offset) for segment in self.value if segment
+        ]
+        if capture:
+            v = [r"(%s)" % seg_r for seg_r in v]
+
+        return r" ".join(v)
 
 
 class ReconsAutomata(compiler.Compiler):
@@ -212,30 +243,40 @@ class ReconsAutomata(compiler.Compiler):
         return left, right
 
     def compile_start(self, ast):
-        # Collect `source` and `target` blocks
-        source = self.compile(ast["source"])
-        target = self.compile(ast["target"])
-        print("S:", len(source), source)
-        print("T:", len(target), target)
+        # Define the `cap`ture `label` iterator that will be used for
+        # this `start` symbol. Due to context entanglement and back-referneces,
+        # as described in the comments below, all capture groups of the
+        # regex must be named (luckily, Python captures groups both under the
+        # name and the index).
+        # Using a single infinite iterator as this guarantees
+        # that no duplicates will be used (even though the capture labels
+        # won't always start with a,b,c, which might make debugging a
+        # a little more complex).
+        # capture_iter = label_iter()
 
-        # Collect "context" if available (also a sequence), split in
+        # Collect "context" if available, split in
         # preceding (to the `left`) and following (to the `right`) parts.
-        # These are used for source context, as the target context will
+        # In normal, forward reconstruction, these will be used for
+        # the source context, as the target one will consist entirely of
+        # back-references due to the need to carry alterantives
         # be composed entirely of back-references due to alternatives
         # (e.g., with a rule `a -> e / _ i/u` allows mappings like
         # `a i -> e i` but *not* `a i -> e u`). From there, we can obtain
         # a list of left and right patterns that will be combined with
         # source and target later.
+        # TODO: note that we don't allow back-references in the context --
+        #       if those are really needed (for cases like
+        #       "C > \1[+voice] / V C \1"), they will need to be specified
+        #       as source/target (in this case,
+        #       "V C \1 > \1 \2[+voice] \1")
         left, right = self.compile_context(ast)
         left_pat = list(itertools.product(*left))
         right_pat = list(itertools.product(*right))
-        print("Lpat:", len(left_pat), left_pat)
-        print("Rpat:", len(right_pat), right_pat)
+        print("L:", left, type(left))
+        print("R:", right, type(right))
+        print("Lpat:", len(left_pat), left_pat, type(left_pat))
+        print("Rpat:", len(right_pat), right_pat, type(right_pat))
 
-        # Build the source and target pattern. As regexes will take care
-        # of alternatives in the parts that are actually replaced, here
-        # we don't need to decompose alternative expressions as in the
-        # case of context.
         # As the source and target might be entangled -- e.g., if the
         # source context is # `# S _`, the only way to know which sound of
         # class S (which can also carry modifiers) was matched is to
@@ -244,39 +285,87 @@ class ReconsAutomata(compiler.Compiler):
         # series of back-references (one for source/target and another
         # for context), mapping to a single one once the strings are
         # ready.
-        source_pat = [
-            list(
-                itertools.chain.from_iterable(
-                    [segment for segment in pat if segment]
-                )
+        left_patterns = [
+            Sequence([segment for segment in pat if segment])
+            for pat in left_pat
+            if pat
+        ]
+        right_patterns = [
+            Sequence([segment for segment in pat if segment])
+            for pat in right_pat
+            if pat
+        ]
+
+        print(
+            "Lpts:",
+            len(left_patterns),
+            left_patterns,
+            [len(p) for p in left_patterns],
+        )
+        print(
+            "Rpts:",
+            len(right_patterns),
+            right_patterns,
+            [len(p) for p in right_patterns],
+        )
+
+        # get source and target
+        source = self.compile(ast["source"])
+        target = self.compile(ast["target"])
+
+        # collect [source_offset, target_offset, left+source, left+target]
+        # pairs first, fixing
+        # the backrefences in `source` and `target` by the offSets of
+        # `left`
+        # TODO: target segments should all be captures (sound classes, etc.),
+        # as ----> #53 ['a -> æ / _ C e']
+        # 0 S: [(a) (:C:) (e)]
+        # 0 T: [æ :C: e]
+        temp = []
+        if not left_patterns:
+            source_rx = source.to_regex(offset=0, capture=True)
+            target_rx = target.to_regex(offset=0, capture=False)
+            temp.append(
+                [len(source) - 1, len(target) - 1, source_rx, target_rx]
             )
-            for pat in itertools.product(left_pat, [source], right_pat)
-        ]
-        target_pat = [
-            list(
-                itertools.chain.from_iterable(
-                    [segment for segment in pat if segment]
+        else:
+            for pattern in left_patterns:
+                left_rx = pattern.to_regex(capture=True)
+                source_rx = source.to_regex(offset=len(pattern), capture=True)
+                target_rx = target.to_regex(offset=len(pattern), capture=False)
+                temp.append(
+                    [
+                        len(pattern) + len(source),
+                        len(pattern) + len(target),
+                        "%s %s" % (left_rx, source_rx),
+                        "%s %s" % (left_rx, target_rx),
+                    ]
                 )
-            )
-            for pat in itertools.product(left_pat, [target], right_pat)
-        ]
 
-        # Map all patterns to regular expressions, skipping over empty
-        # values (such as ":null:")
-        source_rx = [
-            [segment.to_regex() for segment in pattern if segment.to_regex()]
-            for pattern in source_pat
-        ]
-        target_rx = [
-            [segment.to_regex() for segment in pattern if segment.to_regex()]
-            for pattern in target_pat
-        ]
+        # add the right parts, with the offsets, collecting
+        # all regex source/target pairs
+        # TODO: there should be no back-reference in right_pat, right?
+        pairs = []
+        for option in temp:
+            if not right_patterns:
+                pairs.append([option[2], option[3]])
+            else:
+                for pattern in right_patterns:
+                    source_right_rx = pattern.to_regex(
+                        offset=option[0] - 1, capture=True
+                    )
+                    target_right_rx = pattern.to_regex(
+                        offset=option[1] - 1, capture=False
+                    )
 
-        for idx, (p, t, p_rx, t_rx) in enumerate(
-            zip(source_pat, target_pat, source_rx, target_rx)
-        ):
-            print("#%i [%s] -> [%s]" % (idx, p, t))
-            print([type(v) for v in p])
-            print(p_rx, t_rx)
+                    # TODO: should strip here
+                    pairs.append(
+                        [
+                            "%s %s" % (option[2], source_right_rx),
+                            "%s %s" % (option[3], target_right_rx),
+                        ]
+                    )
 
-        return
+        for idx, pair in enumerate(pairs):
+            print("#%i S: [%s]" % (idx, pair[0]))
+            print("#%i T: [%s]" % (idx, pair[1]))

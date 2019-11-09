@@ -1,4 +1,5 @@
 id	rule	source	target	weight	test
+0	V s -> @1 z @1 / # p|b r _ t|d			1	p r e t o / p r e z e t o
 1	C N -> @1 / _ #	C C #	@1 #	1	a g r o ŋ g / a g r o ŋ
 2	C -> :null: / _ #	C #	#	1	a d j aː d / a d j aː
 3	C -> :null: / r _	r C	r	1	i k ʔ e r j a / i k ʔ e r a
@@ -71,7 +72,7 @@ id	rule	source	target	weight	test
 70	b -> v / V _	V b	@1 v	2	a b ts a r i m b s u / a v ts a r i m b s u
 71	b -> v / V _ V	V b V	@1 v @3	1	p i b a j / p i v a j
 72	b -> v / V _ V|r	V b V|r	@1 v @3	1	p i b a j / p i v a j
-73	b -> w / V _V	V b V	@1 w @3	3	p i b a j / p i w a j
+73	b -> w / V _ V	V b V	@1 w @3	3	p i b a j / p i w a j
 74	b -> w / a _ u	a w u	a b u	1	b i a w u b / b i a b u b
 75	b -> :null: / # _ B	# b B	# @3	1	b o n b j a r i b l i / o n b j a r i b l i
 76	b -> :null: / # _ u|i	# b u|i	# @3	1	b i a w u b / i a w u b
