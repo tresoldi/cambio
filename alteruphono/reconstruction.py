@@ -11,6 +11,9 @@ representation. `IterPrimitive` works as a list, allowing to
 collect either Expressions or Sequences.
 """
 
+# Import Python libraries
+import re
+
 # Import `alteruphono` modules
 from . import compiler
 from . import utils
@@ -66,7 +69,15 @@ class IterPrimitive(Primitive):
         self.i = -1
 
     def __len__(self):
-        return len(self.value)
+        """
+        Returns the number of regex-representable elements.
+
+        Note that this does *not* count empty segments, which means that
+        .__len__() might, as intended, return a value lower than
+        len(self.value)
+        """
+
+        return [isinstance(t, Empty) for t in self.value].count(False)
 
     def __iter__(self):
         """
@@ -220,10 +231,10 @@ class Sequence(IterPrimitive):
         offset = kwargs.get("offset", None)
         capture = kwargs.get("capture", None)
 
-        # Collect the regex representation of all segments
+        # Collect the regex representation of all existing segments
         seq = [segment.to_regex(offset=offset) for segment in self.value]
         if capture:
-            seq = [r"(%s)" % segment_rx for segment_rx in seq]
+            seq = [r"(%s)" % segment_rx for segment_rx in seq if segment_rx]
 
         return r" ".join(seq)
 
@@ -303,6 +314,14 @@ class ReconsAutomata(compiler.Compiler):
         return NotImplemented
 
 
+# NOTE: While the logic for ForwardAutomata and BackwardAutomata is
+# similar enough to theoretically justify a single class returning both,
+# skipping over repeated computations, for matters of code organization
+# and considering future expansions it was decided to keep them as
+# separate and independent classes (both inheriting from ReconsAutomata,
+# of course).
+
+
 class ForwardAutomata(ReconsAutomata):
     """
     Compiler for compiling ASTs into forward reconstruction replacements.
@@ -345,3 +364,88 @@ class ForwardAutomata(ReconsAutomata):
         target_rx = utils.clean_regex(target_rx)
 
         return source_rx, target_rx
+
+
+class BackwardAutomata(ReconsAutomata):
+    """
+    Compiler for compiling ASTs into backward reconstruction replacements.
+    """
+
+    def compile_start(self, ast):
+        # While too many locals are indeed a bad practice, this is one
+        # of the cases where splitting the flow in different
+        # methods/functions would decrease readibility
+        # pylint: disable=too-many-locals
+
+        # Collect compiled `source` and `target`, as well as
+        # `left` and `right` contexts if available
+        source = self.compile(ast["source"])
+        target = self.compile(ast["target"])
+        left, right = self.compile_context(ast)
+
+        # Build the left and right sequences for source, composed entirely
+        # of back references
+        source_left = Sequence([BackRef(i + 1) for i, _ in enumerate(left)])
+        source_right = Sequence([BackRef(i + 1) for i, _ in enumerate(right)])
+
+        # Cache lens
+        offset_left = len(left)
+        offset_middle = len(left) + len(target)
+
+        # Build the source and target sequences as list of tokens
+        target_seq = " ".join(
+            [
+                left.to_regex(offset=0, capture=True),
+                target.to_regex(offset=offset_left, capture=True),
+                right.to_regex(offset=offset_middle, capture=True),
+            ]
+        ).split()
+
+        source_seq = " ".join(
+            [
+                source_left.to_regex(offset=0),
+                source.to_regex(offset=offset_left),
+                source_right.to_regex(offset=offset_middle),
+            ]
+        ).split()
+
+        # We are almost ready to build the regexes, but the backward references
+        # in the notation become forward ones in this case: for a rule
+        # such as "C N -> @1 / _ #", at this point we would have `target`
+        # as ' (\\1) (#) ' and `source` as ' :C: :N: \\2 ', needing to
+        # swap the \\1 with :C:. We cannot do this above because we don't
+        # know the offsets in advance, so that at this point it is just
+        # easier to manipulate the strings before joining them. We iterate
+        # over all regex items in `target_seq` and, if it is a back-reference,
+        # we copy the corresponding `source_seq` value in place, making
+        # note of the operation and correcting `source_seq` at the end
+        # (we cannot plainly swap, as there might be multiple references to
+        # same source item in target, so that the value must persist until
+        # the end)
+        corrected_target_seq = []
+        source_corrections = {}
+        for target_idx, segment in enumerate(target_seq):
+            match = re.match(r"\(\\(\d+)\)", segment)
+            if match:
+                # -1 and +1 for dealing with lists which are 0-based
+                # and regexes which are 1-based
+                source_idx = int(match.group(1)) - 1
+                source_corrections[source_idx] = target_idx + 1
+
+                # We also need to add capturing parentheses
+                corrected_target_seq.append(r"(%s)" % source_seq[source_idx])
+            else:
+                corrected_target_seq.append(segment)
+
+        corrected_source_seq = [
+            segment
+            if source_idx not in source_corrections
+            else r"\%i" % source_corrections[source_idx]
+            for source_idx, segment in enumerate(source_seq)
+        ]
+
+        # build regexes
+        target_rx = utils.clean_regex(" ".join(corrected_target_seq))
+        source_rx = utils.clean_regex(" ".join(corrected_source_seq))
+
+        return target_rx, source_rx
