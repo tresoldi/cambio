@@ -24,6 +24,7 @@ class Primitive:
     """
     Class for representing an AST primitive.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, value=None):
@@ -54,6 +55,7 @@ class IterPrimitive(Primitive):
     """
     Class for representing an iterable AST primitive.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
@@ -88,6 +90,7 @@ class IPA(Primitive):
     """
     Class for representing an IPA grapheme.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
@@ -106,6 +109,7 @@ class SoundClass(Primitive):
     """
     Class for representing a sound class.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, value, sound_classes):
@@ -127,6 +131,7 @@ class BackRef(Primitive):
     """
     Class for representing a back-referece.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
@@ -145,6 +150,7 @@ class Boundary(Primitive):
     """
     Class for representing a boundary.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init(self):
@@ -162,6 +168,7 @@ class Empty(Primitive):
     """
     Class for representing an empty symbol (deletion).
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init(self):
@@ -179,6 +186,7 @@ class Expression(IterPrimitive):
     """
     Class for representing an expression.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
@@ -198,6 +206,7 @@ class Sequence(IterPrimitive):
     """
     Class for representing a sequence.
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, value):
@@ -222,6 +231,8 @@ class Sequence(IterPrimitive):
 class ReconsAutomata(compiler.Compiler):
     """
     Compiler for compiling ASTs into sets of reconstruction replacements.
+
+    Serves as a super class for forward and backward reconstructions.
     """
 
     def __init__(self, sound_classes, debug=False):
@@ -287,6 +298,15 @@ class ReconsAutomata(compiler.Compiler):
             right = Sequence([self.compile(seg) for seg in seq[idx + 1 :]])
 
         return left, right
+
+    def compile_start(self, ast):
+        return NotImplemented
+
+
+class ForwardAutomata(ReconsAutomata):
+    """
+    Compiler for compiling ASTs into forward reconstruction replacements.
+    """
 
     def compile_start(self, ast):
         # Collect compiled `source` and `target`, as well as

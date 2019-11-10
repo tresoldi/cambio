@@ -17,4 +17,4 @@ from alteruphono.grammar import SOUND_CHANGEParser as Parser
 
 from alteruphono.graph import GraphAutomata
 from alteruphono.natural import NLAutomata
-from alteruphono.reconstruction import ReconsAutomata
+from alteruphono.reconstruction import ForwardAutomata
