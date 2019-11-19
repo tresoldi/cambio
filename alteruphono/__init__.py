@@ -14,6 +14,7 @@ __email__ = "tresoldi@shh.mpg.de"
 from alteruphono import compiler
 from alteruphono import utils
 from alteruphono.grammar import SOUND_CHANGEParser as Parser
+from alteruphono.changer import apply_forward, apply_backward
 
 from alteruphono.graph import GraphAutomata
 from alteruphono.natural import NLAutomata

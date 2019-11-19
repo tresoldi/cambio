@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+# encoding: utf-8
+
+"""
+test_changer
+==============
+
+Tests for the changers in the `alteruphono` package.
+"""
+
+# Import third-party libraries
+import logging
+import sys
+import unittest
+
+# Import the library being test and auxiliary libraries
+import alteruphono
+import tatsu
+
+# Setup logger
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+LOGGER = logging.getLogger("TestLog")
+
+class TestChanger(unittest.TestCase):
+    """
+    Class for `alteruphono` tests related to changers.
+    """
+
+    def test_forward(self):
+        assert 1 == 1
+
+if __name__ == "__main__":
+    sys.exit(unittest.main())
