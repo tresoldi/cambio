@@ -171,7 +171,7 @@ def features2regex(positive, negative, transsys=None):
     # regular expression engine to correctly match them. There is no need
     # for further sorting withing lenghs, such as alphabetical.
     sounds = features2sounds(positive, negative, transsys)
-    sounds = sorted(sounds, key=len, reverse=True)
+    sounds.sort(key=lambda item: (-len(item), item))
 
     # Join all the sounds in a single regular expression string'; note that
     # we *don't* add capturing parentheses here
