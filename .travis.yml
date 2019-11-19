@@ -1,14 +1,16 @@
 language: python
 
+sudo: false
+
 python:
   - "3.5"
 
 install:
   - "python setup.py install"
-  - "pip install codecov"
+  - "pip install .[test] codecov"
 
 script:
-  - "coverage run tests/test_alteruphono.py"
+  - "coverage run tests/*.py"
 
 after_success:
   - "codecov"

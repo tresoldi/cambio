@@ -1,0 +1,125 @@
+## Grammar for sound change formal notation
+##
+## Part of the `alteruphono` library;
+## see: https://github.com/tresoldi/alteruphono
+
+## TODO: add support to segmentation boundary ("significant") whitespace
+##       with plus signs or parentheses
+## TODO: add syllable breaks
+## TODO: different segment primitives for different parts of rule
+## TODO: Consider allowing single-line comments in future versions.
+##       with @@eol_comments :: /##([^\n]*?)$/
+## TODO: should the backreferece be part of alternative/sound?
+
+## Define the grammar for parsing sound changes
+@@grammar::SOUND_CHANGE
+
+## We define the `rule` starting symbol which includes the three basic
+## elements of a sound change: a `source` (mandatory), a
+## `target` (mandatory), and a `context` (optional). Sources and
+## targets are separated by `arrow` terminals, which are not captured;
+## targets and contexts are separated by `slash` terminals, also
+## uncaptured.
+
+## We also match the end of string `$` to guarantee that no extra material
+## included in the string; if the user wants to add additional material,
+## such as comments, it must be removed before the parsing.
+start =
+    | source:sequence arrow target:sequence slash context:sequence $
+    | source:sequence arrow target:sequence $
+    ;
+
+## A `(sound) sequence` is defined as a sequence of one or more segments. It
+## is implied that they are separated by a whitespace, and such we need no
+## positive collection.
+sequence = sequence:{ segment }+ ;
+
+## Define a segment
+segment =
+    | expression
+    | mapper
+    | feature_desc
+    | back_ref
+    | empty_symbol
+    | position_symbol
+    ;
+
+## Defines an alternative (an `expression`); remember that it might
+## be a single element -- it is up to the code to convert single
+## item alternatives to single items (if necessary).
+expression = expression:"|".{ sound }+ ;
+
+## Defines a list of alternatives, composed of sequences separated by
+## commas. Remember that it is technically possible to have a mapper
+## with a single element.
+mapper = r"{" ",".{ mapper:ipa }+ r"}" ;
+
+## Define feature keys, features (which include keys and values), and feature
+## descriptions (i.e., multiple features).
+## As features can change across experiments, including due to named tiers,
+## there is no point in listing the features; we will just accept any
+## valid identifier as a key. Identifiers are composed of lowercase letters,
+## digits, underscores, and dashes, with the first character a letter.
+## In features, values can either precede and be an operator, or follow
+## and be a string value (currently restricted to "true" and "false", but
+## this is likely to be expanded in the future). Features composed only
+## of feature keys are accepts, with an implied positive value.
+## Feature descriptions are composed of multiple features enclosed by
+## square brackets and separated by commas.
+## Please note that due to the `@+:e` notation, 竜 TatSu will capture this as
+## a list even if there is a single item. This is intentional.
+feature_key = /[a-z][a-z0-9_-]+/ ;
+feature =
+    | value:(r"+"|r"-"|r"!") key:feature_key
+    | key:feature_key "=" value:(r"true"|r"false")
+    | key:feature_key
+    ;
+feature_desc = [recons:recons] r"[" ",".{ feature_desc+:feature }+ r"]" ;
+
+## Defines a back-reference, an index with an optional modifier and
+## reconstruction flag.
+back_ref =
+    | [recons:recons] "@" back_ref:/[0-9]+/ modifier:feature_desc
+    | [recons:recons] "@" back_ref:/[0-9]+/
+    ;
+
+## Sounds, the fundamental token, can be either boundaries, sound classes,
+## or IPA graphemes.
+sound =
+    | boundary:boundary_symbol
+    | sound_class:sound_class
+    | ipa:ipa
+    ;
+
+## Sound class labels are identifiers in uppercase letters or digits, with
+## the first character mandatorily a letter.
+## Sound class references can be optionally marked as reconstructions by
+## a preceding asterisk, and optionally carry a feature description
+## modifier.
+sound_class_label = /[A-Z][A-Z0-9]*/ ;
+sound_class =
+    | [recons:recons] sound_class:sound_class_label modifier:feature_desc
+    | [recons:recons] sound_class:sound_class_label
+    ;
+
+## Define IPA graphemes as an alternation.
+## Graphemes must be listed in inverse length order (longer to
+## shorter) to guarantee that those composed of two or more
+## characters will correctly be captured as such (especially in the
+## case of affricates, which will otherwise be captured as
+## plosive plus fricative).
+## The actual list is generated from Python code calling `pyclts` in the
+## makefile, which takes care of sorting as well as filtering out
+## BIPA graphemes that are not suitable or needed.
+ipa = [recons:recons] ipa:"CLTS BIPA GRAPHEMES" ;
+
+## Reconstruction markers
+recons = r"*" | r"**" ;
+
+## Define additional symbols; null symbol includes Danish ø letter.
+## The "arrow" and "slash" symbols are used by `start` but not captured.
+boundary_symbol = boundary:r"#";
+position_symbol = position:r"_";
+empty_symbol = empty:r":null:"|r"∅"|r"0"|r"ø"|r"Ø";
+arrow = r"==>" | r"-->" | r"->" | r"=>" | r">" | r"→" | r"⇒" | r"⇢" | r"⇾" | r"»";
+slash = r"//" | r"/" ;

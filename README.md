@@ -61,6 +61,26 @@ n k|g -> ŋ @2
 
 ## TODO
 
+For version 2.0:
+    - Implement mapper support in the automata (also with test cases)
+    - Implement parentheses support in the grammar and automata (also with
+      test cases)
+    - Consider moving to ANTLR
+    - For the grammar, consider removing direct sound match in `segment`,
+      only using `alternative` (potentially renamed to `expression` and dealt
+      with in an appropriate way)
+    - don't collect a `context`, but `left` and `right` already in the
+      AST (i.e., remove the `position` symbol)
+
+    - In Graphviz output
+        - Accept a strng with a description (could be the output of the
+          NLAutomata)
+        - Draw borders around `source`, `target`, and `context`
+        - Add indices to sequences, at least optionally
+        - Accept definitions of sound classes and IPA, at least in English
+
+Old version
+
   - Use `logging` everywhere
   - Implement automatic, semi-automatic, and requested syllabification
     based on prosody strength
