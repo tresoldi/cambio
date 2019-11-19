@@ -102,13 +102,13 @@ class GraphAutomata(compiler.Compiler):
         # Build a list of all nodes
         nodes_str = [
             '\t%s [label="%s"] ;' % (key, value)
-            for key, value in self.nodes.items()
+            for key, value in sorted(self.nodes.items())
         ]
 
         # Build a list of all edges, taking care of Graphviz ports
         # (e.g. ":s") if they are used
         edges_str = []
-        for edge in self.edges:
+        for edge in sorted(self.edges):
             source_label = edge[0].split(":", 1)
             if len(source_label) == 1:
                 source_label_str = '"%s"' % source_label[0]
@@ -135,7 +135,7 @@ class GraphAutomata(compiler.Compiler):
         # {source,target,context}, and for all alternatives (which should be
         # one level below). We first select all non-high level nodes,
         # and then filter appropriately.
-        rank_nodes = [node for node in self.nodes if node[0] in "STC"]
+        rank_nodes = [node for node in sorted(self.nodes) if node[0] in "STC"]
         seg_rank = [node for node in rank_nodes if "a" not in node]
         alt_rank = [node for node in rank_nodes if "a" in node]
 
