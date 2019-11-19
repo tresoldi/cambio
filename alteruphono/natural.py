@@ -7,7 +7,6 @@ Defines class for representing an AST with constrained natural language.
 # Import Python libraries
 from collections import defaultdict
 import csv
-import re
 
 # Import `alteruphono` modules
 from . import compiler
@@ -163,9 +162,7 @@ class NLAutomata(compiler.Compiler):
         if len(ast["expression"]) == 1:
             ret_text = self.compile(ast["expression"][0])
         else:
-            descriptors = [
-                self.compile(altern) for altern in ast["expression"]
-            ]
+            descriptors = [self.compile(altern) for altern in ast["expression"]]
 
             # The texual representation of expressions is separated by commas,
             # but we add an "or" conjuction to the last item *even* when we

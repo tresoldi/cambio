@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 
+"""
+Entry point for the command line `alteruphono` utility.
+"""
+
 # Import Python standard libraries
 import random
 

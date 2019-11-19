@@ -28,6 +28,7 @@ def clean_text(text):
 
     return re.sub(r"\s+", " ", text).strip()
 
+
 def clean_regex(regex):
     """
     Cleans a regular expression.

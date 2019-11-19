@@ -168,7 +168,8 @@ class GraphAutomata(compiler.Compiler):
         # Get the filetype from the extension and call graphviz
         suffix = pathlib.PurePosixPath(output_file).suffix
         subprocess.run(
-            ["dot", "-T%s" % suffix[1:], "-o", output_file, handler.name]
+            ["dot", "-T%s" % suffix[1:], "-o", output_file, handler.name],
+            check=True,
         )
 
         # Close the temporary file
