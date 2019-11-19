@@ -5,10 +5,10 @@ python:
 
 install:
   - "python setup.py install"
-  - "pip install codecov"
+  - "pip install .[test] codecov"
 
 script:
-  - "coverage run tests/test_*.py"
+  - "python -m unittest"
 
 after_success:
   - "codecov"
