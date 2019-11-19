@@ -10,6 +10,7 @@ Tests for the grammar in the `alteruphono` package.
 
 # Import third-party libraries
 import logging
+import sys
 import unittest
 
 # Import the library being test and auxiliary libraries

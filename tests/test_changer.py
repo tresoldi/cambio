@@ -11,6 +11,7 @@ Tests for the changers in the `alteruphono` package.
 # Import third-party libraries
 import csv
 import logging
+import sys
 import unittest
 
 # Import the library being test and auxiliary libraries
