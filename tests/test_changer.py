@@ -11,7 +11,6 @@ Tests for the changers in the `alteruphono` package.
 # Import third-party libraries
 import csv
 import logging
-import sys
 import unittest
 
 # Import the library being test and auxiliary libraries
@@ -75,4 +74,4 @@ class TestChanger(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    sys.exit(unittest.main())
+    unittest.main()

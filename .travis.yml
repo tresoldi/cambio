@@ -1,5 +1,7 @@
 language: python
 
+sudo: false
+
 python:
   - "3.5"
 
@@ -8,7 +10,7 @@ install:
   - "pip install .[test] codecov"
 
 script:
-  - "python -m unittest"
+  - "coverage run tests/*.py"
 
 after_success:
   - "codecov"
