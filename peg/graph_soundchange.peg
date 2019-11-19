@@ -121,5 +121,5 @@ recons = r"*" | r"**" ;
 boundary_symbol = boundary:r"#";
 position_symbol = position:r"_";
 empty_symbol = empty:r":null:"|r"∅"|r"0"|r"ø"|r"Ø";
-arrow = r">" | r"->" | r"-->" | r"=>" | r"==>" | r"→" | r"⇒" | r"⇢" | r"⇾" | r"»";
-slash = r"/" | r"//" ;
+arrow = r"==>" | r"-->" | r"->" | r"=>" | r">" | r"→" | r"⇒" | r"⇢" | r"⇾" | r"»";
+slash = r"//" | r"/" ;

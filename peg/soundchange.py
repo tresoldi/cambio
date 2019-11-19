@@ -361,15 +361,15 @@ class SOUND_CHANGEParser(Parser):
     def _arrow_(self):  # noqa
         with self._choice():
             with self._option():
-                self._token('>')
-            with self._option():
-                self._token('->')
+                self._token('==>')
             with self._option():
                 self._token('-->')
             with self._option():
+                self._token('->')
+            with self._option():
                 self._token('=>')
             with self._option():
-                self._token('==>')
+                self._token('>')
             with self._option():
                 self._token('→')
             with self._option():
@@ -386,9 +386,9 @@ class SOUND_CHANGEParser(Parser):
     def _slash_(self):  # noqa
         with self._choice():
             with self._option():
-                self._token('/')
-            with self._option():
                 self._token('//')
+            with self._option():
+                self._token('/')
             self._error('no available options')
 
 

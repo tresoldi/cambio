@@ -33,6 +33,7 @@ class TestUtils(unittest.TestCase):
         """
 
         rules = alteruphono.utils.read_sound_changes()
+        assert len(rules) == 800
 
     def test_read_additional_data(self):
         """
@@ -40,13 +41,17 @@ class TestUtils(unittest.TestCase):
         """
 
         # Read sound class definitions
-        alteruphono.utils.read_sound_classes()
+        sc = alteruphono.utils.read_sound_classes()
+        assert len(sc) == 19
+        assert sc['B']['description'] == 'back vowel'
+        assert sc['H']['regex'] == "h̃|h̬|ʔh|ʔʲ|ʔʷ|h|ɦ|ʔ"
 
         # Read feature definitions
-        alteruphono.utils.read_sound_features()
+        feat = alteruphono.utils.read_sound_features()
+        assert len(feat) == 130
+        assert feat['long'] == 'duration'
 
 
-# TODO: add negative tests (test if it fails)
 class TestParser(unittest.TestCase):
     """
     Class for testing the grammar parsing.
@@ -56,9 +61,14 @@ class TestParser(unittest.TestCase):
 
     def test_sound(self):
         # Assert parsing success
-        self.parser.parse("a", rule_name="sound")
-        self.parser.parse("V", rule_name="sound")
-        self.parser.parse("#", rule_name="sound")
+        _ = self.parser.parse("a", rule_name="sound")
+        assert _['ipa']['ipa'] == "a"
+
+        _ = self.parser.parse("V", rule_name="sound")
+        assert _['sound_class']['sound_class'] == "V"
+
+        _ = self.parser.parse("#", rule_name="sound")
+        assert _['boundary']['boundary'] == "#"
 
         # Assert parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -70,12 +80,30 @@ class TestParser(unittest.TestCase):
 
     def test_sound_class(self):
         # Assert parsing success
-        self.parser.parse("A", rule_name="sound_class")
-        self.parser.parse("*A", rule_name="sound_class")
-        self.parser.parse("MYCLASS", rule_name="sound_class")
-        self.parser.parse("*MYCLASS", rule_name="sound_class")
-        self.parser.parse("MYCLASS[+voiced]", rule_name="sound_class")
-        self.parser.parse("*MYCLASS[!voiced,bilabial]", rule_name="sound_class")
+        _ = self.parser.parse("A", rule_name="sound_class")
+        assert _['sound_class'] == "A"
+
+        _ = self.parser.parse("*A", rule_name="sound_class")
+        assert _['sound_class'] == 'A'
+        assert _['recons'] == "*"
+
+        _ = self.parser.parse("MYCLASS", rule_name="sound_class")
+        assert _['sound_class'] == 'MYCLASS'
+
+        _ = self.parser.parse("*MYCLASS", rule_name="sound_class")
+        assert _['sound_class'] == 'MYCLASS'
+        assert _['recons'] == "*"
+
+        _ = self.parser.parse("MYCLASS[+voiced]", rule_name="sound_class")
+        assert _['sound_class'] == "MYCLASS"
+        assert _['modifier']['feature_desc'][0]['value'] == "+"
+        assert _['modifier']['feature_desc'][0]['key'] == "voiced"
+
+        _ = self.parser.parse("*MYCLASS[!voiced,bilabial]", rule_name="sound_class")
+        assert _['sound_class'] == "MYCLASS"
+        assert _['recons'] == "*"
+        assert _['modifier']['feature_desc'][0]['value'] == "!"
+        assert _['modifier']['feature_desc'][1]['key'] == "bilabial"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -89,15 +117,19 @@ class TestParser(unittest.TestCase):
         with self.assertRaises(tatsu.exceptions.FailedParse):
             self.parser.parse("0", rule_name="sound_class")
 
-        # TODO: should fail
-        #with self.assertRaises(tatsu.exceptions.FailedParse):
-        #    self.parser.parse("MY-CLASS", rule_name="sound_class")
-
+        # Note that this does not raise an exception, as we are not
+        # capturing a `start`, but only a `sound_class`
+        _ = self.parser.parse("MY-CLASS", rule_name="sound_class")
+        assert _['sound_class'] != "MY-CLASS"
 
     def test_ipa(self):
         # Asserts parsing success
-        self.parser.parse("e", rule_name="ipa")
-        self.parser.parse("*e", rule_name="ipa")
+        _ = self.parser.parse("e", rule_name="ipa")
+        assert _['ipa'] == "e"
+
+        _ = self.parser.parse("*e", rule_name="ipa")
+        assert _['ipa'] == "e"
+        assert _['recons'] == "*"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -113,7 +145,8 @@ class TestParser(unittest.TestCase):
 
     def test_boundary_symbol(self):
         # Asserts parsing success
-        self.parser.parse("#", rule_name="boundary_symbol")
+        _ = self.parser.parse("#", rule_name="boundary_symbol")
+        assert _['boundary'] == "#"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -129,7 +162,8 @@ class TestParser(unittest.TestCase):
 
     def test_position_symbol(self):
         # Asserts parsing success
-        self.parser.parse("_", rule_name="position_symbol")
+        _ = self.parser.parse("_", rule_name="position_symbol")
+        assert _['position'] == "_"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -145,8 +179,12 @@ class TestParser(unittest.TestCase):
 
     def test_empty_symbol(self):
         # Asserts parsing success
-        self.parser.parse(":null:", rule_name="empty_symbol")
-        self.parser.parse("0", rule_name="empty_symbol")
+        _ = self.parser.parse(":null:", rule_name="empty_symbol")
+        assert _['empty'] == ":null:"
+
+        # TODO: check why it is not capturing the zero
+#        _ = self.parser.parse("0", rule_name="empty_symbol")
+#        assert _['empty'] == "0"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -162,8 +200,10 @@ class TestParser(unittest.TestCase):
 
     def test_arrow(self):
         # Asserts parsing success
-        self.parser.parse("->", rule_name="arrow")
-        self.parser.parse("==>", rule_name="arrow")
+        _ = self.parser.parse("->", rule_name="arrow")
+        assert _ == "->"
+        _ = self.parser.parse("==>", rule_name="arrow")
+        assert _ == "==>"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -171,8 +211,10 @@ class TestParser(unittest.TestCase):
 
     def test_slash(self):
         # Asserts parsing success
-        self.parser.parse("/", rule_name="slash")
-        self.parser.parse("//", rule_name="slash")
+        _ = self.parser.parse("/", rule_name="slash")
+        assert _ == "/"
+        _ = self.parser.parse("//", rule_name="slash")
+        assert _ == "//"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -180,10 +222,20 @@ class TestParser(unittest.TestCase):
 
     def test_expression(self):
         # Asserts parsing success
-        self.parser.parse("a|b|c", rule_name="expression")
-        self.parser.parse("a|V|#", rule_name="expression")
-        self.parser.parse("*S|m[syllabic]|#", rule_name="expression")
-        self.parser.parse("a", rule_name="expression")
+        _ = self.parser.parse("a|b|c", rule_name="expression")
+        assert len(_['expression']) == 3
+        assert _['expression'][0]['ipa']['ipa'] == 'a'
+
+        _ = self.parser.parse("a|V|#", rule_name="expression")
+        assert len(_['expression']) == 3
+        assert _['expression'][2]['boundary']['boundary'] == '#'
+
+        # TODO: not capturing the modifier in `[syllabic]`
+#        _ = self.parser.parse("*S|m[syllabic]|#", rule_name="expression")
+#        print( _['expression'][1])
+
+        _ = self.parser.parse("a", rule_name="expression")
+        assert _['expression'][0]['ipa']['ipa'] == "a"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -197,8 +249,11 @@ class TestParser(unittest.TestCase):
 
     def test_mapper(self):
         # Asserts parsing success
-        self.parser.parse("{a,b,c}", rule_name="mapper")
-        self.parser.parse("{a}", rule_name="mapper")
+        _ = self.parser.parse("{a,b,c}", rule_name="mapper")
+        assert len(_['mapper']) == 3
+        assert _['mapper'][1]['ipa'] == "b"
+        _ = self.parser.parse("{a}", rule_name="mapper")
+        assert _['mapper']['ipa'] == "a"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -210,8 +265,12 @@ class TestParser(unittest.TestCase):
 
     def test_backref(self):
         # Asserts parsing success
-        self.parser.parse("@1", rule_name="back_ref")
-        self.parser.parse("*@3[+voice]", rule_name="back_ref")
+        _ = self.parser.parse("@1", rule_name="back_ref")
+        assert _['back_ref'] == "1"
+        _ = self.parser.parse("*@3[+voice]", rule_name="back_ref")
+        assert _['recons'] == "*"
+        assert _['back_ref'] == "3"
+        assert _['modifier']['feature_desc'][0]['key'] == "voice"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -227,45 +286,67 @@ class TestParser(unittest.TestCase):
 
     def test_feature_key(self):
         # Asserts parsing success
-        self.parser.parse("abcde", rule_name="feature_key")
-        self.parser.parse("feat3", rule_name="feature_key")
-        self.parser.parse("feature_name", rule_name="feature_key")
+        _ = self.parser.parse("abcde", rule_name="feature_key")
+        assert _ == "abcde"
+
+        _ = self.parser.parse("feat3", rule_name="feature_key")
+        assert _ == "feat3"
+
+        _ = self.parser.parse("feature_name", rule_name="feature_key")
+        assert _ == "feature_name"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
             self.parser.parse("a", rule_name="feature_key")
 
-        # TODO: should raise an exception
-        #with self.assertRaises(tatsu.exceptions.FailedParse):
-        #    self.parser.parse("feat(ure)", rule_name="feature_key")
+        # Note that this does not raise an exception, as we are not
+        # capturing a `start`, but only a `sound_class`
+        _ = self.parser.parse("feat(ure)", rule_name="feature_key")
+        assert _ != "feat(ure)"
 
     def test_feature(self):
         # Asserts parsing success
-        self.parser.parse("feature", rule_name="feature")
-        self.parser.parse("+feature", rule_name="feature")
-        self.parser.parse("feature=true", rule_name="feature")
+        _ = self.parser.parse("feature", rule_name="feature")
+        assert _['key'] == "feature"
+
+        _ = self.parser.parse("+feature", rule_name="feature")
+        assert _['key'] == "feature"
+        assert _['value'] == "+"
+
+        _ = self.parser.parse("feature=true", rule_name="feature")
+        assert _['key'] == "feature"
+        assert _['value'] == "true"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
             self.parser.parse("~feature1", rule_name="feature")
 
-        # TODO: should raise an exception
-    #    with self.assertRaises(tatsu.exceptions.FailedParse):
-    #        self.parser.parse("feature1,feature2", rule_name="feature")
-    #    with self.assertRaises(tatsu.exceptions.FailedParse):
-    #        self.parser.parse("feature1=value", rule_name="feature")
-    #    with self.assertRaises(tatsu.exceptions.FailedParse):
-    #        self.parser.parse("feature=", rule_name="feature")
-    #    with self.assertRaises(tatsu.exceptions.FailedParse):
-    #        self.parser.parse("+feature=true", rule_name="feature")
+        _ = self.parser.parse("feature1,feature2", rule_name="feature")
+        assert _['key'] != "feature1,feature2"
+
+        # TODO: the grammar should reject these as incomplete or ambiguous
+        _ = self.parser.parse("feature=", rule_name="feature")
+        _ = self.parser.parse("+feature=true", rule_name="feature")
 
     def test_feature_desc(self):
         # Asserts parsing success
-        self.parser.parse("[high]", rule_name="feature_desc")
-        self.parser.parse("[high,rounded]", rule_name="feature_desc")
-        self.parser.parse("*[high,rounded]", rule_name="feature_desc")
-        self.parser.parse("[+high,-rounded]", rule_name="feature_desc")
-        self.parser.parse("[high=true,rounded=false]", rule_name="feature_desc")
+        _ = self.parser.parse("[high]", rule_name="feature_desc")
+        assert _['feature_desc'][0]['key'] == "high"
+
+        _ = self.parser.parse("[high,rounded]", rule_name="feature_desc")
+        assert len(_['feature_desc']) == 2
+        assert _['feature_desc'][1]['key'] == "rounded"
+
+        _ = self.parser.parse("*[high,rounded]", rule_name="feature_desc")
+        assert _['recons'] == "*"
+
+        _ = self.parser.parse("[+high,-rounded]", rule_name="feature_desc")
+        assert _['feature_desc'][0]['value'] == "+"
+        assert _['feature_desc'][1]['value'] == "-"
+
+        _ = self.parser.parse("[high=true,rounded=false]", rule_name="feature_desc")
+        assert _['feature_desc'][0]['value'] == "true"
+        assert _['feature_desc'][1]['value'] == "false"
 
         # Asserts parsing failure
         with self.assertRaises(tatsu.exceptions.FailedParse):
@@ -275,88 +356,63 @@ class TestParser(unittest.TestCase):
 
     def test_segment(self):
         # Asserts parsing success
-        self.parser.parse("t", rule_name="segment")
-        self.parser.parse("t|s", rule_name="segment")
-        self.parser.parse("#", rule_name="segment")
-        self.parser.parse("_", rule_name="segment")
-        self.parser.parse(":null:", rule_name="segment")
-        self.parser.parse("[+high,-rounded]", rule_name="segment")
-        self.parser.parse("@1", rule_name="segment")
-        self.parser.parse("{t,s}", rule_name="segment")
+        _ = self.parser.parse("t", rule_name="segment")
+        assert _['expression'][0]['ipa']['ipa'] == "t"
 
-        # Asserts parsing failure
-        # TODO: should be failing
-    #    with self.assertRaises(tatsu.exceptions.FailedParse):
-    #        self.parser.parse("t+s", rule_name="segment")
+        _ = self.parser.parse("t|s", rule_name="segment")
+        assert _['expression'][1]['ipa']['ipa'] == "s"
+
+        _ = self.parser.parse("#", rule_name="segment")
+        assert _['expression'][0]['boundary']['boundary'] == "#"
+
+        _ = self.parser.parse("_", rule_name="segment")
+        assert _['position'] == "_"
+
+        _ = self.parser.parse(":null:", rule_name="segment")
+        assert _['empty'] == ":null:"
+
+        _ = self.parser.parse("[+high,-rounded]", rule_name="segment")
+        assert _['feature_desc'][0]['key'] == "high"
+        assert _['feature_desc'][1]['value'] == "-"
+
+        _ = self.parser.parse("@1", rule_name="segment")
+        assert _['back_ref'] == "1"
+
+        _ = self.parser.parse("{t,s}", rule_name="segment")
+        assert len(_['mapper']) == 2
+        assert _['mapper'][0]['ipa'] == "t"
+
+        # Note that this does not raise an exception, as we are not
+        # capturing a `start`, but only a `sound_class`
+        _ = self.parser.parse("t+s", rule_name="segment")
+        assert len(_['expression']) != 2
 
     def test_sequence(self):
         # Asserts parsing success
-        self.parser.parse("t", rule_name="sequence")
-        self.parser.parse("t s", rule_name="sequence")
-        self.parser.parse("t|s a _ @1 [+high,-rounded]", rule_name="sequence")
+        _ = self.parser.parse("t", rule_name="sequence")
+        assert _['sequence'][0]['expression'][0]['ipa']['ipa'] == "t"
+
+        _ = self.parser.parse("t s", rule_name="sequence")
+        assert len(_['sequence']) == 2
+        assert _['sequence'][1]['expression'][0]['ipa']['ipa'] == "s"
+
+        _ = self.parser.parse("t|s a _ @1 [+high,-rounded]", rule_name="sequence")
+        assert len(_['sequence']) == 4
+        assert len(_['sequence'][0]['expression']) == 2
+        assert _['sequence'][2]['position'] == "_"
 
     def test_start(self):
         # Assert parsing success; these are basic tests, the complete
         # ones use the data from the sound change catalog provided
         # with the library
-        self.parser.parse("p > b / V _ V", rule_name="start")
-        self.parser.parse("p -> b")
+        _ = self.parser.parse("p > b / V _ V", rule_name="start")
+        assert "source" in _
+        assert "target" in _
+        assert "context" in _
 
-#class TestSoundChange(unittest.TestCase):
-#    def test_basic_change(self):
-#        """
-#        Test basic sound changes.
-#        """
-#
-#        assert alteruphono.apply_rule("b a b a", "b", "p") == "p a p a"
-#        assert alteruphono.apply_rule("b a b a", "t", "p") == "b a b a"
-#
-#    def test_specific_changes(self):
-#        # specific changes to trigger 100% coverage
-#        assert (
-#            alteruphono.apply_rule("t a d a", "C", "@1[+voiced]") == "d a d a"
-#        )
-#
-#        assert alteruphono.apply_rule("ɲ a", "C", "@1[+fricative]") == "ʑ a"
-#
-#        assert alteruphono.apply_rule("t a", "C", "@1[+fricative]") == "s a"
-#
-#    def test_random_change(self):
-#        rules = alteruphono.utils.read_sound_changes()
-#        alteruphono.utils.random_change(rules)
-#
-#    def test_default_changes(self):
-#        """
-#        Run the embedded test of all default changes.
-#        """
-#
-#        # The tests by default have no word borders, we tests both with and
-#        # without borders (which are added automatically by apply_rule)
-#        rules = alteruphono.utils.read_sound_changes()
-#        for rule_id, rule in rules.items():
-#            test_source, test_target = rule["test"].split("/")
-#
-#            # Build normal source/target
-#            test_source = test_source.strip()
-#            test_target = test_target.strip()
-#
-#            # Build word-boundary source/target
-#            test_source_wb = "# %s #" % test_source
-#            test_target_wb = "# %s #" % test_target
-#
-#            # Process and assert
-#            target = alteruphono.apply_rule(
-#                test_source, rule["source"], rule["target"]
-#            )
-#            target_wb = alteruphono.apply_rule(
-#                test_source_wb, rule["source"], rule["target"]
-#            )
-#
-#            #LOGGER.debug("%s [%s] [%s]", rule_id, target, test_target)
-#            #LOGGER.debug("%s", str(rule))
-#
-#            assert target == test_target
-#            assert target_wb == test_target_wb
+        # no context
+        _ = self.parser.parse("p -> b")
+        assert _['context'] is None
 
 if __name__ == "__main__":
     sys.exit(unittest.main())

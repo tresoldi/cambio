@@ -6,7 +6,7 @@ strict digraph {
 	];
 	node [label="\N"];
 	n1	 [height=0.5,
-		label="/",
+		label="//",
 		pos="485.16,72",
 		width=0.75];
 	n4	 [height=0.05,
@@ -25,7 +25,7 @@ strict digraph {
 	n4 -> n5	 [arrowhead=none,
 		pos="613.8,45 627.73,45 765.85,45 787.35,45"];
 	n2	 [height=0.5,
-		label="//",
+		label="/",
 		pos="485.16,18",
 		width=0.75];
 	n2 -> n4	 [arrowhead=none,
@@ -48,7 +48,7 @@ strict digraph {
 	slash -> n3	 [arrowhead=none,
 		pos="143.22,45 198.93,45 307.68,45 321.06,45"];
 	n6	 [height=0.5,
-		label=">",
+		label="==>",
 		pos="485.16,612",
 		width=0.75];
 	n17	 [height=0.05,
@@ -67,13 +67,13 @@ strict digraph {
 	n17 -> n18	 [arrowhead=none,
 		pos="613.8,369 627.73,369 765.85,369 787.35,369"];
 	n7	 [height=0.5,
-		label="->",
+		label="-->",
 		pos="485.16,558",
 		width=0.75];
 	n7 -> n17	 [arrowhead=none,
 		pos="510.29,550.91 521.33,546.64 533.89,540.21 542.66,531 592.74,478.44 608.48,383.59 610.45,370.51"];
 	n8	 [height=0.5,
-		label="-->",
+		label="->",
 		pos="485.16,504",
 		width=0.75];
 	n8 -> n17	 [arrowhead=none,
@@ -85,7 +85,7 @@ strict digraph {
 	n9 -> n17	 [arrowhead=none,
 		pos="508.51,440.73 519.15,435.96 531.88,429.74 542.66,423 572.32,404.47 604.07,375.18 609.77,369.85"];
 	n10	 [height=0.5,
-		label="==>",
+		label=">",
 		pos="485.16,396",
 		width=0.75];
 	n10 -> n17	 [arrowhead=none,
