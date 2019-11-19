@@ -7,10 +7,15 @@ Module implementing functions for applying back and forward changes.
 
 import re
 
+# TODO: deal with boundaries when missing
 def apply_forward(seq, source, target):
-    seq = re.replace(source, target, seq)
+    # prepare `seq`
+    seq = " %s " % re.sub("\s+", " ", seq.strip())
 
-    return seq
+    seq = re.sub(source, target, seq)
+
+    return seq.strip()
+
 
 def apply_backward(seq, source, target):
     pass
