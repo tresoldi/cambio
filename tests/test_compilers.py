@@ -55,6 +55,7 @@ REFERENCE = {
 
 DOT_REFERENCE = 'digraph G {\ngraph [layout="dot",ordering="out",splines="polyline"] ;\n\tC0 [label="#"] ;\n\tC1 [label="_pos_"] ;\n\tS0 [label="(ipa:p)"] ;\n\tT0 [label="(ipa:b)"] ;\n\tsource [label="source"] ;\n\ttarget [label="target"] ;\n\t"context" -> "C0" ;\n\t"context" -> "C1" ;\n\t"source" -> "S0" ;\n\t"start" -> "context" ;\n\t"start" -> "source" ;\n\t"start" -> "target" ;\n\t"target" -> "T0" ;\n{rank=same;C0;C1;S0;T0} ;\n{rank=same;} ;\n}'
 
+
 class TestCompilers(unittest.TestCase):
     """
     Class for `alteruphono` tests related to compilers.
@@ -98,6 +99,7 @@ class TestCompilers(unittest.TestCase):
         dot = graph.dot_source()
 
         assert dot == DOT_REFERENCE
+
 
 if __name__ == "__main__":
     sys.exit(unittest.main())
