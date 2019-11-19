@@ -8,7 +8,7 @@ install:
   - "pip install codecov"
 
 script:
-  - "coverage run tests/test_alteruphono.py"
+  - "coverage run tests/test_*.py"
 
 after_success:
   - "codecov"
