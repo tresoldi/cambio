@@ -76,7 +76,7 @@ def apply_backward(sequence, source, target):
     alt.append([sequence[prev_idx:]])
 
     # build alternatives
-    sequences = [
-        "".join(subseqs) for subseqs in itertools.product(*alt)]
+    sequences = sorted([
+        "".join(subseqs) for subseqs in itertools.product(*alt)])
 
     return sequences
