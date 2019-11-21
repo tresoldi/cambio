@@ -146,8 +146,6 @@ class TestCompilers(unittest.TestCase):
         for rule, ref in sorted(REFERENCE.items()):
             ast = parser.parse(rule)
             bw = backward.compile(ast)
-            print()
-            print("============", [rule, bw])
             assert bw == ref["bw"]
 
     def test_graph(self):

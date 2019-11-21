@@ -48,9 +48,9 @@ class TestChanger(unittest.TestCase):
                 # bound segments
                 skips = ["d+", "n+", "i+", "h+", "C+"]
                 # sound_classes
-                skips += ["V", "C", "N", "K", "L", "P", "R", "S", "B", "E"]
+                # skips += ["V", "C", "N", "K", "L", "P", "R", "S", "B", "E"]
                 # modifiers
-                skips += ["@1[+"]
+                skips += ["@1[+", "S[+v", "V[+n"]
 
                 found = [skip in row["rule"] for skip in skips]
                 if any(found):

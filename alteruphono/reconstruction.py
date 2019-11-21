@@ -215,7 +215,9 @@ class Expression(IterPrimitive):
         return "{%s}" % ";".join([repr(v) for v in self.value])
 
     def to_regex(self, **kwargs):
-        alternatives = "|".join([segment.to_regex(**kwargs) for segment in self.value])
+        alternatives = "|".join(
+            [segment.to_regex(**kwargs) for segment in self.value]
+        )
         return r"%s" % alternatives
 
 
@@ -234,7 +236,7 @@ class Sequence(IterPrimitive):
         return "-%s-" % "-".join([repr(v) for v in self.value])
 
     def to_regex(self, **kwargs):
-        capture = kwargs.pop('capture', None)
+        capture = kwargs.pop("capture", None)
 
         # Collect the regex representation of all existing segments
         seq = [segment.to_regex(**kwargs) for segment in self.value]
