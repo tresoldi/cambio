@@ -58,10 +58,10 @@ def apply_backward(sequence, source, target):
     # string actually matched (which can vary from match to match).
     matches = [
         {
-            'source' : match.group(0),
-            'target' : re.sub(source, target, match.group(0)),
-            'start' : match.start(),
-            'end' : match.end(),
+            "source": match.group(0),
+            "target": re.sub(source, target, match.group(0)),
+            "start": match.start(),
+            "end": match.end(),
         }
         for match in re.finditer(source, sequence)
     ]
@@ -70,13 +70,14 @@ def apply_backward(sequence, source, target):
     prev_idx = 0
     alt = []
     for match in matches:
-        alt.append([sequence[prev_idx:match['start']]])
-        alt.append([match['source'], match['target']])
-        prev_idx = match['end']
+        alt.append([sequence[prev_idx : match["start"]]])
+        alt.append([match["source"], match["target"]])
+        prev_idx = match["end"]
     alt.append([sequence[prev_idx:]])
 
     # build alternatives
-    sequences = sorted([
-        "".join(subseqs) for subseqs in itertools.product(*alt)])
+    sequences = sorted(
+        ["".join(subseqs) for subseqs in itertools.product(*alt)]
+    )
 
     return sequences

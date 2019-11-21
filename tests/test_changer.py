@@ -79,14 +79,14 @@ class TestChanger(unittest.TestCase):
         backward = alteruphono.BackwardAutomata(SOUND_CLASSES)
 
         # Test rules
-        ast = parser.parse("C > b / _ r")
+        ast = parser.parse("H > b / _ r")
         bw = backward.compile(ast)
 
         RULES = {
-            "C > b / _ r": (
-                " # :C: r a d i :C: r e # ",
-                " # :C: r a d i b r e # ",
-                " # b r a d i :C: r e # ",
+            "H > b / _ r": (
+                " # H r a d i H r e # ",
+                " # H r a d i b r e # ",
+                " # b r a d i H r e # ",
                 " # b r a d i b r e # ",
             ),
             "t > d": (" # b r a d i b r e # ", " # b r a t i b r e # "),
@@ -98,6 +98,7 @@ class TestChanger(unittest.TestCase):
             candidates = alteruphono.apply_backward(
                 "# b r a d i b r e #", bw[0], bw[1]
             )
+
             assert tuple(candidates) == RULES[rule]
 
 

@@ -133,9 +133,16 @@ class SoundClass(Primitive):
         return "(C:%s)" % self.value
 
     def to_regex(self, **kwargs):
-        regex = self.sound_classes[self.value]["regex"]
-        regex = ":%s:" % self.value
-        return r"%s" % regex
+        # Whether to expand the sound-class short-hand, as in capture groups
+        # for forward reconstruction, or not, as in backward reconstruction
+        expand = kwargs.get("expand", True)
+
+        if expand:
+            ret = r"%s" % self.sound_classes[self.value]["regex"]
+        else:
+            ret = r"%s" % self.value
+
+        return ret
 
 
 class BackRef(Primitive):
@@ -208,8 +215,7 @@ class Expression(IterPrimitive):
         return "{%s}" % ";".join([repr(v) for v in self.value])
 
     def to_regex(self, **kwargs):
-        # TODO: check if we need to pass `kwargs`
-        alternatives = "|".join([segment.to_regex() for segment in self.value])
+        alternatives = "|".join([segment.to_regex(**kwargs) for segment in self.value])
         return r"%s" % alternatives
 
 
@@ -228,11 +234,10 @@ class Sequence(IterPrimitive):
         return "-%s-" % "-".join([repr(v) for v in self.value])
 
     def to_regex(self, **kwargs):
-        offset = kwargs.get("offset", None)
-        capture = kwargs.get("capture", None)
+        capture = kwargs.pop('capture', None)
 
         # Collect the regex representation of all existing segments
-        seq = [segment.to_regex(offset=offset) for segment in self.value]
+        seq = [segment.to_regex(**kwargs) for segment in self.value]
         if capture:
             seq = [r"(%s)" % segment_rx for segment_rx in seq if segment_rx]
 
@@ -404,7 +409,7 @@ class BackwardAutomata(ReconsAutomata):
         source_seq = " ".join(
             [
                 source_left.to_regex(offset=0),
-                source.to_regex(offset=offset_left),
+                source.to_regex(offset=offset_left, expand=False),
                 source_right.to_regex(offset=offset_middle),
             ]
         ).split()
