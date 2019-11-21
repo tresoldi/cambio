@@ -1,6 +1,6 @@
 id	rule	source	target	weight	test
-0	V s -> @1 z @1 / # p|b r _ t|d			1	p r e t o / p r e z e t o
-1	C N -> @1 / _ #	C C #	@1 #	1	a g r o ŋ g / a g r o ŋ
+0	V s -> @1 z @1 / # p|b r _ t|d			1	p r e s t o / p r e z e t o
+1	C N -> @1 / _ #	C C #	@1 #	1	a g r o g ŋ / a g r o g
 2	C -> :null: / _ #	C #	#	1	a d j aː d / a d j aː
 3	C -> :null: / r _	r C	r	1	i k ʔ e r j a / i k ʔ e r a
 4	s C -> :null: / _ #	s C #	#	1	g e g s i s k / g e g s i
@@ -21,7 +21,7 @@ id	rule	source	target	weight	test
 19	P -> p / l _	l P	l p	2	i l b i r m a / i l p i r m a
 20	P -> p / r _	r P	r p	1	i l b i r m a / i l b i r p a
 21	P -> p / s _	s P	s p	1	s b u r h i / s p u r h i
-22	R -> :null: / _ #	R h	h	1	h a z h ã / h a h ã
+22	R h -> h / _ V	R h	h	1	h a z h ã / h a h ã
 23	S S -> @1[+fricative] @2	S S	@1[+fricative] @2	1	a s p t i s / a s ɸ t i s
 24	S -> @1[+fricative] / _ #	S #	@1[+voiceless] #	1	a d j aː d / a d j aː t
 25	S f -> fː	S f	fː	1	p f o p t a / fː o p t a
@@ -52,7 +52,7 @@ id	rule	source	target	weight	test
 50	a -> :null: / _ V	a V	@2	1	a i a tʃ i h e / i a tʃ i h e
 51	a -> :null: / _ i	a i	i	1	a i a tʃ i h e / i a tʃ i h e
 52	a -> :null: / _ u	a u	u	2	a m u f a u / a m u f u
-53	a -> æ / _ C e	a C e	æ @2	3	a k e l e j a p a / æ k l e j a p a
+53	a C e -> æ @2	a C e	æ @2	3	a k e l e j a p a / æ k l e j a p a
 54	a -> ɔ / _ ŋ|k	a ŋ|k	ɔ @2	1	a k a n k m i k s / ɔ k a n k m i k s
 55	a -> ə / _ C a	a C a	ə @2 a	2	a k a n k m i k s / ə k a n k m i k s
 56	a -> ə / _ C e	a C e	ə @2 e	1	a k e l e j a p a / ə k e l e j a p a
@@ -94,7 +94,7 @@ id	rule	source	target	weight	test
 92	d -> l / # _	# d	# l	2	d i a z e i l e n / l i a z e i l e n
 93	d -> l / _ #	d #	l #	1	a d j aː d / a d j aː l
 94	d -> n / _ V[+nasal]	d V[+nasal]	n @2	2	d j u d ẽ l / d j u n ẽ l
-95	d -> ɾ / V _ V	V d V	@3 ɾ @3	3	d j u d ẽ l / d j ẽ ɾ ẽ l
+95	d -> ɾ / V _ V	V d V	@3 ɾ @3	3	d j u d ẽ l / d j u ɾ ẽ l
 96	d -> ɾ / V _ V|#	V d V|#	@1 ɾ @3	1	a d j aː d / a d j aː ɾ
 97	d -> ɾ / _ #	d #	ɾ #	1	a d j aː d / a d j aː ɾ
 98	d -> ɾ / _ ŋ	d ŋ	ɾ ŋ	1	d w a j d ŋ e d / d w a j ɾ ŋ e d
@@ -126,7 +126,7 @@ id	rule	source	target	weight	test
 124	d -> ʔ / _ #	d #	ʔ #	1	a d j aː d / a d j aː ʔ
 125	dz -> d / _ i	dz i	d i	1	dz i ẽ l d / d i ẽ l d
 126	d -> tʃ / _ i|u	d i|u	tʃ @2	1	d i a z e i l e n / tʃ i a z e i l e n
-127	d -> dz / _ i V	d i V	dz @3	1	d i a z e i l e n / dz a z e i l e n
+127	d i -> dz / _ V	d i V	dz @3	1	d i a z e i l e n / dz a z e i l e n
 128	d j -> z / V _ V	V d j V	@1 z @4	1	a d j aː d / a z aː d
 129	e -> a / _ #	e #	a #	1	a i a tʃ i h e / a i a tʃ i h a
 130	e -> a / _ i	e i	a i	1	d i a z e i l e n / d i a z a i l e n
@@ -134,7 +134,7 @@ id	rule	source	target	weight	test
 132	e -> a / _ s	e s	a s	1	e s p e ʔ / a s p e ʔ
 133	e -> a / _ r|l	e r|l	a @2	1	a k e l e j a p a / a k a l e j a p a
 134	e ʔ -> a	e ʔ	a	1	e s p e ʔ / e s p a
-135	a -> e / V|C _ r	V|C e r	@1 a r	1	i k ʔ e r j a / i k ʔ a r j a
+135	a -> e / V|C _ r	V|C e r	@1 a r	1	i k ʔ a r j a / i k ʔ e r j a
 136	ɣ|j -> i / e _	e ɣ|j	e i	1	a k e l e j a p a / a k e l e i a p a
 137	e -> i / # N _ C	# N e C	# @2 i @4	1	m e k e r / m i k e r
 138	e -> i / # _	# e	# i	2	e a s e / i a s e
@@ -170,7 +170,7 @@ id	rule	source	target	weight	test
 168	e -> ɨ / _ #	e #	ɨ #	1	a i a tʃ i h e / a i a tʃ i h ɨ
 169	e -> ɨ / k|j _	k|j e	@1 ɨ	1	a k e l e j a p a / a k ɨ l e j a p a
 170	e N -> y / _ #	e N #	y #	1	d i a z e i l e n / d i a z e i l y
-171	e N -> ĩ	e N	ı̃	1	b e ŋ j e k e y / b ı̃ j e k e y
+171	e N -> ĩ	e N	ı̃	1	b e ŋ j e k e y / b ĩ j e k e y
 172	i|ɪ -> :null: / # e _	# e i|ɪ	# e	1	e ɪ l eː k / e l eː k
 173	eː -> e i / j _	j eː	j e i	1	j eː a f n o / j e i a f n o
 174	eː -> iː / _ C	eː C	iː @2	1	e ɪ l eː k / e ɪ l iː k
