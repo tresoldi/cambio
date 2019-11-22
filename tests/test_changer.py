@@ -47,10 +47,9 @@ class TestChanger(unittest.TestCase):
 
                 # bound segments
                 skips = ["d+", "n+", "i+", "h+", "C+"]
-                # sound_classes
-                # skips += ["V", "C", "N", "K", "L", "P", "R", "S", "B", "E"]
                 # modifiers
-                skips += ["@1[+", "S[+v", "V[+n"]
+                skips += ["V[+n"]
+                #skips += ["@1[+", "S[+v", "V[+n"]
 
                 found = [skip in row["rule"] for skip in skips]
                 if any(found):
@@ -68,6 +67,11 @@ class TestChanger(unittest.TestCase):
                 target = alteruphono.apply_forward(ref_source, fw[0], fw[1])
 
                 # assert reference and result are matching
+#                print()
+#                import pprint
+#                pprint.pprint(ast)
+#                print([row['id'], row['rule'], target, ref_target])
+#                print(fw)
                 assert ref_target == target
 
     def test_backward(self):

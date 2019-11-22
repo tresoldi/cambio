@@ -22,12 +22,12 @@ id	rule	source	target	weight	test
 20	P -> p / r _	r P	r p	1	i l b i r m a / i l b i r p a
 21	P -> p / s _	s P	s p	1	s b u r h i / s p u r h i
 22	R h -> h / _ V	R h	h	1	h a z h ã / h a h ã
-23	S S -> @1[+fricative] @2	S S	@1[+fricative] @2	1	a s p t i s / a s ɸ t i s
-24	S -> @1[+fricative] / _ #	S #	@1[+voiceless] #	1	a d j aː d / a d j aː t
+23	S -> @1[+fricative] / _ S	S S	@1[+fricative] @2	1	a s p t i s / a s ɸ t i s
+24	S -> @1[+voiceless] / _ #	S #	@1[+voiceless] #	1	a d j aː d / a d j aː t
 25	S f -> fː	S f	fː	1	p f o p t a / fː o p t a
 26	F -> :null: / # S _	# S F	# @2	4	p f o p t a / p o p t a
-27	N -> :null: / _ S[+voiced]	N S[+voiced]	@1	1	a b ts a r i m b s u / a b ts a r i m s u
-28	N -> :null: / S[+voiced] _	S[+voiced] N	@2	1	d n i c t r i a / n i c t r i a
+27	N S[+voiced] -> @1	N S[+voiced]	@1	1	a b ts a r i m b s u / a b ts a r i m s u
+28	S[+voiced] N -> @2	S[+voiced] N	@2	1	d n i c t r i a / n i c t r i a
 29	V -> @1[+rounded] / w _	w V	w @2[+rounded]	3	d w a j d ŋ e d / d w ɶ j d ŋ e d
 30	a -> aː / V C _	V C a	@1 @2 aː	1	a k a n k m i k s / a k aː n k m i k s
 31	a -> aː / _ C #	a C #	aː @2 #	1	a r i a m / a r i aː m

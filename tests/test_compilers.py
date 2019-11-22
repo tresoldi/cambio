@@ -79,11 +79,12 @@ REFERENCE = {
             " \\1 d \\2 ",
         ),
     },
+    # TODO: deal with the back reference with modifications, can be hard...
     "d|ɣ -> @1[+voiceless] / _ #": {
         "en": "the source, composed of either the sound /d/ or the sound /ɣ/, turns into the target, composed of the first matched sound (changed into a voiceless sound), when followed by a word boundary",
         "pt": "a fonte, composta pelo som /d/ ou pelo som /ɣ/, torna-se a meta, composta pelo primeiro som correspondente (mudado para um som voiceless), quando seguida por um delimitador de palavra",
-        "fw": (" (d|ɣ) (#) ", " \\1 \\2 "),
-        "bw": (" (d|ɣ) (#) ", " \\1 \\2 "),
+        "fw": (" (d|ɣ) (#) ", " \\1[+voiceless] \\2 "),
+        "bw":  (' (\\1[+voiceless]) (#) ', ' d|ɣ \\2 '),
     },
 }
 

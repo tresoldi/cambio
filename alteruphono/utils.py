@@ -14,7 +14,7 @@ import re
 # Import 3rd party libraries
 from pyclts import CLTS
 
-_TRANSCRIPTION = CLTS().bipa
+TRANSCRIPTION = CLTS().bipa
 
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py
@@ -165,7 +165,7 @@ def features2regex(positive, negative, transsys=None):
 
     # Use the default transcription system, if none was provided
     if not transsys:
-        transsys = _TRANSCRIPTION
+        transsys = TRANSCRIPTION
 
     # Get the list of sounds and sort it by inverse length, allowing the
     # regular expression engine to correctly match them. There is no need

@@ -152,16 +152,42 @@ class BackRef(Primitive):
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, value):
+    def __init__(self, value, modifier=None):
         # pylint: disable=useless-super-delegation
         super().__init__(value)
 
+        # Store the modifier, if it exists
+        # TODO: for the time being, just dumbly rebuilding the modifier
+        if not modifier:
+            self.modifier = None
+        else:
+            features = []
+            for feature in modifier['feature_desc']:
+                if feature['value'] in "+-!":
+                    feature_str = "%s%s" % (feature['value'], feature['key'])
+                else:
+                    feature_str = "%s=%s" % (feature['key'], feature['value'])
+                features.append(feature_str)
+
+            self.modifier = "[%s]" % ",".join(features)
+
     def __repr__(self):
-        return "(@:%i)" % self.value
+        if not self.modifier:
+            ret = "(@:%i)" % self.value
+        else:
+            ret = "(@:%i:%s)" % (self.value, str(self.modifier))
+
+        return ret
 
     def to_regex(self, **kwargs):
         offset = kwargs.get("offset", 0)
-        return r"\%i" % (self.value + offset)
+
+        if not self.modifier:
+            ret = r"\%i" % (self.value + offset)
+        else:
+            ret = r"\%i%s" % (self.value + offset, str(self.modifier))
+
+        return ret
 
 
 class Boundary(Primitive):
@@ -283,7 +309,7 @@ class ReconsAutomata(compiler.Compiler):
 
     def compile_back_ref(self, ast):
         # TODO: pass and handle modifiers
-        return BackRef(int(ast["back_ref"]))
+        return BackRef(int(ast["back_ref"]), ast["modifier"])
 
     def compile_feature_desc(self, ast):
         return "(%s)" % ast["feature_desc"]

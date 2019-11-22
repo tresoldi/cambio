@@ -33,11 +33,67 @@ def _prepare_sequence(sequence):
 
 # TODO: deal with boundaries when missing
 def apply_forward(sequence, source, target):
+    # TODO: refactor, import at top, etc.
+    from . import utils
+
+    features = utils.read_sound_features()
+
     sequence = _prepare_sequence(sequence)
 
+    # TODO: make sure it is applying to all matches
     sequence = re.sub(source, target, sequence)
 
-    return sequence.strip()
+    # Process tokens one by one, consuming any feature manipulation
+    # TODO: note on why it is done here, move to .to_regex, etc.
+    processed_tokens = []
+    for token in sequence.split():
+        # If we find brackets in the tokens, consume the feature manipulation;
+        # otherwise, just copy the token.
+        # TODO: Move to a list comprehension, isolating the feature
+        #       manipulation?
+        if "[" not in token:
+            processed_tokens.append(token)
+        else:
+            # TODO: We are here assuming that all operations are positive
+            #       (i.e., a feature is added or at most replaced), and as
+            #       such we are not even extracting the plus or minus sign.
+            #       This is forbidding some common operation like removing
+            #       aspiration and labialization (which can still be modelled
+            #       as direct phoneme mapping, i.e. 'ph -> p'). VERY URGENT!!!
+            # TODO: This is also assuming that a single feature is
+            #       manipulated; we should allow for more feature operations.
+            # TODO: could use or reuse parse_features()?
+            grapheme, operation = token[:-1].split("[")
+            if operation[0] in "+-":
+                op_operator, op_feature = operation[0], operation[1:]
+            else:
+                op_operator, op_feature = "+", operation
+
+            # Obtain the phonological descriptors for the base sound
+            descriptors = utils.TRANSCRIPTION[grapheme].name.split()
+
+            # Obtain the feature class for the current `op_feature` (the
+            # feature for the current value, in common phonological parlance)
+            # and remove all `descriptors` matching it (if any), so that we
+            # can append our own descriptor/of_feature, build a new name,
+            # and generate a new sound/grapheme from that.
+            descriptors = [
+                value
+                for value in descriptors
+                if features[value] != features[op_feature]
+            ]
+            descriptors.append(op_feature)
+
+            # Fix any problem in the descriptors
+            descriptors = utils.fix_descriptors(descriptors)
+
+            # Ask the transcription system for a new grapheme based in the
+            # adapted description
+            processed_tokens.append(utils.TRANSCRIPTION[" ".join(descriptors)].grapheme)
+
+    # Join the processed tokens
+    # TODO: remove boundaries if they were added
+    return " ".join(processed_tokens).strip()
 
 
 # TODO: move to `regex` library later, with overlapping findall
