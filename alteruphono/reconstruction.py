@@ -425,7 +425,12 @@ class BackwardAutomata(ReconsAutomata):
         offset_left = len(left)
         offset_middle = len(left) + len(target)
 
-        # Build the source and target sequences as list of tokens
+        # Build the source and target sequences as list of tokens;
+        # We build one source_seq with no alternative expansion, to be
+        # returned, and one with expansion that is used to populate
+        # back `target_seq` in the loop after this.
+        # TODO: explain in details and with examples, this is complex!
+        # TODO: why join and split?
         target_seq = " ".join(
             [
                 left.to_regex(offset=0, capture=True),
@@ -438,6 +443,14 @@ class BackwardAutomata(ReconsAutomata):
             [
                 source_left.to_regex(offset=0),
                 source.to_regex(offset=offset_left, expand=False),
+                source_right.to_regex(offset=offset_middle),
+            ]
+        ).split()
+
+        exp_source_seq = " ".join(
+            [
+                source_left.to_regex(offset=0),
+                source.to_regex(offset=offset_left, expand=True),
                 source_right.to_regex(offset=offset_middle),
             ]
         ).split()
@@ -455,8 +468,15 @@ class BackwardAutomata(ReconsAutomata):
         # (we cannot plainly swap, as there might be multiple references to
         # same source item in target, so that the value must persist until
         # the end)
+        # NOTE: if the same back-reference is used more than once (like in
+        # `@4 z @4`, we cannot blindly replace, as the regular expression
+        # would miss the equality -- in other words, we cannot have
+        # `(a|e) (z) (a|e)`, but we need `(a|e) (z) (\\1)`. For that, we
+        # need to keep track of every back-reference pointed to and, in
+        # case it is reused, point back to the first usage of it.
         corrected_target_seq = []
         source_corrections = {}
+        backrefs_used = {}
         for target_idx, segment in enumerate(target_seq):
             match = re.match(r"\(\\(\d+)\)", segment)
             if match:
@@ -465,8 +485,12 @@ class BackwardAutomata(ReconsAutomata):
                 source_idx = int(match.group(1)) - 1
                 source_corrections[source_idx] = target_idx + 1
 
-                # We also need to add capturing parentheses
-                corrected_target_seq.append(r"(%s)" % source_seq[source_idx])
+                if source_idx not in backrefs_used:
+                    # We also need to add capturing parentheses
+                    corrected_target_seq.append(r"(%s)" % exp_source_seq[source_idx])
+                    backrefs_used[source_idx] = target_idx+1
+                else:
+                    corrected_target_seq.append(r"(\%i)" % backrefs_used[source_idx])
             else:
                 corrected_target_seq.append(segment)
 
