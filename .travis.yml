@@ -10,7 +10,9 @@ install:
   - "pip install codecov"
 
 script:
-  - "coverage run tests/*.py"
+  - "coverage run tests/test_grammar.py"
+  - "coverage run tests/test_compilers.py"
+  - "coverage run tests/test_changer.py"
 
 after_success:
   - "codecov"
