@@ -1,0 +1,12 @@
+coverage:
+    status:
+        patch: no
+        changes: no
+        project:
+            default: false
+            tests:
+                paths: "test/"
+                target: 95%
+            lib:
+                paths: "alteruphono/"
+                target: 95%
