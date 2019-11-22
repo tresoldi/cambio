@@ -7,7 +7,7 @@ python:
 
 install:
   - "python setup.py install"
-  - "pip install .[test] codecov"
+  - "pip install --user codecov"
 
 script:
   - "coverage run tests/*.py"
