@@ -2,7 +2,7 @@ sound_class	description	features
 A	affricate consonant	affricate
 B	back vowel	vowel,back
 C	consonant	consonant
-C[+voiced]	voiced consonant	consonant,voiced
+CV	voiced consonant	consonant,voiced
 E	front vowel	vowel,front
 F	fricative consonant	fricative
 H	glottal consonant	glottal
@@ -13,8 +13,8 @@ P	bilabial consonant	bilabial
 Q	uvular consonant	uvular
 R	resonant	consonant,-stop
 S	plosive consonant	stop
-S[+voiced]	voiced plosive	stop,voiced
-S[+voiceless]	voiceless plosive	stop,voiceless
+SV	voiced plosive	stop,voiced
+SVL	voiceless plosive	stop,voiceless
 V	vowel	vowel
-V[+nasal]	nasal vowel	vowel,nasalized
-V[+long]	long vowel	vowel,long
+VN	nasal vowel	vowel,nasalized
+VL	long vowel	vowel,long

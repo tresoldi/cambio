@@ -48,7 +48,7 @@ class TestChanger(unittest.TestCase):
                 # bound segments
                 skips = ["d+", "n+", "i+", "h+", "C+"]
                 # modifiers
-                skips += ["V[+n"]
+                #skips += ["V[+n"]
                 #skips += ["@1[+", "S[+v", "V[+n"]
 
                 found = [skip in row["rule"] for skip in skips]
