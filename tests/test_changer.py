@@ -47,9 +47,6 @@ class TestChanger(unittest.TestCase):
 
                 # bound segments
                 skips = ["d+", "n+", "i+", "h+", "C+"]
-                # modifiers
-                #skips += ["V[+n"]
-                #skips += ["@1[+", "S[+v", "V[+n"]
 
                 found = [skip in row["rule"] for skip in skips]
                 if any(found):
@@ -67,11 +64,6 @@ class TestChanger(unittest.TestCase):
                 target = alteruphono.apply_forward(ref_source, fw[0], fw[1])
 
                 # assert reference and result are matching
-#                print()
-#                import pprint
-#                pprint.pprint(ast)
-#                print([row['id'], row['rule'], target, ref_target])
-#                print(fw)
                 assert ref_target == target
 
     def test_backward(self):
@@ -104,6 +96,37 @@ class TestChanger(unittest.TestCase):
             )
 
             assert tuple(candidates) == RULES[rule]
+
+        # Test rules -- all source in reference must be among the backward
+        # reconstruction
+        filename = alteruphono.utils.RESOURCE_DIR / "sound_changes.tsv"
+        with open(filename.as_posix()) as csvfile:
+            reader = csv.DictReader(csvfile, delimiter="\t")
+            for row in reader:
+                # TODO: remove once multiple segments is supported
+                # bound segments
+                skips = ["d+", "n+", "i+", "h+", "C+"]
+
+                found = [skip in row["rule"] for skip in skips]
+                if any(found):
+                    continue
+                #################
+
+                # load source and target reference for this test
+                ref_source, ref_target = row["test"].split(" / ")
+                ref_source = "# %s #" % ref_source.strip()
+                ref_target = "# %s #" % ref_target.strip()
+
+                # Build ast, get fw replacements, and test
+                ast = parser.parse(row["rule"])
+                bw = backward.compile(ast)
+                source = alteruphono.apply_backward(ref_target, bw[0], bw[1])
+
+                # print([rule, source==ref_source, source, ref_source])
+                break
+
+                # assert reference and result are matching
+                # assert ref_target == target
 
 
 if __name__ == "__main__":
