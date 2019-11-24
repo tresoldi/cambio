@@ -112,6 +112,9 @@ class TestChanger(unittest.TestCase):
                     continue
                 #################
 
+#                if row['rule'] != 'S -> @1[+fricative] / _ S':
+#                    continue
+
                 # load source and target reference for this test
                 ref_source, ref_target = row["test"].split(" / ")
                 ref_source = "# %s #" % ref_source.strip()

@@ -425,16 +425,6 @@ class BackwardAutomata(ReconsAutomata):
         offset_left = len(left)
         offset_middle = len(left) + len(target)
 
-        # TODO: currently no support for targets composed of backrefences
-        # with modifications, like `S > @1[+fricative]`, as it need the
-        # map implementation.
-        t_backrefs = [t for t in target if isinstance(t, BackRef)]
-        t_modifiers = [t.modifier for t in t_backrefs]
-        if t_modifiers:
-            raise ValueError(
-                "backrefs with modifications in target not supported"
-            )
-
         # Build the source and target sequences as list of tokens;
         # We build one source_seq with no alternative expansion, to be
         # returned, and one with expansion that is used to populate
@@ -484,11 +474,20 @@ class BackwardAutomata(ReconsAutomata):
         # `(a|e) (z) (a|e)`, but we need `(a|e) (z) (\\1)`. For that, we
         # need to keep track of every back-reference pointed to and, in
         # case it is reused, point back to the first usage of it.
+        # NOTE: a harder problem is back-references which apply modifications,
+        # like `S -> @1[+fricative]`, because we cannot directly map with
+        # a regular expression saying that `within match group X, apply
+        # this kind of modifications`. For scaffolding the whole system,
+        # we are temporarily using the trick of generating all possible
+        # outcomes (e.g. S[+fricative]) and listing in target; the source
+        # will use a special notation with reserved characters "=" and ";"
+        # that will be consumed/processed when applying the modification by
+        # the changer.
         corrected_target_seq = []
         source_corrections = {}
         backrefs_used = {}
         for target_idx, segment in enumerate(target_seq):
-            match = re.match(r"\(\\(\d+)\)", segment)
+            match = re.match(r"\(\\(\d+)(\[?.+\]?)?\)", segment)
             if match:
                 # -1 and +1 for dealing with lists which are 0-based
                 # and regexes which are 1-based
@@ -496,11 +495,28 @@ class BackwardAutomata(ReconsAutomata):
                 source_corrections[source_idx] = target_idx + 1
 
                 if source_idx not in backrefs_used:
-                    # We also need to add capturing parentheses
-                    corrected_target_seq.append(
-                        r"(%s)" % exp_source_seq[source_idx]
-                    )
-                    backrefs_used[source_idx] = target_idx + 1
+                    # different logics whether there is a modification
+                    # (so that we need to read the source and apply
+                    # the modification here) or not (so that we just
+                    # need to read the expanded source)
+                    if match.group(2):
+                        # Get all the sounds implied by the token and
+                        # compute the result
+                        # TODO: assumes in source there is a soundclass
+                        print(source_seq[source_idx],
+                            self.sound_classes[source_seq[source_idx]])
+
+                        corrected_target_seq.append(
+                            r"++%s%s++" % (source_seq[source_idx], match.group(2))
+                        )
+                        # TODO: how does it hold here?
+                        backrefs_used[source_idx] = target_idx + 1
+                    else:
+                        # We also need to add capturing parentheses
+                        corrected_target_seq.append(
+                            r"(%s)" % exp_source_seq[source_idx]
+                            )
+                        backrefs_used[source_idx] = target_idx + 1
                 else:
                     corrected_target_seq.append(
                         r"(\%i)" % backrefs_used[source_idx]
