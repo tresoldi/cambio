@@ -162,11 +162,11 @@ class BackRef(Primitive):
             self.modifier = None
         else:
             features = []
-            for feature in modifier['feature_desc']:
-                if feature['value'] in "+-!":
-                    feature_str = "%s%s" % (feature['value'], feature['key'])
+            for feature in modifier["feature_desc"]:
+                if feature["value"] in "+-!":
+                    feature_str = "%s%s" % (feature["value"], feature["key"])
                 else:
-                    feature_str = "%s=%s" % (feature['key'], feature['value'])
+                    feature_str = "%s=%s" % (feature["key"], feature["value"])
                 features.append(feature_str)
 
             self.modifier = "[%s]" % ",".join(features)
@@ -425,6 +425,16 @@ class BackwardAutomata(ReconsAutomata):
         offset_left = len(left)
         offset_middle = len(left) + len(target)
 
+        # TODO: currently no support for targets composed of backrefences
+        # with modifications, like `S > @1[+fricative]`, as it need the
+        # map implementation.
+        t_backrefs = [t for t in target if isinstance(t, BackRef)]
+        t_modifiers = [t.modifier for t in t_backrefs]
+        if t_modifiers:
+            raise ValueError(
+                "backrefs with modifications in target not supported"
+            )
+
         # Build the source and target sequences as list of tokens;
         # We build one source_seq with no alternative expansion, to be
         # returned, and one with expansion that is used to populate
@@ -487,10 +497,14 @@ class BackwardAutomata(ReconsAutomata):
 
                 if source_idx not in backrefs_used:
                     # We also need to add capturing parentheses
-                    corrected_target_seq.append(r"(%s)" % exp_source_seq[source_idx])
-                    backrefs_used[source_idx] = target_idx+1
+                    corrected_target_seq.append(
+                        r"(%s)" % exp_source_seq[source_idx]
+                    )
+                    backrefs_used[source_idx] = target_idx + 1
                 else:
-                    corrected_target_seq.append(r"(\%i)" % backrefs_used[source_idx])
+                    corrected_target_seq.append(
+                        r"(\%i)" % backrefs_used[source_idx]
+                    )
             else:
                 corrected_target_seq.append(segment)
 

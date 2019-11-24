@@ -89,7 +89,9 @@ def apply_forward(sequence, source, target):
 
             # Ask the transcription system for a new grapheme based in the
             # adapted description
-            processed_tokens.append(utils.TRANSCRIPTION[" ".join(descriptors)].grapheme)
+            processed_tokens.append(
+                utils.TRANSCRIPTION[" ".join(descriptors)].grapheme
+            )
 
     # Join the processed tokens
     # TODO: remove boundaries if they were added
