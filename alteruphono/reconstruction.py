@@ -503,11 +503,14 @@ class BackwardAutomata(ReconsAutomata):
                         # Get all the sounds implied by the token and
                         # compute the result
                         # TODO: assumes in source there is a soundclass
-                        print(source_seq[source_idx],
-                            self.sound_classes[source_seq[source_idx]])
+                        print(
+                            source_seq[source_idx],
+                            self.sound_classes[source_seq[source_idx]],
+                        )
 
                         corrected_target_seq.append(
-                            r"++%s%s++" % (source_seq[source_idx], match.group(2))
+                            r"++%s%s++"
+                            % (source_seq[source_idx], match.group(2))
                         )
                         # TODO: how does it hold here?
                         backrefs_used[source_idx] = target_idx + 1
@@ -515,7 +518,7 @@ class BackwardAutomata(ReconsAutomata):
                         # We also need to add capturing parentheses
                         corrected_target_seq.append(
                             r"(%s)" % exp_source_seq[source_idx]
-                            )
+                        )
                         backrefs_used[source_idx] = target_idx + 1
                 else:
                     corrected_target_seq.append(
