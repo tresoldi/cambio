@@ -174,7 +174,7 @@ def read_sound_features(filename=None):
 
     with open(filename) as tsvfile:
         reader = csv.DictReader(tsvfile, delimiter="\t")
-        features = {row["value"]: row["feature"] for row in reader}
+        features = {row["VALUE"]: row["FEATURE"] for row in reader}
 
     return features
 

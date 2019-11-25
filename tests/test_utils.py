@@ -107,8 +107,8 @@ class TestUtils(unittest.TestCase):
         # using default
         feats = alteruphono.utils.read_sound_features()
 
-        assert len(feats) == 130
-        assert len(set(feats.values())) == 40
+        assert len(feats) == 104
+        assert len(set(feats.values())) == 34
         assert feats["labialized"] == "labialization"
 
     def test_read_sounds(self):
