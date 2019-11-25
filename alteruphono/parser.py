@@ -22,6 +22,63 @@ _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
 _RE_MODIFIER = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
 _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
 
+
+def parse_features(text):
+    """
+    Parse a list of feature definitions and constraints.
+
+    Constraints can be definied inside optional brackets. Features are
+    separated by commas, with optional spaces around them, and have a
+    leading plus or minus sign (defaulting to plus).
+
+    Parameters
+    ----------
+    text: string
+        A string with the feature constraints specification
+
+    Returns
+    -------
+    features : dict
+        A dictionary with `positive` features, `negative` features,
+        and `custom` features.
+    """
+
+    # Remove any brackets from the text that was received and strip it.
+    # This allows to generalize this function, so if that it can be used
+    # in different contexts (parsing both stuff as "[+fricative]" and
+    # "+fricative").
+    text = text.replace("[", "")
+    text = text.replace("]", "")
+    text = text.strip()
+
+    # Analyze all features and build a list of positive and negative
+    # features; if a feature is not annotated for positive or negative
+    # (i.e., no plus or minus sign), we default to positive.
+    # TODO: move the whole thing to regular expressions?
+    positive = []
+    negative = []
+    custom = {}
+    for feature in text.split(","):
+        # Strip once more, as the user might add spaces next to the commas
+        feature = feature.strip()
+
+        # Obtain the positivity/negativity of the feature
+        if feature[0] == "-":
+            negative.append(feature[1:])
+        elif feature[0] == "+":
+            positive.append(feature[1:])
+        else:
+            # If there is no custom value (equal sign), assume it is a positive
+            # feature; otherwise, just store in `custom`.
+            if "=" in feature:
+                feature_name, feature_value = feature.split("=")
+                custom[feature_name] = feature_value
+            else:
+                positive.append(feature)
+
+    return {"positive": positive, "negative": negative, "custom": custom}
+
+
 # TODO: delete funnction once ready
 def _tokenize(text):
     # Sequences at this point have tokens separeted by single spaces,

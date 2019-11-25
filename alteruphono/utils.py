@@ -6,99 +6,48 @@ Defines auxiliary functions, structures, and data for the library.
 import csv
 from pathlib import Path
 
+
+# TODO: drop CLTS as a dependency, read directly from files
+# Import 3rd party libraries
+from pyclts import CLTS
+
+# Import from other modules
+from .parser import parse_features
+
+TRANSCRIPTION = CLTS().bipa
+
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
-# TODO: drop CLTS as a dependency, read directly from files
-# TODO: also, remove duplicates (like  ['ãã', 'ãː'])
-# Import 3rd party libraries
-from pyclts import CLTS
 
-TRANSCRIPTION = CLTS().bipa
-
-def parse_features(text):
-    """
-    Parse a list of feature definitions and constraints.
-
-    Constraints can be definied inside optional brackets. Features are
-    separated by commas, with optional spaces around them, and have a
-    leading plus or minus sign (defaulting to plus).
-
-    Parameters
-    ----------
-    text: string
-        A string with the feature constraints specification
-
-    Returns
-    -------
-    features : dict
-        A dictionary with `positive` features, `negative` features,
-        and `custom` features.
-    """
-
-    # Remove any brackets from the text that was received and strip it.
-    # This allows to generalize this function, so if that it can be used
-    # in different contexts (parsing both stuff as "[+fricative]" and
-    # "+fricative").
-    text = text.replace("[", "")
-    text = text.replace("]", "")
-    text = text.strip()
-
-    # Analyze all features and build a list of positive and negative
-    # features; if a feature is not annotated for positive or negative
-    # (i.e., no plus or minus sign), we default to positive.
-    # TODO: move the whole thing to regular expressions?
-    positive = []
-    negative = []
-    custom = {}
-    for feature in text.split(","):
-        # Strip once more, as the user might add spaces next to the commas
-        feature = feature.strip()
-
-        # Obtain the positivity/negativity of the feature
-        if feature[0] == "-":
-            negative.append(feature[1:])
-        elif feature[0] == "+":
-            positive.append(feature[1:])
-        else:
-            # If there is no custom value (equal sign), assume it is a positive
-            # feature; otherwise, just store in `custom`.
-            if "=" in feature:
-                feature_name, feature_value = feature.split("=")
-                custom[feature_name] = feature_value
-            else:
-                positive.append(feature)
-
-    return {"positive": positive, "negative": negative, "custom": custom}
-
-
-# TODO: fix documentation
+# TODO: add support/code/example for custom features
 def features2graphemes(feature_str, transsys=None):
     """
-    Returns a list of graphemes matching positive and negative features.
-    Positive and negative are lists of features as defined in the
-    TranscriptionSystem.
+    Returns a list of graphemes matching a feature description.
+
+    Graphemes are returned according to their definition in the transcription
+    system in use. The list of graphemes is sorted first by inverse length
+    and then alphabetically, so that it can conveniently be mapped to
+    regular expressions.
 
     For example, asking for not-rounded and not high front vowels:
 
-    >>> alteruphono.sound_changer.features2sounds(["vowel", "front"], ["rounded", "high"])
-    ['ḭːː', 'aa', 'ɛ̯', 'ĩĩ', 'ĕ', ... 'a˞', 'ẽ̞', 'iːː', 'e̯', 'aː', 'ii']
+    >>> alteruphono.utils.features2graphemes("[vowel,front,-rounded,-high]")
+    ['ẽ̞ẽ̞', 'ãã', 'a̰ːː', 'ẽẽ', 'e̞e̞', ... 'a', 'e', 'i', 'æ', 'ɛ']
 
     Parameters
     ----------
-    positive : list
-        A list of strings with the features to be included.
-    negative : list
-        A list of strings with the features for be excluded.
+    feature_str : string
+        A string with the description of feature constraints.
     transsys : TranscriptionSystem
-        The transcription system to be used.
+        The transcription system to be used. Defaults to BIPA.
 
     Returns
     -------
     sounds : list
-        A list of strings with all the graphemes matching the requested
-        feature constraints.
+        A sorted list of all the graphemes matching the requested feature
+        constraints.
     """
 
     # TODO: drop CLTS dependency
@@ -126,10 +75,7 @@ def features2graphemes(feature_str, transsys=None):
         if pos_match and neg_match:
             sounds.append(sound)
 
-    # For debugging and development purposes, it is best for the
-    # list to be sorted. As we are sorting in any case, it is better to
-    # do it in reverse length, so that conversion to regular expressions,
-    # if necessary, will be transparent.
+    # Sort the list, first by inverse length, then alphabetically
     sounds.sort(key=lambda item: (-len(item), item))
 
     return sounds
@@ -152,12 +98,12 @@ def fix_descriptors(descriptors):
         ]
 
     if "alveolo-palatal" in descriptors and "fricative" in descriptors:
-        # TODO: should check if it is not there already
-        descriptors.append("sibilant")
+        if "sibilant" not in descriptors:
+            descriptors.append("sibilant")
 
     if "alveolar" in descriptors and "fricative" in descriptors:
-        # TODO: should check if it is not there already
-        descriptors.append("sibilant")
+        if "sibilant" not in descriptors:
+            descriptors.append("sibilant")
 
     return descriptors
 
@@ -227,6 +173,69 @@ def read_sound_features(filename=None):
     return features
 
 
+def read_sounds(featsys, filename=None):
+    """
+    Read sound definitions.
+
+    Parameters
+    ----------
+    featsys : dict
+        The feature system to be used.
+
+    filename : string
+        Path to the TSV file holding the sound definition, defaulting
+        to the one provided with the library and based on the BIPA
+        transcription system.
+
+    Returns
+    -------
+    sounds : dict
+        A dictionary with graphemes (such as "a") as keys and
+        feature definitions as values.
+    """
+
+    if not filename:
+        filename = RESOURCE_DIR / "sounds.tsv"
+        filename = filename.as_posix()
+
+    sounds = {}
+    with open(filename) as csvfile:
+        reader = csv.DictReader(csvfile, delimiter="\t")
+        for row in reader:
+            features = row["NAME"].split()
+
+            # NOTE: currently skipping over clusters and tones
+            if "from" in features:
+                continue
+            if "tone" in features:
+                continue
+
+            descriptors = {featsys[feat]: feat for feat in features}
+            sounds[row["GRAPHEME"]] = descriptors
+
+    return sounds
+
+
+def read_phonetic_data():
+    """
+    Return a single data structure with the default phonetic data.
+
+    Returns
+    -------
+    data : dict
+        A dictionary with default sound features (key `features`),
+        sound classes (key `classes`), and sound inventory (key `sounds`).
+    """
+
+    features = read_sound_features()
+    sound_classes = read_sound_classes()
+    sounds = read_sounds(features)
+
+    data = {"features": features, "classes": sound_classes, "sounds": sounds}
+
+    return data
+
+
 def read_sound_changes(filename=None):
     """
     Read sound changes.
@@ -260,45 +269,9 @@ def read_sound_changes(filename=None):
         reader = csv.DictReader(csvfile, delimiter="\t")
         rules = {}
         for row in reader:
-            # TODO: join multiple rules (replacing multisegment)
             rule_id = int(row.pop("ID"))
             row["WEIGHT"] = float(row.get("WEIGHT", 1.0))
 
             rules[rule_id] = row
 
     return rules
-
-
-# TODO: properly document
-def read_sounds(featsys, filename=None):
-    if not filename:
-        filename = RESOURCE_DIR / "sounds.tsv"
-        filename = filename.as_posix()
-
-    sounds = {}
-    with open(filename) as csvfile:
-        reader = csv.DictReader(csvfile, delimiter="\t")
-        for row in reader:
-            features = row["NAME"].split()
-
-            # TODO: skipping over clusters and tones
-            if "from" in features:
-                continue
-            if "tone" in features:
-                continue
-
-            descriptors = {featsys[feat]: feat for feat in features}
-            sounds[row["GRAPHEME"]] = descriptors
-
-    return sounds
-
-
-# TODO: properly document
-def read_phonetic_data():
-    features = read_sound_features()
-    sound_classes = read_sound_classes()
-    sounds = read_sounds(features)
-
-    data = {"features": features, "classes": sound_classes, "sounds": sounds}
-
-    return data
