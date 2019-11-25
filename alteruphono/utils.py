@@ -9,12 +9,6 @@ from pathlib import Path
 # Import from other modules
 from .parser import parse_features
 
-# TODO: drop CLTS as a dependency, read directly from files
-# Import 3rd party libraries
-from pyclts import CLTS
-
-TRANSCRIPTION = CLTS().bipa
-
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
@@ -63,7 +57,7 @@ def descriptors2grapheme(descriptors, phdata):
 
 
 # TODO: add support/code/example for custom features
-def features2graphemes(feature_str, transsys=None):
+def features2graphemes(feature_str, sounds):
     """
     Returns a list of graphemes matching a feature description.
 
@@ -81,8 +75,6 @@ def features2graphemes(feature_str, transsys=None):
     ----------
     feature_str : string
         A string with the description of feature constraints.
-    transsys : TranscriptionSystem
-        The transcription system to be used. Defaults to BIPA.
 
     Returns
     -------
@@ -91,18 +83,15 @@ def features2graphemes(feature_str, transsys=None):
         constraints.
     """
 
-    # TODO: drop CLTS dependency
-    if not transsys:
-        transsys = TRANSCRIPTION
-
     # Parse the feature string
     features = parse_features(feature_str)
 
     # Iterate over all sounds in the transcription system
-    sounds = []
-    for sound in transsys.sounds:
+    graphemes = []
+    for grapheme, sound_features in sounds.items():
         # Extract all the features of the current sound
-        sound_features = transsys[sound].name.split()
+        # TODO: should cache or pre-process this
+        sound_features = list(sound_features.values())
 
         # Check if all positive features are there
         pos_match = all(feat in sound_features for feat in features["positive"])
@@ -114,12 +103,12 @@ def features2graphemes(feature_str, transsys=None):
 
         # Accept the sound if it passes both tests
         if pos_match and neg_match:
-            sounds.append(sound)
+            graphemes.append(grapheme)
 
     # Sort the list, first by inverse length, then alphabetically
-    sounds.sort(key=lambda item: (-len(item), item))
+    graphemes.sort(key=lambda item: (-len(item), item))
 
-    return sounds
+    return graphemes
 
 
 def read_sound_classes(filename=None):
@@ -150,7 +139,7 @@ def read_sound_classes(filename=None):
             row["sound_class"]: {
                 "description": row["description"],
                 "features": row["features"],
-                "graphemes": features2graphemes(row["features"]),
+                "graphemes": None,
             }
             for row in reader
         }
@@ -245,7 +234,12 @@ def read_phonetic_data():
     sound_classes = read_sound_classes()
     sounds = read_sounds(features)
 
+    # Cache the `graphemes` for `sound_classes`
+    for sc, value in sound_classes.items():
+        value['graphemes'] = features2graphemes(value["features"], sounds)
+
     data = {"features": features, "classes": sound_classes, "sounds": sounds}
+
 
     return data
 

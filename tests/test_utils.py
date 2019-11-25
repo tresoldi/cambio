@@ -23,39 +23,15 @@ class TestUtils(unittest.TestCase):
     def test_features2graphemes(self):
         # using default features
         reference = {
-            "vowel,open,front,unrounded": (
-                "ãã",
-                "a̰ːː",
-                "ãː",
-                "aa",
-                "aː",
-                "aˑ",
-                "a˞",
-                "ã",
-                "ă",
-                "ḁ",
-                "a̯",
-                "a̰",
-                "a",
-            ),
-            "stop,voiceless,long,-alveolar": (
-                "t̪ʰː",
-                "t̪ːʰ",
-                "kʷː",
-                "pʰː",
-                "pːʰ",
-                "t̪ː",
-                "ʈʰː",
-                "ʈːʰ",
-                "cː",
-                "kː",
-                "pː",
-            ),
+            "vowel,open,front,unrounded,-nasalized,-long,-short": ('âˑ̠', 'a̰ːː', 'aˑ̟', 'aˑ̠', 'a˞ˤ', 'a˞̟', 'âˑ', 'â̠', 'a̘ˠ', 'a̙ˠ', 'a̝ˑ', 'a̞ˑ', 'a̤ˑ', 'a̤ˠ', 'a̤ˤ', 'ä̤', 'ḁˠ', 'ḁˤ', 'ḁ̤', 'ḁ̯', 'a̰ˑ', 'a̰ˠ', 'a̰ˤ', 'a̹ˑ', 'aˀ', 'aˑ', 'a˞', 'aˠ', 'aˤ', 'â', 'ā', 'ă', 'ä', 'a̘', 'a̙', 'a̝', 'a̞', 'a̟', 'a̠', 'a̤', 'ḁ', 'a̯', 'a̰', 'a'),
+            "stop,voiceless,long,alveolar,-ejective,-labialized": ('tʲʰː', 'tˀˡː', 't̩ʲː', 't̻ʰː', 'tʰː', 'tʲː', 'tˠː', 'tˡː', 'tˤː', 't̩ː', 't̻ː', 't͈ː', 'ʰtː', 'tː'),
             "rounded,unrounded": (),
         }
 
+        features = alteruphono.utils.read_sound_features()
+        sounds = alteruphono.utils.read_sounds(features)
         for feat_str, ref in reference.items():
-            ret = alteruphono.utils.features2graphemes(feat_str)
+            ret = alteruphono.utils.features2graphemes(feat_str, sounds)
             assert tuple(ret) == ref
 
     def test_read_sound_classes(self):
@@ -65,7 +41,7 @@ class TestUtils(unittest.TestCase):
         assert len(sc) == 20
         assert sc["K"]["features"] == "velar"
         assert sc["VN"]["description"] == "nasal vowel"
-        assert sc["XXX"]["graphemes"] == ["ãã", "ãː", "aa", "aː"]
+        assert sc["XXX"]["graphemes"] == None
 
     def test_read_sound_features(self):
         # using default
