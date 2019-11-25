@@ -2,43 +2,42 @@
 Module implementing the forward and backward changers.
 """
 
-# Import Python standard libraries
-from collections import defaultdict
-
 # Import other library modules
 from . import utils
 
-
+# TODO: should accept other things besides graphemes
+# TODO: deal with custom features
 def apply_modifier(grapheme, modifier, phdata):
-    # In case of no modifier, the grapheme is obsviously the same
+    """
+    Apply a modifier to a grapheme.
+    """
+
+    # In case of no modifier, the grapheme is obviously the same
     if not modifier:
         return grapheme
 
-    # TODO: We are here assuming that all operations are positive
-    #       (i.e., a feature is added or at most replaced), and as
-    #       such we are not even extracting the plus or minus sign.
-    #       This is forbidding some common operations like removing
-    #       aspiration and labialization (which can still be modelled
-    #       as direct phoneme mapping, i.e., 'ph > p'). VERY URGENT!
-    # TODO: This is also assuming that a single feature is
-    #       manipulated; we should allow for more feature operations.
+    # Parse the provided modifier
     features = utils.parse_features(modifier)
 
     # Obtain the phonological descriptors for the base sound
-    # TODO: use `sounds`
-    descriptors = utils.TRANSCRIPTION[grapheme].name.split()
+    # TODO: consider redoing the logic, as we don't need to extract values
+    #       given that those are already properly organized in the data
+    descriptors = list(phdata["sounds"][grapheme].values())
 
-    # Obtain the feature class for the current `op_feature` (the
-    # feature for the current value, in common phonological parlance)
-    # and remove all `descriptors` matching it (if any), so that we
-    # can append our own descriptor/op_feature, build a new name,
-    # and generate a new sound/grapheme from that.
+    # Remove requested features
+    # TODO: write tests
     descriptors = [
-        value
-        for value in descriptors
-        if phdata["features"][value]
-        != phdata["features"][features["positive"][0]]
+        value for value in descriptors if value not in features["negative"]
     ]
+
+    # Remove any descriptor from a feature type we are changing, and add
+    # all positive descriptors
+    for feature in features["positive"]:
+        descriptors = [
+            value
+            for value in descriptors
+            if phdata["features"][value] != phdata["features"][feature]
+        ]
     descriptors += features["positive"]
 
     # Fix any problem in the descriptors
@@ -51,6 +50,10 @@ def apply_modifier(grapheme, modifier, phdata):
 
 
 def forward_translate(sequence, post, phdata):
+    """
+    Translate an intermediary `ante` to `post` sequence.
+    """
+
     post_seq = []
 
     for entry in post:
@@ -58,21 +61,21 @@ def forward_translate(sequence, post, phdata):
             post_seq.append(entry["ipa"])
         elif "back-reference" in entry:
             # -1 as back-references as 1-based, and Python lists 0-based
-            # TODO: modifiers!
             token = sequence[entry["back-reference"] - 1]
             post_seq.append(
                 apply_modifier(token, entry.get("modifier", None), phdata)
             )
         elif "null" in entry:
             pass
-        else:
-            # TODO: default, for now just copy
-            post_seq.append(entry)
 
     return post_seq
 
 
 def check_match(sequence, pattern, phdata):
+    """
+    Check if a sequence matches a given pattern.
+    """
+
     # If there is a length mismatch, it does not match by definition
     if len(sequence) != len(pattern):
         return False
@@ -100,22 +103,46 @@ def check_match(sequence, pattern, phdata):
     return True
 
 
-# TODO: note about sequences as lists
-def forward(ante_seq, ast, phdata):
-    # Add boundaries to the sequence if necessary
-    # TODO: decide if we keep track of this decision, removing the boundaries
-    # before returning
-    if ante_seq[0] != "#":
-        ante_seq.insert(0, "#")
-    if ante_seq[-1] != "#":
-        ante_seq.append("#")
+def forward(ante_seq, ast, phdata, no_boundaries=False):
+    """
+    Apply a sound change in forward direction.
+
+    The function will temporarily add boundaries to the sequence, during
+    execution, unless it is explictly told not to with the `no_boundaries`
+    flag.
+
+    Parameters
+    ----------
+    ante_seq : list
+        A list with the sequence the rule is being applied to.
+    ast : dict
+        A dictionary with the `ante` and `post` asts.
+    phdata : dict
+        A dictionary with the phonological data to be used.
+    no_boundaries : bool
+        Don't add boundaries to the sequence if missing (default:False)
+
+    Returns
+    -------
+    post_seq : list
+        The sound sequence resulting from the sound change execution.
+    """
+
+    # Add boundaries to the sequence if necessary, and keep track of the
+    # decision.
+    added_lead_bound, added_trail_bound = False, False
+    if not no_boundaries:
+        if ante_seq[0] != "#":
+            ante_seq.insert(0, "#")
+            added_lead_bound = True
+        if ante_seq[-1] != "#":
+            ante_seq.append("#")
+            added_trail_bound = True
 
     # Iterate over the sequence, checking if subsequences match the
     # specified `ante`. While this could, once more, be perfomed with a
     # list comprehension, for easier conversion to Go it is better to
     # keep it as a dumb loop.
-    # TODO: deal with alternatives that can include more than one segment,
-    #       which means that we would need to capture more than `len(ante)`
     idx = 0
     post_seq = []
     while True:
@@ -130,5 +157,11 @@ def forward(ante_seq, ast, phdata):
 
         if idx == len(ante_seq):
             break
+
+    # Remove boundaries if they were added
+    if added_lead_bound:
+        post_seq = post_seq[1:]
+    if added_trail_bound:
+        post_seq = post_seq[:-1]
 
     return post_seq

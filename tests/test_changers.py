@@ -22,8 +22,8 @@ class TestChangers(unittest.TestCase):
 
     def test_forward_hardcoded(self):
         reference = {
-            ("p > b", "p a p a"): ("#", "b", "a", "b", "a", "#"),
-            ("S > p / _ V", "t i s e"): ("#", "p", "i", "s", "e", "#"),
+            ("p > b", "# p a p a #"): ("#", "b", "a", "b", "a", "#"),
+            ("S > p / _ V", "t i s e"): ("p", "i", "s", "e"),
         }
 
         # Read phonetic data
@@ -46,8 +46,6 @@ class TestChangers(unittest.TestCase):
             test_ante = change["TEST_ANTE"].split()
             test_post = change["TEST_POST"].split()
             post_seq = alteruphono.forward(test_ante, ast, phdata)
-
-            test_post = ["#"] + test_post + ["#"]
 
             if tuple(test_post) != tuple(post_seq):
                 print()
