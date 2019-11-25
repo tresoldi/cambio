@@ -23,13 +23,19 @@ class TestUtils(unittest.TestCase):
     def test_parse_features(self):
         # define tests and references
         reference = {
-            "feat1": {"positive": ("feat1",), "negative": ()},
-            "[feat1]": {"positive": ("feat1",), "negative": ()},
-            "[+feat1]": {"positive": ("feat1",), "negative": ()},
-            "[-feat1]": {"positive": (), "negative": ("feat1",)},
+            "feat1": {"positive": ("feat1",), "negative": (), "custom": ()},
+            "[feat1]": {"positive": ("feat1",), "negative": (), "custom": ()},
+            "[+feat1]": {"positive": ("feat1",), "negative": (), "custom": ()},
+            "[-feat1]": {"positive": (), "negative": ("feat1",), "custom": ()},
             "[feat1,+feat2,-feat3]": {
                 "positive": ("feat1", "feat2"),
                 "negative": ("feat3",),
+                "custom": (),
+            },
+            "[feat1,-feat2,feat3=value,+feat4]": {
+                "positive": ("feat1", "feat4"),
+                "negative": ("feat2",),
+                "custom": (("feat3", "value"),),
             },
         }
 
@@ -37,6 +43,7 @@ class TestUtils(unittest.TestCase):
             ret = alteruphono.utils.parse_features(feat_str)
             assert tuple(ret["positive"]) == ref["positive"]
             assert tuple(ret["negative"]) == ref["negative"]
+            assert tuple(sorted(ret["custom"].items())) == ref["custom"]
 
     def test_features2graphemes(self):
         # using default features

@@ -17,10 +17,9 @@ from pyclts import CLTS
 
 TRANSCRIPTION = CLTS().bipa
 
-# TODO: add support to `feature=value` lists
 def parse_features(text):
     """
-    Parse a list of feature constraints.
+    Parse a list of feature definitions and constraints.
 
     Constraints can be definied inside optional brackets. Features are
     separated by commas, with optional spaces around them, and have a
@@ -33,10 +32,9 @@ def parse_features(text):
 
     Returns
     -------
-    positive: list
-        A list of features to be included.
-    negative: list
-        A list of features to be excluded.
+    features : dict
+        A dictionary with `positive` features, `negative` features,
+        and `custom` features.
     """
 
     # Remove any brackets from the text that was received and strip it.
@@ -50,8 +48,10 @@ def parse_features(text):
     # Analyze all features and build a list of positive and negative
     # features; if a feature is not annotated for positive or negative
     # (i.e., no plus or minus sign), we default to positive.
+    # TODO: move the whole thing to regular expressions?
     positive = []
     negative = []
+    custom = {}
     for feature in text.split(","):
         # Strip once more, as the user might add spaces next to the commas
         feature = feature.strip()
@@ -62,9 +62,15 @@ def parse_features(text):
         elif feature[0] == "+":
             positive.append(feature[1:])
         else:
-            positive.append(feature)
+            # If there is no custom value (equal sign), assume it is a positive
+            # feature; otherwise, just store in `custom`.
+            if "=" in feature:
+                feature_name, feature_value = feature.split("=")
+                custom[feature_name] = feature_value
+            else:
+                positive.append(feature)
 
-    return {"positive": positive, "negative": negative}
+    return {"positive": positive, "negative": negative, "custom": custom}
 
 
 # TODO: fix documentation
