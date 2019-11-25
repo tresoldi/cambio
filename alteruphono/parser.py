@@ -14,10 +14,8 @@ to diminish the dependency on Python.
 # Import Python standard libraries
 import re
 
-# TODO: Decide what will be exported
-
 # Defines the regular expression matching ante, post, and context
-# TODO: are we supporting sound classes with modifiers?
+# TODO: support sound classes with modifiers
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
 _RE_MODIFIER = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
 _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
@@ -79,40 +77,14 @@ def parse_features(text):
     return {"positive": positive, "negative": negative, "custom": custom}
 
 
-# TODO: delete funnction once ready
-def _tokenize(text):
-    # Sequences at this point have tokens separeted by single spaces,
-    # but we might run into cases of capture groups that include
-    # multiple segments, such as "(p w|p)". As Go's regexp library does
-    # not support lookahead and lookbehind, we need to fix the issue
-    # in old-school style: we keep track of whether we are inside a
-    # capture group (`in_capture`) and append to the last item if so,
-    # instead of just extending the list.
-    # Please note that we take of carrying the whitespace over and
-    # remove the parentheses, as the split will later happen on the
-    # "|" character.
-    tokens = []
-    in_capture = False
-    for token in text.split():
-        if in_capture:
-            if token[-1] == ")":
-                tokens[-1] += " %s" % token[:-1]
-                in_capture = False
-            else:
-                tokens[-1] += " %s" % token
-        else:
-            if token[0] == "(":
-                tokens.append(token[1:])
-                in_capture = True
-            else:
-                tokens.append(token)
-
-    return tokens
-
-
-# TODO: internal function; at this point, the string has already been
-# preprocessed; returns the tokens as lists (or None if no context)
 def _tokenize_rule(rule):
+    """
+    Internal function for tokenizing a rule.
+
+    At this point, the `rule` string has alredy been preprocessed. Returns
+    either the tokens as a list or `None` (in cases such as missing context).
+    """
+
     # We first capture the `context`, if any, and prepare a `ante_post`
     # string for extracting `ante` and `post`
     if " / " in rule:
@@ -136,7 +108,6 @@ def _tokenize_rule(rule):
 def _translate(token, phdata):
     ret = None
 
-    # TODO: with a walrus operator, this can be moved to the `if`s
     bref_match = re.match(_RE_MODIFIER, token)
     sc_match = re.match(_RE_SOUNDCLASS, token)
 
@@ -167,7 +138,7 @@ def _translate(token, phdata):
             "modifier": sc_match.group("modifier"),
         }
     elif token in phdata["sounds"]:
-        # at this point it should be a grapheme; check if it is a valid one
+        # At this point, it should be a grapheme; check if it is a valid one
         # TODO: accept modifier?
         ret = {"ipa": token}
 
@@ -185,11 +156,19 @@ def tokens2ast(tokens, phdata):
     return ast
 
 
-# TODO: rename `ref_context`, if provided, it means we are replacing all
-# contexts with back-references (such as, with forward motion, in
-# `post`), and we need to know the length of the ast before the right
-# context in the reference itself (in this example, in `ante`)
-def _merge_context(ast, context, ref_context=None):
+def _merge_context(ast, context, offset_ref=None):
+    """
+    Merge an "ante" or "post" AST with a context.
+
+    The essentials of the operation is to add the left context at the
+    beginning and the right one at the end, but additional care must be
+    taken. The most important operation is to fix back-references, in
+    case it is needed. This is specified via the `offset_ref` numeric
+    variable: if provided, back-references will be fixed according to it
+    (as we need to know the length of the AST before the right context in
+    what we are referring to).
+    """
+
     # if there is no context to merge, just return as it is
     if not context:
         return ast
@@ -202,37 +181,38 @@ def _merge_context(ast, context, ref_context=None):
     offset_left = len(left)
     offset_ast = offset_left + len(ast)
 
+    # Merge the provided AST with the contextual one; note that we are
+    # always making copies here, so to treat the provided ASTs as immutable
+    # ones.
     # TODO: move to a separate function? it would also make easier to
     # take care of backreferences in alternatives, currently not supported
-    # TODO: note that we are making copies here
-    # TODO: note about backreferences for contxt when specified
-    if ref_context:
-        merged = [{"back-reference": i + 1} for i, _ in enumerate(left)]
+    if offset_ref:
+        merged_ast = [{"back-reference": i + 1} for i, _ in enumerate(left)]
     else:
-        merged = left[:]
+        merged_ast = left[:]
 
     for token in ast:
-        merged.append(dict(token))
+        merged_ast.append(dict(token))
         if "back-reference" in token:
-            merged[-1]["back-reference"] += offset_left
+            merged_ast[-1]["back-reference"] += offset_left
 
-    if ref_context:
-        merged += [
-            {"back-reference": i + 1 + offset_left + ref_context}
+    if offset_ref:
+        merged_ast += [
+            {"back-reference": i + 1 + offset_left + offset_ref}
             for i, _ in enumerate(right)
         ]
     else:
         for token in right:
-            merged.append(dict(token))
+            merged_ast.append(dict(token))
             if "back-reference" in token:
-                merged[-1]["back-reference"] += offset_ast
+                merged_ast[-1]["back-reference"] += offset_ast
 
-    return merged
+    return merged_ast
 
 
 def parse(rule, phdata):
     # Basic string pre-processing, making logic and regexes easier
-    rule = re.sub("\s+", " ", rule).strip()
+    rule = re.sub(r"\s+", " ", rule).strip()
 
     # Tokenize all parts and collect the tokens in quasi-asts
     ante, post, context = _tokenize_rule(rule)
@@ -249,7 +229,7 @@ def parse(rule, phdata):
     # different asts for forward and back
     new_ante_ast = _merge_context(ante_ast, context_ast)
     new_post_ast = _merge_context(
-        post_ast, context_ast, ref_context=len(ante_ast)
+        post_ast, context_ast, offset_ref=len(ante_ast)
     )
 
     return {"ante": new_ante_ast, "post": new_post_ast}
