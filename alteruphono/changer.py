@@ -42,20 +42,13 @@ def apply_modifier(grapheme, modifier, phdata):
         ]
     descriptors += features["positive"]
 
-    # Fix any problem in the descriptors
-    descriptors = utils.fix_descriptors(descriptors)
+    # Obtain the grapheme based on the description
+    grapheme = utils.descriptors2grapheme(descriptors, phdata)
 
-    # Ask the transcription system for a new grapheme based in the
-    # adapted description
-    # TODO: remove dependency
-    if "consonant" in descriptors:
-        descriptors = [v for v in descriptors if v != "consonant"] + [
-            "consonant"
-        ]
-    if "vowel" in descriptors:
-        descriptors = [v for v in descriptors if v != "vowel"] + ["vowel"]
+    if not grapheme:
+        grapheme = "[%s]" % ",".join(descriptors)
 
-    return utils.TRANSCRIPTION[" ".join(descriptors)].grapheme
+    return grapheme
 
 
 def forward_translate(sequence, post, phdata):

@@ -20,6 +20,48 @@ TRANSCRIPTION = CLTS().bipa
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 
+def descriptors2grapheme(descriptors, phdata):
+    # Run manual fixes related to pyclts
+    if "palatal" in descriptors and "fricative" in descriptors:
+        # Fricative palatals are described as alveolo-palatal in pyclts, so
+        # replace all of them
+        descriptors = [
+            feature if feature != "palatal" else "alveolo-palatal"
+            for feature in descriptors
+        ]
+
+    if "alveolo-palatal" in descriptors and "fricative" in descriptors:
+        if "sibilant" not in descriptors:
+            descriptors.append("sibilant")
+
+    if "alveolar" in descriptors and "fricative" in descriptors:
+        if "sibilant" not in descriptors:
+            descriptors.append("sibilant")
+
+    # TODO: should cache this?
+    desc = tuple(sorted(descriptors[:]))
+    for sound, feat_dict in phdata["sounds"].items():
+        # Collect all features and confirm if all are there
+        features = tuple(sorted(feat_dict.values()))
+        if desc == features:
+            return sound
+
+    # TODO: fixes in case we missed
+    if "breathy" in desc:
+        new_desc = [v for v in desc if v != "breathy"]
+        new_gr = descriptors2grapheme(new_desc, phdata)
+        if new_gr:
+            return "%s[breathy]" % new_gr
+
+    if "long" in desc:
+        new_desc = [v for v in desc if v != "long"]
+        new_gr = descriptors2grapheme(new_desc, phdata)
+        if new_gr:
+            return "%sː" % new_gr
+
+    return None
+
+
 # TODO: add support/code/example for custom features
 def features2graphemes(feature_str, transsys=None):
     """
@@ -78,33 +120,6 @@ def features2graphemes(feature_str, transsys=None):
     sounds.sort(key=lambda item: (-len(item), item))
 
     return sounds
-
-
-# TODO: remove hard-coding of fixes, loading internal or external data
-# TODO: this will be part of the removal of pyclts dependency
-def fix_descriptors(descriptors):
-    """
-    Fix inconsistenies and problems with pyclts descriptors.
-    """
-
-    # Run manual fixes related to pyclts
-    if "palatal" in descriptors and "fricative" in descriptors:
-        # Fricative palatals are described as alveolo-palatal in pyclts, so
-        # replace all of them
-        descriptors = [
-            feature if feature != "palatal" else "alveolo-palatal"
-            for feature in descriptors
-        ]
-
-    if "alveolo-palatal" in descriptors and "fricative" in descriptors:
-        if "sibilant" not in descriptors:
-            descriptors.append("sibilant")
-
-    if "alveolar" in descriptors and "fricative" in descriptors:
-        if "sibilant" not in descriptors:
-            descriptors.append("sibilant")
-
-    return descriptors
 
 
 def read_sound_classes(filename=None):
