@@ -18,3 +18,4 @@ SVL	voiceless plosive	stop,voiceless
 V	vowel	vowel
 VN	nasal vowel	vowel,nasalized
 VL	long vowel	vowel,long
+XXX	development	vowel,open,front,unrounded,long

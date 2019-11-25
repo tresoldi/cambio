@@ -1,142 +1,134 @@
-# __init__.py
-# encoding: utf-8
-
 """
-Module implementing functions for applying back and forward changes.
+Module implementing the forward and backward changers.
 """
 
-import itertools
-import re
+# Import Python standard libraries
+from collections import defaultdict
 
-# TODO: general renaming of source/target to left/right?
-
-# TODO: boundary addition should be optional
-# TODO: should keep track of boundary addition in case it happens
-def _prepare_sequence(sequence):
-    """
-    Internal preprocessing function.
-    """
-
-    # Strip spaces and add boundary marks if needed
-    sequence = sequence.strip()
-    if sequence[0] != "#":
-        sequence = "# %s" % sequence
-    if sequence[-1] != "#":
-        sequence = "%s #" % sequence
-
-    # Strip multiple spaces and add leading and trailing spaces for
-    # regex matching
-    sequence = " %s " % re.sub("\s+", " ", sequence)
-
-    return sequence
+# Import other library modules
+from . import utils
 
 
-# TODO: deal with boundaries when missing
-def apply_forward(sequence, source, target):
-    # TODO: refactor, import at top, etc.
-    from . import utils
+def apply_modifier(grapheme, modifier, phdata):
+    # In case of no modifier, the grapheme is obsviously the same
+    if not modifier:
+        return grapheme
 
-    features = utils.read_sound_features()
+    # TODO: We are here assuming that all operations are positive
+    #       (i.e., a feature is added or at most replaced), and as
+    #       such we are not even extracting the plus or minus sign.
+    #       This is forbidding some common operations like removing
+    #       aspiration and labialization (which can still be modelled
+    #       as direct phoneme mapping, i.e., 'ph > p'). VERY URGENT!
+    # TODO: This is also assuming that a single feature is
+    #       manipulated; we should allow for more feature operations.
+    features = utils.parse_features(modifier)
 
-    sequence = _prepare_sequence(sequence)
+    # Obtain the phonological descriptors for the base sound
+    # TODO: use `sounds`
+    descriptors = utils.TRANSCRIPTION[grapheme].name.split()
 
-    # TODO: make sure it is applying to all matches
-    sequence = re.sub(source, target, sequence)
-
-    # Process tokens one by one, consuming any feature manipulation
-    # TODO: note on why it is done here, move to .to_regex, etc.
-    processed_tokens = []
-    for token in sequence.split():
-        # If we find brackets in the tokens, consume the feature manipulation;
-        # otherwise, just copy the token.
-        # TODO: Move to a list comprehension, isolating the feature
-        #       manipulation?
-        if "[" not in token:
-            processed_tokens.append(token)
-        else:
-            # TODO: We are here assuming that all operations are positive
-            #       (i.e., a feature is added or at most replaced), and as
-            #       such we are not even extracting the plus or minus sign.
-            #       This is forbidding some common operation like removing
-            #       aspiration and labialization (which can still be modelled
-            #       as direct phoneme mapping, i.e. 'ph -> p'). VERY URGENT!!!
-            # TODO: This is also assuming that a single feature is
-            #       manipulated; we should allow for more feature operations.
-            # TODO: could use or reuse parse_features()?
-            grapheme, operation = token[:-1].split("[")
-            if operation[0] in "+-":
-                op_operator, op_feature = operation[0], operation[1:]
-            else:
-                op_operator, op_feature = "+", operation
-
-            # Obtain the phonological descriptors for the base sound
-            descriptors = utils.TRANSCRIPTION[grapheme].name.split()
-
-            # Obtain the feature class for the current `op_feature` (the
-            # feature for the current value, in common phonological parlance)
-            # and remove all `descriptors` matching it (if any), so that we
-            # can append our own descriptor/of_feature, build a new name,
-            # and generate a new sound/grapheme from that.
-            descriptors = [
-                value
-                for value in descriptors
-                if features[value] != features[op_feature]
-            ]
-            descriptors.append(op_feature)
-
-            # Fix any problem in the descriptors
-            descriptors = utils.fix_descriptors(descriptors)
-
-            # Ask the transcription system for a new grapheme based in the
-            # adapted description
-            processed_tokens.append(
-                utils.TRANSCRIPTION[" ".join(descriptors)].grapheme
-            )
-
-    # Join the processed tokens
-    # TODO: remove boundaries if they were added
-    return " ".join(processed_tokens).strip()
-
-
-# TODO: move to `regex` library later, with overlapping findall
-# or, at least, use the library to show that the are overlapping
-# matches and the rule is ambiguous
-# TODO: what about overlapping only in the spaces for segmentation?
-# should we duplicate those? -- an alternative is replace all spaces by
-# double spaces in sequences and rules, with the exception of leading and
-# trailing ones in rules (but it sounds a terrible hack)
-def apply_backward(sequence, source, target):
-    sequence = _prepare_sequence(sequence)
-
-    # Collecting all the potential proto-forms is, in this engine,
-    # a bit tricker given that we have to go around the intention of
-    # regular expressions. As we don't allow overlapping matches due to
-    # their inherent ambiguity, what we do is to first collect a list
-    # of all starting and ending indexes of any match, along with the
-    # string actually matched (which can vary from match to match).
-    matches = [
-        {
-            "source": match.group(0),
-            "target": re.sub(source, target, match.group(0)),
-            "start": match.start(),
-            "end": match.end(),
-        }
-        for match in re.finditer(source, sequence)
+    # Obtain the feature class for the current `op_feature` (the
+    # feature for the current value, in common phonological parlance)
+    # and remove all `descriptors` matching it (if any), so that we
+    # can append our own descriptor/op_feature, build a new name,
+    # and generate a new sound/grapheme from that.
+    descriptors = [
+        value
+        for value in descriptors
+        if phdata["features"][value]
+        != phdata["features"][features["positive"][0]]
     ]
+    descriptors += features["positive"]
 
-    # Collect list of alternatives iterating over matches
-    prev_idx = 0
-    alt = []
-    for match in matches:
-        alt.append([sequence[prev_idx : match["start"]]])
-        alt.append([match["source"], match["target"]])
-        prev_idx = match["end"]
-    alt.append([sequence[prev_idx:]])
+    # Fix any problem in the descriptors
+    descriptors = utils.fix_descriptors(descriptors)
 
-    # build alternatives
-    # TODO: remove boundaries if necessary
-    sequences = sorted(
-        ["".join(subseqs).strip() for subseqs in itertools.product(*alt)]
-    )
+    # Ask the transcription system for a new grapheme based in the
+    # adapted description
+    # TODO: remove dependency
+    return utils.TRANSCRIPTION[" ".join(descriptors)].grapheme
 
-    return sequences
+
+def forward_translate(sequence, post, phdata):
+    post_seq = []
+
+    for entry in post:
+        if "ipa" in entry:
+            post_seq.append(entry["ipa"])
+        elif "back-reference" in entry:
+            # -1 as back-references as 1-based, and Python lists 0-based
+            # TODO: modifiers!
+            token = sequence[entry["back-reference"] - 1]
+            post_seq.append(
+                apply_modifier(token, entry.get("modifier", None), phdata)
+            )
+        elif "null" in entry:
+            pass
+        else:
+            # TODO: default, for now just copy
+            post_seq.append(entry)
+
+    return post_seq
+
+
+def check_match(sequence, pattern, phdata):
+    # If there is a length mismatch, it does not match by definition
+    if len(sequence) != len(pattern):
+        return False
+
+    for token, ref in zip(sequence, pattern):
+        if "ipa" in ref:
+            if token != ref["ipa"]:
+                return False
+        elif "boundary" in ref:
+            if token != "#":
+                return False
+        elif "sound_class" in ref:
+            if token not in phdata["classes"][ref["sound_class"]]["graphemes"]:
+                return False
+        elif "alternative" in ref:
+            # Check the sub-match for each alternative -- if one works, it
+            # is ok
+            alt_matches = [
+                check_match([token], [alt], phdata)
+                for alt in ref["alternative"]
+            ]
+            if not any(alt_matches):
+                return False
+
+    return True
+
+
+# TODO: note about sequences as lists
+def forward(ante_seq, ast, phdata):
+    # Add boundaries to the sequence if necessary
+    # TODO: decide if we keep track of this decision, removing the boundaries
+    # before returning
+    if ante_seq[0] != "#":
+        ante_seq.insert(0, "#")
+    if ante_seq[-1] != "#":
+        ante_seq.append("#")
+
+    # Iterate over the sequence, checking if subsequences match the
+    # specified `ante`. While this could, once more, be perfomed with a
+    # list comprehension, for easier conversion to Go it is better to
+    # keep it as a dumb loop.
+    # TODO: deal with alternatives that can include more than one segment,
+    #       which means that we would need to capture more than `len(ante)`
+    idx = 0
+    post_seq = []
+    while True:
+        sub_seq = ante_seq[idx : idx + len(ast["ante"])]
+        match = check_match(sub_seq, ast["ante"], phdata)
+        if match:
+            post_seq += forward_translate(sub_seq, ast["post"], phdata)
+            idx += len(ast["ante"])
+        else:
+            post_seq.append(ante_seq[idx])
+            idx += 1
+
+        if idx == len(ante_seq):
+            break
+
+    return post_seq

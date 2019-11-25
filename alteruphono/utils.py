@@ -1,42 +1,23 @@
-# encoding: utf-8
-
 """
 Defines auxiliary functions, structures, and data for the library.
 """
 
-# Standard imports
+# Python standard libraries imports
 import csv
-import itertools
 from pathlib import Path
-import random
-import re
-
-# Import 3rd party libraries
-from pyclts import CLTS
-
-TRANSCRIPTION = CLTS().bipa
 
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
+# TODO: drop CLTS as a dependency, read directly from files
+# TODO: also, remove duplicates (like  ['ãã', 'ãː'])
+# Import 3rd party libraries
+from pyclts import CLTS
 
-def clean_text(text):
-    """
-    Cleans text, basically removing superflous spaces.
-    """
+TRANSCRIPTION = CLTS().bipa
 
-    return re.sub(r"\s+", " ", text).strip()
-
-
-def clean_regex(regex):
-    """
-    Cleans a regular expression.
-    """
-
-    return " %s " % re.sub(r"\s+", " ", regex).strip()
-
-
+# TODO: add support to `feature=value` lists
 def parse_features(text):
     """
     Parse a list of feature constraints.
@@ -83,14 +64,13 @@ def parse_features(text):
         else:
             positive.append(feature)
 
-    return positive, negative
+    return {"positive": positive, "negative": negative}
 
 
-# NOTE: This function is used mostly by features2regex()
-def features2sounds(positive, negative, transsys):
+# TODO: fix documentation
+def features2graphemes(feature_str, transsys=None):
     """
     Returns a list of graphemes matching positive and negative features.
-
     Positive and negative are lists of features as defined in the
     TranscriptionSystem.
 
@@ -115,80 +95,50 @@ def features2sounds(positive, negative, transsys):
         feature constraints.
     """
 
+    # TODO: drop CLTS dependency
+    if not transsys:
+        transsys = TRANSCRIPTION
+
+    # Parse the feature string
+    features = parse_features(feature_str)
+
     # Iterate over all sounds in the transcription system
     sounds = []
     for sound in transsys.sounds:
         # Extract all the features of the current sound
-        features = transsys[sound].name.split()
+        sound_features = transsys[sound].name.split()
 
         # Check if all positive features are there
-        pos_match = all(feat in features for feat in positive)
+        pos_match = all(feat in sound_features for feat in features["positive"])
 
         # Check if none of the negative features are there
-        neg_match = all(feat not in features for feat in negative)
+        neg_match = all(
+            feat not in sound_features for feat in features["negative"]
+        )
 
         # Accept the sound if it passes both tests
         if pos_match and neg_match:
             sounds.append(sound)
 
+    # For debugging and development purposes, it is best for the
+    # list to be sorted. As we are sorting in any case, it is better to
+    # do it in reverse length, so that conversion to regular expressions,
+    # if necessary, will be transparent.
+    sounds.sort(key=lambda item: (-len(item), item))
+
     return sounds
 
 
-def features2regex(positive, negative, transsys=None):
-    """
-    Returns a regex string for matching graphemes according to features.
-
-    Positive and negative are lists of features as defined in the
-    TranscriptionSystem.
-
-    For example, asking for not-rounded and not high front vowels:
-
-    >>> alteruphono.sound_changer.features2regex(["vowel", "front"], ["rounded", "high"])
-    'ẽ̞ẽ̞|ẽ̞ː|ẽẽ|æ̃æ̃|ãã|a̰ːː|ḭːː|ĩĩ|ɛ̃ɛ̃|" ... "ă|e̤|ɛː|iː|aa|ɛ̯|ii|ḭ|æ|i|ɛ|e|a'
-
-    Parameters
-    ----------
-    positive : list
-        A list of strings with the features to be included.
-    negative : list
-        A list of strings with the features for be excluded.
-    transsys : TranscriptionSystem
-        The transcription system to be used, defaulting to BIPA.
-
-    Returns
-    -------
-    re_or_string : string
-        A string with the regular expression matching the requested feature
-        constraints. The items are sorted in inverse length order, and
-        include disjoints.
-    """
-
-    # Use the default transcription system, if none was provided
-    if not transsys:
-        transsys = TRANSCRIPTION
-
-    # Get the list of sounds and sort it by inverse length, allowing the
-    # regular expression engine to correctly match them. There is no need
-    # for further sorting withing lenghs, such as alphabetical.
-    sounds = features2sounds(positive, negative, transsys)
-    sounds.sort(key=lambda item: (-len(item), item))
-
-    # Join all the sounds in a single regular expression string'; note that
-    # we *don't* add capturing parentheses here
-    re_or_string = "%s" % "|".join(sounds)
-
-    return re_or_string
-
-
 # TODO: remove hard-coding of fixes, loading internal or external data
+# TODO: this will be part of the removal of pyclts dependency
 def fix_descriptors(descriptors):
     """
-    Fix inconsistencies and problems with pyclts descriptors.
+    Fix inconsistenies and problems with pyclts descriptors.
     """
 
     # Run manual fixes related to pyclts
     if "palatal" in descriptors and "fricative" in descriptors:
-        # Fricative palatals are described as alveolo-palatal, so
+        # Fricative palatals are described as alveolo-palatal in pyclts, so
         # replace all of them
         descriptors = [
             feature if feature != "palatal" else "alveolo-palatal"
@@ -196,9 +146,11 @@ def fix_descriptors(descriptors):
         ]
 
     if "alveolo-palatal" in descriptors and "fricative" in descriptors:
+        # TODO: should check if it is not there already
         descriptors.append("sibilant")
 
     if "alveolar" in descriptors and "fricative" in descriptors:
+        # TODO: should check if it is not there already
         descriptors.append("sibilant")
 
     return descriptors
@@ -218,7 +170,8 @@ def read_sound_classes(filename=None):
     -------
     sound_classes : dict
         A dictionary with sound class names as keys (such as "A" or
-        "C[+voiced]") and corresponding regular expressions as values.
+        "CV"), and corresponding descriptions and list of graphemes
+        as values.
     """
 
     if not filename:
@@ -230,7 +183,8 @@ def read_sound_classes(filename=None):
         sound_classes = {
             row["sound_class"]: {
                 "description": row["description"],
-                "regex": features2regex(*parse_features(row["features"])),
+                "features": row["features"],
+                "graphemes": features2graphemes(row["features"]),
             }
             for row in reader
         }
@@ -272,10 +226,10 @@ def read_sound_changes(filename=None):
     Read sound changes.
 
     Sound changes are stored in a TSV file holding a list of sound changes.
-    Mandatory fields are, besides a unique `id`,
-    `source`, `target` and `test`, according to the
-    simpler notation. A floating-point `weight` may also be specified
-    (defaulting to 1.0 for all rules, in case it is not specified).
+    Mandatory fields are, besides a unique `ID`,
+    `RULE`, `TEST_ANTE`, and `TEST_POST`.
+    A floating-point `WEIGHT` may also be specified
+    (defaulting to 1.0 for all rules, unless specified).
 
     Parameters
     ----------
@@ -300,75 +254,45 @@ def read_sound_changes(filename=None):
         reader = csv.DictReader(csvfile, delimiter="\t")
         rules = {}
         for row in reader:
-            rules[row["id"]] = {
-                "source": re.sub(r"\s+", " ", row["source"]),
-                "target": re.sub(r"\s+", " ", row["target"]),
-                "weight": float(row.get("weight", 1.0)),
-                "test": row["test"],
-            }
+            # TODO: join multiple rules (replacing multisegment)
+            rule_id = int(row.pop("ID"))
+            row["WEIGHT"] = float(row.get("WEIGHT", 1.0))
+
+            rules[rule_id] = row
 
     return rules
 
 
-def random_choices(population, weights=None, cum_weights=None, k=1):
-    """
-    Return a `k` sized list of elements chosen from `population` with
-    replacement and according to a list of weights.
+# TODO: properly document
+def read_sounds(featsys, filename=None):
+    if not filename:
+        filename = RESOURCE_DIR / "sounds.tsv"
+        filename = filename.as_posix()
 
-    If a `weights` sequence is specified, selections are made according to the
-    relative weights. Alternatively, if a `cum_weights` sequence is given, the
-    selections are made according to the cumulative weights. For example, the
-    relative weights `[10, 5, 30, 5]` are equivalent to the cumulative weights
-    `[10, 15, 45, 50]`. Internally, the relative weights are converted to the
-    cumulative weights before making selections, so supplying the cumulative
-    weights saves work.
+    sounds = {}
+    with open(filename) as csvfile:
+        reader = csv.DictReader(csvfile, delimiter="\t")
+        for row in reader:
+            features = row["NAME"].split()
 
-    This function is compatible with the random.choices() function available
-    in Python's standard library from version 3.6 on. It can be replaced by
-    the standard implementation once the version requirement is updated.
+            # TODO: skipping over clusters and tones
+            if "from" in features:
+                continue
+            if "tone" in features:
+                continue
 
-    Parameters
-    ----------
-    population: list
-        A list of elements from which the element(s) will be drawn.
+            descriptors = {featsys[feat]: feat for feat in features}
+            sounds[row["GRAPHEME"]] = descriptors
 
-    weights: list
-        A list of any numeric type with the relative weight of each element.
-        Either `weights` or `cum_weights` must be provided.
+    return sounds
 
-    cum_weights: list
-        A list of any numeric type with the accumulated weight of each element.
-        Either `weights` or `cum_weights` must be provided.
 
-    k: int
-        The number of elements to be drawn, with replacement.
+# TODO: properly document
+def read_phonetic_data():
+    features = read_sound_features()
+    sound_classes = read_sound_classes()
+    sounds = read_sounds(features)
 
-    Returns
-    -------
-    sample: list
-        A list of elements randomly drawn according to the specified weights.
-    """
+    data = {"features": features, "classes": sound_classes, "sounds": sounds}
 
-    # Assert that (1) the population is not empty, (2) only one type of
-    # weight information is provided.
-    assert population, "Population must not be empty."
-    assert not all(
-        (weights, cum_weights)
-    ), "Either only weights or only cumulative weights must be provided."
-
-    # If cumulative weights were not provided, build them from `weights`.
-    if not cum_weights:
-        cum_weights = list(itertools.accumulate(weights))
-
-    # Assert that the lengths of population and cumulative weights match.
-    assert len(population) == len(
-        cum_weights
-    ), "Population and weight lengths do not match."
-
-    # Get a random number and see in which bin it falls. We need to use this
-    # logic which is a little more complex than something with randint()
-    # in order to allow for floating-point weights.
-    rnd = [random.uniform(0, cum_weights[-1]) for r in range(k)]
-    less_than = [[cw < r for cw in cum_weights] for r in rnd]
-
-    return [population[lt.index(False)] for lt in less_than]
+    return data

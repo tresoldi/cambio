@@ -8,14 +8,11 @@ python:
 
 install:
   - "python setup.py install"
-  - "pip install -r travis-requirements.txt"
   - "pip install codecov"
-  - "cldfbench catconfig -q"
 
 script:
-  - "coverage run tests/test_grammar.py"
-  - "coverage run -a tests/test_compilers.py"
-  - "coverage run -a tests/test_changer.py"
+  - "coverage run tests/test_utils.py"
+  - "coverage run -a tests/test_parser.py"
 
 after_success:
   - "codecov"

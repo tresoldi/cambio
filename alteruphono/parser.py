@@ -11,16 +11,18 @@ and for the plans of expansion/conversion to different languages, trying
 to diminish the dependency on Python.
 """
 
+# Import Python standard libraries
 import re
 
-from . import phonoast
+# TODO: Decide what will be exported
 
 # Defines the regular expression matching ante, post, and context
+# TODO: are we supporting sound classes with modifiers?
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
 _RE_MODIFIER = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
 _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
 
-
+# TODO: delete funnction once ready
 def _tokenize(text):
     # Sequences at this point have tokens separeted by single spaces,
     # but we might run into cases of capture groups that include
@@ -58,14 +60,14 @@ def _tokenize_rule(rule):
     # string for extracting `ante` and `post`
     if " / " in rule:
         ante_post, context = rule.split(" / ")
-        context = _tokenize(context.strip())
+        context = context.strip().split()
     else:
         ante_post, context = rule, []
 
     # Extract `ante` and `post` and tokenize them
     match = re.match(_RE_ANTE_POST, ante_post)
-    ante = _tokenize(match.group("ante").strip())
-    post = _tokenize(match.group("post").strip())
+    ante = match.group("ante").strip().split()
+    post = match.group("post").strip().split()
 
     return ante, post, context
 
@@ -74,7 +76,7 @@ def _tokenize_rule(rule):
 # TODO: add a single modifier (which allows to define as wel)
 
 # match tokens (mostly with regex) and build objects
-def _translate(token, graphemes):
+def _translate(token, phdata):
     ret = None
 
     # TODO: with a walrus operator, this can be moved to the `if`s
@@ -93,7 +95,7 @@ def _translate(token, graphemes):
         # If the string includes a vertical bar, it a list of alternatives;
         # alternatives can be pretty much anything, graphemes, sound classes
         #  (with modifiers or not), etc.
-        alternatives = [_translate(alt, graphemes) for alt in token.split("|")]
+        alternatives = [_translate(alt, phdata) for alt in token.split("|")]
         ret = {"alternative": alternatives}
     elif bref_match:
         # Check if it is a back-reference, with optional modifiers
@@ -107,24 +109,18 @@ def _translate(token, graphemes):
             "sound_class": sc_match.group("sc"),
             "modifier": sc_match.group("modifier"),
         }
-    elif token in graphemes:
+    elif token in phdata["sounds"]:
         # at this point it should be a grapheme; check if it is a valid one
         # TODO: accept modifier?
         ret = {"ipa": token}
-    elif " " in token:
-        # As this function is only called internally, any white spaces are
-        # spaces resulting from multisegment alternatives
-        ret = {
-            "sequence": [_translate(tok, graphemes) for tok in token.split(" ")]
-        }
 
     return ret
 
 
-def tokens2ast(tokens, graphemes):
+def tokens2ast(tokens, phdata):
     ast = []
     for token in tokens:
-        t = _translate(token, graphemes)
+        t = _translate(token, phdata)
         if not t:
             raise ValueError("Unable to parse", [t])
         ast.append(t)
@@ -177,18 +173,15 @@ def _merge_context(ast, context, ref_context=None):
     return merged
 
 
-def parse_rule(rule, featsys, sound_classes, sounds):
-    # Cache
-    graphemes = list(sounds)
-
+def parse(rule, phdata):
     # Basic string pre-processing, making logic and regexes easier
     rule = re.sub("\s+", " ", rule).strip()
 
     # Tokenize all parts and collect the tokens in quasi-asts
     ante, post, context = _tokenize_rule(rule)
-    ante_ast = tokens2ast(ante, graphemes)
-    post_ast = tokens2ast(post, graphemes)
-    context_ast = tokens2ast(context, graphemes)
+    ante_ast = tokens2ast(ante, phdata)
+    post_ast = tokens2ast(post, phdata)
+    context_ast = tokens2ast(context, phdata)
 
     # context is necessary to follow tradition and to make things simpler to
     # code for linguists, but it actually makes out lives harder
@@ -202,4 +195,4 @@ def parse_rule(rule, featsys, sound_classes, sounds):
         post_ast, context_ast, ref_context=len(ante_ast)
     )
 
-    return new_ante_ast, new_post_ast
+    return {"ante": new_ante_ast, "post": new_post_ast}
