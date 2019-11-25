@@ -6,13 +6,12 @@ Defines auxiliary functions, structures, and data for the library.
 import csv
 from pathlib import Path
 
+# Import from other modules
+from .parser import parse_features
 
 # TODO: drop CLTS as a dependency, read directly from files
 # Import 3rd party libraries
 from pyclts import CLTS
-
-# Import from other modules
-from .parser import parse_features
 
 TRANSCRIPTION = CLTS().bipa
 

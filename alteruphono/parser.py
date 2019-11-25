@@ -68,6 +68,7 @@ def parse_features(text):
         else:
             # If there is no custom value (equal sign), assume it is a positive
             # feature; otherwise, just store in `custom`.
+            # TODO: check `true` and `false`
             if "=" in feature:
                 feature_name, feature_value = feature.split("=")
                 custom[feature_name] = feature_value
@@ -101,7 +102,6 @@ def _tokenize_rule(rule):
     return ante, post, context
 
 
-# TODO: accept modifier in other types, such as IPA and SC
 def _translate(token, phdata):
     """
     Translate an intermediate representation of tokens to a human sequence.

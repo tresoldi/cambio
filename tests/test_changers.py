@@ -25,7 +25,15 @@ class TestChangers(unittest.TestCase):
             ("p > b", "# p a p a #"): ("#", "b", "a", "b", "a", "#"),
             ("S > p / _ V", "t i s e"): ("p", "i", "s", "e"),
             ("t[voiced] > s", "t a d a"): ("t", "a", "s", "a"),
-            ("S[voiceless] a > @1[fricative] a", "b a p a t a"): ("b", "a",  'ɸ', "a", 's', "a"),
+            ("S[voiceless] a > @1[fricative] a", "b a p a t a"): (
+                "b",
+                "a",
+                "ɸ",
+                "a",
+                "s",
+                "a",
+            ),
+            ("p|t a @1|k > p a t", "t a k"): ("p", "a", "t"),
         }
 
         # Read phonetic data

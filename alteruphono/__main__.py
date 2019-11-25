@@ -9,6 +9,10 @@ import alteruphono
 
 
 def main():
+    """
+    Entry point for the command-line utility.
+    """
+
     print("alteruphono ok")
 
 
