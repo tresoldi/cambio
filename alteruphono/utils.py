@@ -56,7 +56,7 @@ def descriptors2grapheme(descriptors, phdata):
     return None
 
 
-# TODO: add support/code/example for custom features
+# TODO: should cache or pre-process this: if not in list, compute
 def features2graphemes(feature_str, sounds):
     """
     Returns a list of graphemes matching a feature description.
@@ -90,20 +90,23 @@ def features2graphemes(feature_str, sounds):
     graphemes = []
     for grapheme, sound_features in sounds.items():
         # Extract all the features of the current sound
-        # TODO: should cache or pre-process this
         sound_features = list(sound_features.values())
 
-        # Check if all positive features are there
+        # Check if all positive features are there; we can skip
+        # immediately if they don't match
         pos_match = all(feat in sound_features for feat in features["positive"])
+        if not pos_match:
+            continue
 
-        # Check if none of the negative features are there
+        # Check if none of the negative features are there, skipping if not
         neg_match = all(
             feat not in sound_features for feat in features["negative"]
         )
+        if not neg_match:
+            continue
 
-        # Accept the sound if it passes both tests
-        if pos_match and neg_match:
-            graphemes.append(grapheme)
+        # The grapheme passed both tests, add it
+        graphemes.append(grapheme)
 
     # Sort the list, first by inverse length, then alphabetically
     graphemes.sort(key=lambda item: (-len(item), item))
@@ -235,13 +238,12 @@ def read_phonetic_data():
     sounds = read_sounds(features)
 
     # Cache the `graphemes` for `sound_classes`
-    for sc, value in sound_classes.items():
-        value['graphemes'] = features2graphemes(value["features"], sounds)
+    for value in sound_classes.values():
+        value["graphemes"] = features2graphemes(value["features"], sounds)
 
-    data = {"features": features, "classes": sound_classes, "sounds": sounds}
+    phdata = {"features": features, "classes": sound_classes, "sounds": sounds}
 
-
-    return data
+    return phdata
 
 
 def read_sound_changes(filename=None):
