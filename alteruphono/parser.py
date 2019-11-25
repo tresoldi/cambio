@@ -17,7 +17,7 @@ import re
 # Defines the regular expression matching ante, post, and context
 # TODO: support sound classes with modifiers
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
-_RE_MODIFIER = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
+_RE_BACKREF = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
 _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
 
 
@@ -101,16 +101,19 @@ def _tokenize_rule(rule):
     return ante, post, context
 
 
-# TODO: have a parse modifier
-# TODO: add a single modifier (which allows to define as wel)
-
-# match tokens (mostly with regex) and build objects
+# TODO: accept modifier in other types, such as IPA and SC
 def _translate(token, phdata):
+    """
+    Translate an intermediate representation of tokens to a human sequence.
+    """
+
     ret = None
 
-    bref_match = re.match(_RE_MODIFIER, token)
+    # Try to match the tokens with what is easier verified with a regex
+    backref_match = re.match(_RE_BACKREF, token)
     sc_match = re.match(_RE_SOUNDCLASS, token)
 
+    # Evaluate
     if token == "_":
         ret = {"position": "_"}
     elif token == "#":
@@ -125,11 +128,11 @@ def _translate(token, phdata):
         #  (with modifiers or not), etc.
         alternatives = [_translate(alt, phdata) for alt in token.split("|")]
         ret = {"alternative": alternatives}
-    elif bref_match:
+    elif backref_match:
         # Check if it is a back-reference, with optional modifiers
         ret = {
-            "back-reference": int(bref_match.group("idx")),
-            "modifier": bref_match.group("modifier"),
+            "back-reference": int(backref_match.group("idx")),
+            "modifier": backref_match.group("modifier"),
         }
     elif sc_match:
         # Check if it is sound-class, with optional modifier
@@ -139,19 +142,22 @@ def _translate(token, phdata):
         }
     elif token in phdata["sounds"]:
         # At this point, it should be a grapheme; check if it is a valid one
-        # TODO: accept modifier?
         ret = {"ipa": token}
 
     return ret
 
 
-def tokens2ast(tokens, phdata):
+def _tokens2ast(tokens, phdata):
+    """
+    Given a list of string tokens, returns an AST
+    """
+
     ast = []
     for token in tokens:
-        t = _translate(token, phdata)
-        if not t:
-            raise ValueError("Unable to parse", [t])
-        ast.append(t)
+        translated = _translate(token, phdata)
+        if not translated:
+            raise ValueError("Unable to parse", [token])
+        ast.append(translated)
 
     return ast
 
@@ -186,22 +192,23 @@ def _merge_context(ast, context, offset_ref=None):
     # ones.
     # TODO: move to a separate function? it would also make easier to
     # take care of backreferences in alternatives, currently not supported
-    if offset_ref:
-        merged_ast = [{"back-reference": i + 1} for i, _ in enumerate(left)]
-    else:
-        merged_ast = left[:]
-
+    merged_ast = []
     for token in ast:
         merged_ast.append(dict(token))
         if "back-reference" in token:
             merged_ast[-1]["back-reference"] += offset_left
 
     if offset_ref:
-        merged_ast += [
-            {"back-reference": i + 1 + offset_left + offset_ref}
-            for i, _ in enumerate(right)
-        ]
+        merged_ast = (
+            [{"back-reference": i + 1} for i, _ in enumerate(left)]
+            + merged_ast
+            + [
+                {"back-reference": i + 1 + offset_left + offset_ref}
+                for i, _ in enumerate(right)
+            ]
+        )
     else:
+        merged_ast = left[:] + merged_ast
         for token in right:
             merged_ast.append(dict(token))
             if "back-reference" in token:
@@ -211,14 +218,18 @@ def _merge_context(ast, context, offset_ref=None):
 
 
 def parse(rule, phdata):
+    """
+    Parse a sound change rule.
+    """
+
     # Basic string pre-processing, making logic and regexes easier
     rule = re.sub(r"\s+", " ", rule).strip()
 
     # Tokenize all parts and collect the tokens in quasi-asts
     ante, post, context = _tokenize_rule(rule)
-    ante_ast = tokens2ast(ante, phdata)
-    post_ast = tokens2ast(post, phdata)
-    context_ast = tokens2ast(context, phdata)
+    ante_ast = _tokens2ast(ante, phdata)
+    post_ast = _tokens2ast(post, phdata)
+    context_ast = _tokens2ast(context, phdata)
 
     # context is necessary to follow tradition and to make things simpler to
     # code for linguists, but it actually makes out lives harder
