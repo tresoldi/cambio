@@ -24,6 +24,7 @@ class TestChangers(unittest.TestCase):
         reference = {
             ("p > b", "# p a p a #"): ("#", "b", "a", "b", "a", "#"),
             ("S > p / _ V", "t i s e"): ("p", "i", "s", "e"),
+            ("t[voiced] > s", "t a d a"): ("t", "a", "s", "a"),
         }
 
         # Read phonetic data

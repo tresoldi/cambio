@@ -82,7 +82,8 @@ def check_match(sequence, pattern, phdata):
 
     for token, ref in zip(sequence, pattern):
         if "ipa" in ref:
-            if token != ref["ipa"]:
+            ipa = apply_modifier(ref["ipa"], ref["modifier"], phdata)
+            if token != ipa:
                 return False
         elif "boundary" in ref:
             if token != "#":

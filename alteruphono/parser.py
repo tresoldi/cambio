@@ -19,6 +19,7 @@ import re
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
 _RE_BACKREF = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
 _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
+_RE_IPA_MOD = re.compile(r"^(?P<ipa>.+?)(?P<modifier>\[.+\])?$")
 
 
 def parse_features(text):
@@ -112,6 +113,7 @@ def _translate(token, phdata):
     # Try to match the tokens with what is easier verified with a regex
     backref_match = re.match(_RE_BACKREF, token)
     sc_match = re.match(_RE_SOUNDCLASS, token)
+    ipamod_match = re.match(_RE_IPA_MOD, token)
 
     # Evaluate
     if token == "_":
@@ -139,6 +141,12 @@ def _translate(token, phdata):
         ret = {
             "sound_class": sc_match.group("sc"),
             "modifier": sc_match.group("modifier"),
+        }
+    elif ipamod_match:
+        # IPA with modifier
+        ret = {
+            "ipa": ipamod_match.group("ipa"),
+            "modifier": ipamod_match.group("modifier"),
         }
     elif token in phdata["sounds"]:
         # At this point, it should be a grapheme; check if it is a valid one

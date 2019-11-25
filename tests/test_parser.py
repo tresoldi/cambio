@@ -25,12 +25,23 @@ class TestParser(unittest.TestCase):
         phdata = alteruphono.utils.read_phonetic_data()
 
         reference = {
-            "p > b": {"ante": [(("ipa", "p"),)], "post": [(("ipa", "b"),)]},
+            "p > b": {
+                "ante": [(("ipa", "p"), ("modifier", None))],
+                "post": [(("ipa", "b"), ("modifier", None))],
+            },
             "p|t r > @1[+voiced] / V _": {
                 "ante": [
                     (("modifier", None), ("sound_class", "V")),
-                    (("alternative", [{"ipa": "p"}, {"ipa": "t"}]),),
-                    (("ipa", "r"),),
+                    (
+                        (
+                            "alternative",
+                            [
+                                {"ipa": "p", "modifier": None},
+                                {"ipa": "t", "modifier": None},
+                            ],
+                        ),
+                    ),
+                    (("ipa", "r"), ("modifier", None)),
                 ],
                 "post": [
                     (("back-reference", 1),),
