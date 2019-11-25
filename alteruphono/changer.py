@@ -22,6 +22,9 @@ def apply_modifier(grapheme, modifier, phdata):
     # Obtain the phonological descriptors for the base sound
     # TODO: consider redoing the logic, as we don't need to extract values
     #       given that those are already properly organized in the data
+    # TODO: build an ipa description no matter what...
+    if grapheme not in phdata['sounds']:
+        return "%s%s" % (grapheme, modifier)
     descriptors = list(phdata["sounds"][grapheme].values())
 
     # Remove requested features
@@ -46,6 +49,11 @@ def apply_modifier(grapheme, modifier, phdata):
     # Ask the transcription system for a new grapheme based in the
     # adapted description
     # TODO: remove dependency
+    if 'consonant' in descriptors:
+        descriptors = [v for v in descriptors if v != 'consonant'] + ['consonant']
+    if 'vowel' in descriptors:
+        descriptors = [v for v in descriptors if v != 'vowel'] + ['vowel']
+
     return utils.TRANSCRIPTION[" ".join(descriptors)].grapheme
 
 
@@ -89,7 +97,15 @@ def check_match(sequence, pattern, phdata):
             if token != "#":
                 return False
         elif "sound_class" in ref:
-            if token not in phdata["classes"][ref["sound_class"]]["graphemes"]:
+            # Apply the modifier to all the items in the sound class,
+            # so we can check if the `token` is actually there.
+            modified = [
+                apply_modifier(grapheme, ref['modifier'], phdata)
+                for grapheme in phdata['classes'][ref['sound_class']]['graphemes']
+            ]
+            modified = sorted(set([gr for gr in modified if gr]))
+
+            if token not in modified:
                 return False
         elif "alternative" in ref:
             # Check the sub-match for each alternative -- if one works, it

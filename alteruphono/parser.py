@@ -15,7 +15,6 @@ to diminish the dependency on Python.
 import re
 
 # Defines the regular expression matching ante, post, and context
-# TODO: support sound classes with modifiers
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
 _RE_BACKREF = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
 _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
