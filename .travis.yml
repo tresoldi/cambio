@@ -9,10 +9,13 @@ python:
 install:
   - "python setup.py install"
   - "pip install codecov"
+  - "pip install pyclts pyconcepticon pyglottolog cldfbench"
+  - "cldfbench catconfig -q"
 
 script:
   - "coverage run tests/test_utils.py"
   - "coverage run -a tests/test_parser.py"
+  - "coverage run -a tests/test_changers.py"
 
 after_success:
   - "codecov"
