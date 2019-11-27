@@ -111,10 +111,11 @@ def features2graphemes(feature_str, sounds):
     # Sort the list, first by inverse length, then alphabetically
     graphemes.sort(key=lambda item: (-len(item), item))
 
-    return graphemes
+    return tuple(graphemes)
 
 
-def read_sound_classes(filename=None):
+# TODO: comment on `sounds`
+def read_sound_classes(sounds, filename=None):
     """
     Read sound class definitions.
 
@@ -138,14 +139,18 @@ def read_sound_classes(filename=None):
 
     with open(filename) as tsvfile:
         reader = csv.DictReader(tsvfile, delimiter="\t")
-        sound_classes = {
-            row["sound_class"]: {
-                "description": row["description"],
-                "features": row["features"],
-                "graphemes": None,
+        sound_classes = {}
+        for row in reader:
+            if row["GRAPHEMES"]:
+                graphemes = tuple(row["GRAPHEMES"].split("|"))
+            else:
+                graphemes = features2graphemes(row["GRAPHEMES"], sounds)
+
+            sound_classes[row["SOUND_CLASS"]] = {
+                "description": row["DESCRIPTION"],
+                "features": row["FEATURES"],
+                "graphemes": graphemes,
             }
-            for row in reader
-        }
 
     return sound_classes
 
@@ -234,8 +239,8 @@ def read_phonetic_data():
     """
 
     features = read_sound_features()
-    sound_classes = read_sound_classes()
     sounds = read_sounds(features)
+    sound_classes = read_sound_classes(sounds)
 
     # Cache the `graphemes` for `sound_classes`
     for value in sound_classes.values():

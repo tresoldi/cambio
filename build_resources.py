@@ -16,6 +16,9 @@ import logging
 from pathlib import Path
 import urllib.request
 
+# Import the library to compute the graphemes
+import alteruphono
+
 # Set the resource directory
 RESOURCE_DIR = Path(__file__).parent / "resources"
 
@@ -105,6 +108,43 @@ def prepare_sounds():
             handler.write("%s\n" % "\t".join(buf))
 
 
+def prepare_classes():
+    """
+    Prepare sound classes.
+    """
+
+    # Read data, as if in the normal execution
+    features = alteruphono.utils.read_sound_features()
+    sounds = alteruphono.utils.read_sounds(features)
+
+    # Read the sound classes defined in resources, and from there
+    # the graphemes
+    filename = RESOURCE_DIR / "sound_classes.tsv"
+    classes = []
+    with open(filename.as_posix()) as handler:
+        reader = csv.DictReader(handler, delimiter="\t")
+        for row in reader:
+            sound_class = {}
+            sound_class["SOUND_CLASS"] = row["SOUND_CLASS"]
+            sound_class["DESCRIPTION"] = row["DESCRIPTION"]
+            sound_class["FEATURES"] = row["FEATURES"]
+            sound_class["GRAPHEMES"] = alteruphono.utils.features2graphemes(
+                row["FEATURES"], sounds
+            )
+
+            classes.append(sound_class)
+
+    # output to the same file
+    with open(filename.as_posix(), "w") as handler:
+        header = ["SOUND_CLASS", "DESCRIPTION", "FEATURES", "GRAPHEMES"]
+        handler.write("%s\n" % "\t".join(header))
+
+        for row in classes:
+            buf = [row[field] for field in header]
+            buf = [v if isinstance(v, str) else "|".join(v) for v in buf]
+            handler.write("%s\n" % "\t".join(buf))
+
+
 def main():
     """
     Entry point.
@@ -121,6 +161,10 @@ def main():
     # Prepare sounds
     logging.info("Downloading and processing sounds")
     prepare_sounds()
+
+    # Prepare classes and their graphemes
+    logging.info("Building sound classes")
+    prepare_classes()
 
 
 if __name__ == "__main__":

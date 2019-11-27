@@ -96,12 +96,16 @@ class TestUtils(unittest.TestCase):
 
     def test_read_sound_classes(self):
         # using default
-        sc = alteruphono.utils.read_sound_classes()
+        features = alteruphono.utils.read_sound_features()
+        sounds = alteruphono.utils.read_sounds(features)
+        sc = alteruphono.utils.read_sound_classes(sounds)
 
         assert len(sc) == 20
         assert sc["K"]["features"] == "velar"
         assert sc["VN"]["description"] == "nasal vowel"
-        assert sc["XXX"]["graphemes"] == None
+        assert sc["XXX"]["graphemes"] == tuple(
+            "ã̤ː̈|ḁ̯̃ː|ãː̈|ãː̟|ḁ̃ː|ã̯ː|ãː".split("|")
+        )
 
     def test_read_sound_features(self):
         # using default
