@@ -140,4 +140,6 @@ class TestUtils(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    sys.exit(unittest.main())
+    # Explicitly creating and running a test suite allows to profile
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestUtils)
+    unittest.TextTestRunner(verbosity=2).run(suite)

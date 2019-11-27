@@ -85,4 +85,6 @@ class TestParser(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    sys.exit(unittest.main())
+    # Explicitly creating and running a test suite allows to profile
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestParser)
+    unittest.TextTestRunner(verbosity=2).run(suite)
