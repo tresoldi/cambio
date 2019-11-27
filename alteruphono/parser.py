@@ -16,7 +16,7 @@ import re
 
 # Defines the regular expression matching ante, post, and context
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
-_RE_BACKREF = re.compile(r"^@(?P<idx>\d+)(?P<modifier>\[.+\])?$")
+_RE_BACKREF = re.compile(r"^@(?P<idx>\d+)(?P<extra>\[.+\]|\{.+\})?$")
 _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
 _RE_IPA_MOD = re.compile(r"^(?P<ipa>.+?)(?P<modifier>\[.+\])?$")
 
@@ -120,7 +120,7 @@ def _translate(token, phdata):
     elif token == "#":
         ret = {"boundary": "#"}
     elif token == ".":
-        ret = {"syllable": "_"}
+        ret = {"syllable": "."}
     elif token == ":null:":
         ret = {"null": "null"}
     elif "|" in token:
@@ -130,11 +130,20 @@ def _translate(token, phdata):
         alternatives = [_translate(alt, phdata) for alt in token.split("|")]
         ret = {"alternative": alternatives}
     elif backref_match:
-        # Check if it is a back-reference, with optional modifiers
-        ret = {
-            "back-reference": int(backref_match.group("idx")),
-            "modifier": backref_match.group("modifier"),
-        }
+        # Check if it is a back-reference, possibly with modifiers or set
+        # correspondences
+        if not backref_match.group("extra"):
+            ret = {"back-reference": int(backref_match.group("idx"))}
+        elif backref_match.group("extra")[0] == "[":
+            ret = {
+                "back-reference": int(backref_match.group("idx")),
+                "modifier": backref_match.group("extra"),
+            }
+        elif backref_match.group("extra")[0] == "{":
+            ret = {
+                "back-reference": int(backref_match.group("idx")),
+                "correspondence": backref_match.group("extra"),
+            }
     elif sc_match:
         # Check if it is sound-class, with optional modifier
         ret = {

@@ -34,6 +34,7 @@ class TestChangers(unittest.TestCase):
                 "a",
             ),
             ("p|t a @1|k > p a t", "t a k"): ("p", "a", "t"),
+            ("p|d a > @1{b,d} e", "d a p a"): ("d", "e", "b", "e"),
         }
 
         # Read phonetic data

@@ -51,22 +51,41 @@ def apply_modifier(grapheme, modifier, phdata):
     return grapheme
 
 
-def forward_translate(sequence, post, phdata):
+def forward_translate(sequence, rule, phdata):
     """
     Translate an intermediary `ante` to `post` sequence.
     """
 
     post_seq = []
 
-    for entry in post:
+    for entry in rule["post"]:
         if "ipa" in entry:
             post_seq.append(entry["ipa"])
         elif "back-reference" in entry:
+            # Refer to `correspondence`, if specified
             # -1 as back-references as 1-based, and Python lists 0-based
-            token = sequence[entry["back-reference"] - 1]
-            post_seq.append(
-                apply_modifier(token, entry.get("modifier", None), phdata)
-            )
+            if "correspondence" in entry:
+                # get the alternative index in `ante`
+                # NOTE: `post_alts` has [1:-1] for the curly brackets
+                # TODO: this is only working with BIPA, should we allow others?
+                ante_alts = [
+                    alt["ipa"]
+                    for alt in rule["ante"][entry["back-reference"] - 1][
+                        "alternative"
+                    ]
+                ]
+                post_alts = rule["post"][entry["back-reference"] - 1][
+                    "correspondence"
+                ][1:-1].split(",")
+
+                idx = ante_alts.index(sequence[entry["back-reference"] - 1])
+
+                post_seq.append(post_alts[idx])
+            else:
+                token = sequence[entry["back-reference"] - 1]
+                post_seq.append(
+                    apply_modifier(token, entry.get("modifier", None), phdata)
+                )
         elif "null" in entry:
             pass
 
@@ -162,7 +181,7 @@ def forward(ante_seq, ast, phdata, no_boundaries=False):
         sub_seq = ante_seq[idx : idx + len(ast["ante"])]
         match = check_match(sub_seq, ast["ante"], phdata)
         if match:
-            post_seq += forward_translate(sub_seq, ast["post"], phdata)
+            post_seq += forward_translate(sub_seq, ast, phdata)
             idx += len(ast["ante"])
         else:
             post_seq.append(ante_seq[idx])
