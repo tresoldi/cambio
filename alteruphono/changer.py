@@ -43,10 +43,18 @@ def apply_modifier(grapheme, modifier, phdata):
     descriptors += features["positive"]
 
     # Obtain the grapheme based on the description
-    grapheme = utils.descriptors2grapheme(descriptors, phdata)
-
+    # TODO: decide if we should just memoize
+    descriptors = tuple(sorted(descriptors))
+    grapheme = phdata['desc2graph'].get(descriptors, None)
     if not grapheme:
-        grapheme = "[%s]" % ",".join(descriptors)
+        grapheme = utils.descriptors2grapheme(descriptors, phdata)
+
+        # TODO: should always return, can we guarantee?
+        if grapheme:
+            phdata['desc2graph'][descriptors] = grapheme
+        else:
+            # TODO: better order?
+            grapheme = "[%s]" % ",".join(descriptors)
 
     return grapheme
 

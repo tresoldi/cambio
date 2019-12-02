@@ -15,6 +15,9 @@ RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 
 def descriptors2grapheme(descriptors, phdata):
+    # make sure we can manipulate these descriptors
+    descriptors = list(descriptors)
+
     # Run manual fixes related to pyclts
     if "palatal" in descriptors and "fricative" in descriptors:
         # Fricative palatals are described as alveolo-palatal in pyclts, so
@@ -246,7 +249,11 @@ def read_phonetic_data():
     for value in sound_classes.values():
         value["graphemes"] = features2graphemes(value["features"], sounds)
 
-    phdata = {"features": features, "classes": sound_classes, "sounds": sounds}
+    # We initialize `desc2graph` (descriptors to grapheme)
+    # as an empty dictionary, which
+    # will serve as a cache during calls
+    phdata = {"features": features, "classes": sound_classes, "sounds": sounds,
+    'desc2graph':{}}
 
     return phdata
 
