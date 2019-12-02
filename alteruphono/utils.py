@@ -246,6 +246,7 @@ def read_phonetic_data():
     globals.SOUNDS = read_sounds(globals.FEATURES)
     globals.SOUND_CLASSES = read_sound_classes(globals.SOUNDS)
     globals.DESC2GRAPH = {}
+    globals.APPLYMOD = {}
 
     # Cache the `graphemes` for `sound_classes`
     # TODO: should be cached in another variable?

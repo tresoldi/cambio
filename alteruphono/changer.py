@@ -16,6 +16,11 @@ def apply_modifier(grapheme, modifier):
     if not modifier:
         return grapheme
 
+    # See if the (grapheme, modifier) combination has already been computed
+    cache_key = tuple([grapheme, modifier])
+    if cache_key in globals.APPLYMOD:
+        return globals.APPLYMOD[cache_key]
+
     # Parse the provided modifier
     features = utils.parse_features(modifier)
 
@@ -56,6 +61,9 @@ def apply_modifier(grapheme, modifier):
         else:
             # TODO: better order?
             grapheme = "[%s]" % ",".join(descriptors)
+
+    # cache
+    globals.APPLYMOD[cache_key] = grapheme
 
     return grapheme
 
