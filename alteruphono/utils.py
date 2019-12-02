@@ -37,7 +37,7 @@ def descriptors2grapheme(descriptors):
             descriptors.append("sibilant")
 
     # TODO: should cache this?
-    desc = tuple(sorted(descriptors[:]))
+    desc = tuple(sorted(descriptors))
     for sound, feat_dict in globals.SOUNDS.items():
         # Collect all features and confirm if all are there
         # TODO: better to sort when loading the SOUNDS
