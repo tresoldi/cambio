@@ -10,6 +10,7 @@ __author__ = "Tiago Tresoldi"
 __email__ = "tresoldi@shh.mpg.de"
 
 # Build the namespace
+from alteruphono import globals
 from alteruphono import utils
 from alteruphono.parser import parse, parse_features
 from alteruphono.changer import forward

@@ -14,6 +14,8 @@ to diminish the dependency on Python.
 # Import Python standard libraries
 import re
 
+from . import globals
+
 # Defines the regular expression matching ante, post, and context
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
 _RE_BACKREF = re.compile(r"^@(?P<idx>\d+)(?P<extra>\[.+\]|\{.+\})?$")
@@ -102,7 +104,7 @@ def _tokenize_rule(rule):
     return ante, post, context
 
 
-def _translate(token, phdata):
+def _translate(token):
     """
     Translate an intermediate representation of tokens to a human sequence.
     """
@@ -127,7 +129,7 @@ def _translate(token, phdata):
         # If the string includes a vertical bar, it a list of alternatives;
         # alternatives can be pretty much anything, graphemes, sound classes
         #  (with modifiers or not), etc.
-        alternatives = [_translate(alt, phdata) for alt in token.split("|")]
+        alternatives = [_translate(alt) for alt in token.split("|")]
         ret = {"alternative": alternatives}
     elif backref_match:
         # Check if it is a back-reference, possibly with modifiers or set
@@ -156,21 +158,21 @@ def _translate(token, phdata):
             "ipa": ipamod_match.group("ipa"),
             "modifier": ipamod_match.group("modifier"),
         }
-    elif token in phdata["sounds"]:
+    elif token in globals.SOUNDS:
         # At this point, it should be a grapheme; check if it is a valid one
         ret = {"ipa": token}
 
     return ret
 
 
-def _tokens2ast(tokens, phdata):
+def _tokens2ast(tokens):
     """
     Given a list of string tokens, returns an AST
     """
 
     ast = []
     for token in tokens:
-        translated = _translate(token, phdata)
+        translated = _translate(token)
         if not translated:
             raise ValueError("Unable to parse", [token])
         ast.append(translated)
@@ -233,7 +235,7 @@ def _merge_context(ast, context, offset_ref=None):
     return merged_ast
 
 
-def parse(rule, phdata):
+def parse(rule):
     """
     Parse a sound change rule.
     """
@@ -243,9 +245,9 @@ def parse(rule, phdata):
 
     # Tokenize all parts and collect the tokens in quasi-asts
     ante, post, context = _tokenize_rule(rule)
-    ante_ast = _tokens2ast(ante, phdata)
-    post_ast = _tokens2ast(post, phdata)
-    context_ast = _tokens2ast(context, phdata)
+    ante_ast = _tokens2ast(ante)
+    post_ast = _tokens2ast(post)
+    context_ast = _tokens2ast(context)
 
     # context is necessary to follow tradition and to make things simpler to
     # code for linguists, but it actually makes out lives harder

@@ -38,25 +38,25 @@ class TestChangers(unittest.TestCase):
         }
 
         # Read phonetic data
-        phdata = alteruphono.utils.read_phonetic_data()
+        alteruphono.utils.read_phonetic_data()
 
         # Run tests
         for test, ref in reference.items():
-            ast = alteruphono.parse(test[0], phdata)
+            ast = alteruphono.parse(test[0])
             ante_seq = test[1].split()
-            post_seq = alteruphono.forward(ante_seq, ast, phdata)
+            post_seq = alteruphono.forward(ante_seq, ast)
             assert tuple(post_seq) == ref
 
     def test_forward_resources(self):
         # Read phonetic data
-        phdata = alteruphono.utils.read_phonetic_data()
+        alteruphono.utils.read_phonetic_data()
         sound_changes = alteruphono.utils.read_sound_changes()
 
         for change_id, change in sorted(sound_changes.items()):
-            ast = alteruphono.parse(change["RULE"], phdata)
+            ast = alteruphono.parse(change["RULE"])
             test_ante = change["TEST_ANTE"].split()
             test_post = change["TEST_POST"].split()
-            post_seq = alteruphono.forward(test_ante, ast, phdata)
+            post_seq = alteruphono.forward(test_ante, ast)
 
             if tuple(test_post) != tuple(post_seq):
                 print()

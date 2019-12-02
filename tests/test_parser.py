@@ -22,7 +22,7 @@ class TestParser(unittest.TestCase):
 
     def test_parse(self):
         # Read phonetic data
-        phdata = alteruphono.utils.read_phonetic_data()
+        alteruphono.utils.read_phonetic_data()
 
         reference = {
             "p > b": {
@@ -51,7 +51,7 @@ class TestParser(unittest.TestCase):
         }
 
         for rule, ref in reference.items():
-            ret = alteruphono.parse(rule, phdata)
+            ret = alteruphono.parse(rule)
             ret_ante = [tuple(sorted(token.items())) for token in ret["ante"]]
             ret_post = [tuple(sorted(token.items())) for token in ret["post"]]
 

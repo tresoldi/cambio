@@ -3,10 +3,11 @@ Module implementing the forward and backward changers.
 """
 
 # Import other library modules
+from . import globals
 from . import utils
 
 # TODO: deal with custom features
-def apply_modifier(grapheme, modifier, phdata):
+def apply_modifier(grapheme, modifier):
     """
     Apply a modifier to a grapheme.
     """
@@ -22,9 +23,9 @@ def apply_modifier(grapheme, modifier, phdata):
     # TODO: consider redoing the logic, as we don't need to extract values
     #       given that those are already properly organized in the data
     # TODO: build an ipa description no matter what...
-    if grapheme not in phdata["sounds"]:
+    if grapheme not in globals.SOUNDS:
         return "%s%s" % (grapheme, modifier)
-    descriptors = list(phdata["sounds"][grapheme].values())
+    descriptors = list(globals.SOUNDS[grapheme].values())
 
     # Remove requested features
     # TODO: write tests
@@ -38,20 +39,20 @@ def apply_modifier(grapheme, modifier, phdata):
         descriptors = [
             value
             for value in descriptors
-            if phdata["features"][value] != phdata["features"][feature]
+            if globals.FEATURES[value] != globals.FEATURES[feature]
         ]
     descriptors += features["positive"]
 
     # Obtain the grapheme based on the description
     # TODO: decide if we should just memoize
     descriptors = tuple(sorted(descriptors))
-    grapheme = phdata['desc2graph'].get(descriptors, None)
+    grapheme = globals.DESC2GRAPH.get(descriptors, None)
     if not grapheme:
-        grapheme = utils.descriptors2grapheme(descriptors, phdata)
+        grapheme = utils.descriptors2grapheme(descriptors)
 
         # TODO: should always return, can we guarantee?
         if grapheme:
-            phdata['desc2graph'][descriptors] = grapheme
+            globals.DESC2GRAPH[descriptors] = grapheme
         else:
             # TODO: better order?
             grapheme = "[%s]" % ",".join(descriptors)
@@ -59,7 +60,7 @@ def apply_modifier(grapheme, modifier, phdata):
     return grapheme
 
 
-def forward_translate(sequence, rule, phdata):
+def forward_translate(sequence, rule):
     """
     Translate an intermediary `ante` to `post` sequence.
     """
@@ -92,7 +93,7 @@ def forward_translate(sequence, rule, phdata):
             else:
                 token = sequence[entry["back-reference"] - 1]
                 post_seq.append(
-                    apply_modifier(token, entry.get("modifier", None), phdata)
+                    apply_modifier(token, entry.get("modifier", None))
                 )
         elif "null" in entry:
             pass
@@ -100,7 +101,7 @@ def forward_translate(sequence, rule, phdata):
     return post_seq
 
 
-def check_match(sequence, pattern, phdata):
+def check_match(sequence, pattern):
     """
     Check if a sequence matches a given pattern.
     """
@@ -111,7 +112,7 @@ def check_match(sequence, pattern, phdata):
 
     for token, ref in zip(sequence, pattern):
         if "ipa" in ref:
-            ipa = apply_modifier(ref["ipa"], ref["modifier"], phdata)
+            ipa = apply_modifier(ref["ipa"], ref["modifier"])
             if token != ipa:
                 return False
         elif "boundary" in ref:
@@ -121,8 +122,8 @@ def check_match(sequence, pattern, phdata):
             # Apply the modifier to all the items in the sound class,
             # so we can check if the `token` is actually there.
             modified = [
-                apply_modifier(grapheme, ref["modifier"], phdata)
-                for grapheme in phdata["classes"][ref["sound_class"]][
+                apply_modifier(grapheme, ref["modifier"])
+                for grapheme in globals.SOUND_CLASSES[ref["sound_class"]][
                     "graphemes"
                 ]
             ]
@@ -134,8 +135,7 @@ def check_match(sequence, pattern, phdata):
             # Check the sub-match for each alternative -- if one works, it
             # is ok
             alt_matches = [
-                check_match([token], [alt], phdata)
-                for alt in ref["alternative"]
+                check_match([token], [alt]) for alt in ref["alternative"]
             ]
             if not any(alt_matches):
                 return False
@@ -143,7 +143,7 @@ def check_match(sequence, pattern, phdata):
     return True
 
 
-def forward(ante_seq, ast, phdata, no_boundaries=False):
+def forward(ante_seq, ast, no_boundaries=False):
     """
     Apply a sound change in forward direction.
 
@@ -157,8 +157,6 @@ def forward(ante_seq, ast, phdata, no_boundaries=False):
         A list with the sequence the rule is being applied to.
     ast : dict
         A dictionary with the `ante` and `post` asts.
-    phdata : dict
-        A dictionary with the phonological data to be used.
     no_boundaries : bool
         Don't add boundaries to the sequence if missing (default:False)
 
@@ -187,9 +185,9 @@ def forward(ante_seq, ast, phdata, no_boundaries=False):
     post_seq = []
     while True:
         sub_seq = ante_seq[idx : idx + len(ast["ante"])]
-        match = check_match(sub_seq, ast["ante"], phdata)
+        match = check_match(sub_seq, ast["ante"])
         if match:
-            post_seq += forward_translate(sub_seq, ast, phdata)
+            post_seq += forward_translate(sub_seq, ast)
             idx += len(ast["ante"])
         else:
             post_seq.append(ante_seq[idx])

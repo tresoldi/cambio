@@ -8,13 +8,14 @@ from pathlib import Path
 
 # Import from other modules
 from .parser import parse_features
+from . import globals
 
 # Set the resource directory; this is safe as we already added
 # `zip_safe=False` to setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 
-def descriptors2grapheme(descriptors, phdata):
+def descriptors2grapheme(descriptors):
     # make sure we can manipulate these descriptors
     descriptors = list(descriptors)
 
@@ -37,7 +38,7 @@ def descriptors2grapheme(descriptors, phdata):
 
     # TODO: should cache this?
     desc = tuple(sorted(descriptors[:]))
-    for sound, feat_dict in phdata["sounds"].items():
+    for sound, feat_dict in globals.SOUNDS.items():
         # Collect all features and confirm if all are there
         features = tuple(sorted(feat_dict.values()))
         if desc == features:
@@ -46,13 +47,13 @@ def descriptors2grapheme(descriptors, phdata):
     # TODO: fixes in case we missed
     if "breathy" in desc:
         new_desc = [v for v in desc if v != "breathy"]
-        new_gr = descriptors2grapheme(new_desc, phdata)
+        new_gr = descriptors2grapheme(new_desc)
         if new_gr:
             return "%s[breathy]" % new_gr
 
     if "long" in desc:
         new_desc = [v for v in desc if v != "long"]
-        new_gr = descriptors2grapheme(new_desc, phdata)
+        new_gr = descriptors2grapheme(new_desc)
         if new_gr:
             return "%sː" % new_gr
 
@@ -241,21 +242,17 @@ def read_phonetic_data():
         sound classes (key `classes`), and sound inventory (key `sounds`).
     """
 
-    features = read_sound_features()
-    sounds = read_sounds(features)
-    sound_classes = read_sound_classes(sounds)
+    globals.FEATURES = read_sound_features()
+    globals.SOUNDS = read_sounds(globals.FEATURES)
+    globals.SOUND_CLASSES = read_sound_classes(globals.SOUNDS)
+    globals.DESC2GRAPH = {}
 
     # Cache the `graphemes` for `sound_classes`
-    for value in sound_classes.values():
-        value["graphemes"] = features2graphemes(value["features"], sounds)
-
-    # We initialize `desc2graph` (descriptors to grapheme)
-    # as an empty dictionary, which
-    # will serve as a cache during calls
-    phdata = {"features": features, "classes": sound_classes, "sounds": sounds,
-    'desc2graph':{}}
-
-    return phdata
+    # TODO: should be cached in another variable?
+    for value in globals.SOUND_CLASSES.values():
+        value["graphemes"] = features2graphemes(
+            value["features"], globals.SOUNDS
+        )
 
 
 def read_sound_changes(filename=None):
