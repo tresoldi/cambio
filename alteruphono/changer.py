@@ -2,6 +2,8 @@
 Module implementing the forward and backward changers.
 """
 
+import itertools
+
 # Import other library modules
 from . import globals
 from . import utils
@@ -75,6 +77,7 @@ def forward_translate(sequence, rule):
 
     post_seq = []
 
+    # TODO: rename `entry` to `token`? also below
     for entry in rule["post"]:
         if "ipa" in entry:
             post_seq.append(entry["ipa"])
@@ -107,6 +110,20 @@ def forward_translate(sequence, rule):
             pass
 
     return post_seq
+
+
+# TODO: comment as we return two options, because it might or not apply...
+def backward_translate(sequence, rule):
+
+    # TODO: note that ante_seq is here the modified one
+    ante_seq = []
+    for entry in rule["ante"]:
+        if "ipa" in entry:
+            ante_seq.append(entry["ipa"])
+        if "sound_class" in entry:
+            ante_seq.append(entry["sound_class"])
+
+    return [sequence, ante_seq]
 
 
 def check_match(sequence, pattern):
@@ -211,3 +228,29 @@ def forward(ante_seq, ast, no_boundaries=False):
         post_seq = post_seq[:-1]
 
     return post_seq
+
+
+def backward(post_seq, ast):
+    idx = 0
+    ante_seqs = []
+    while True:
+        sub_seq = post_seq[idx : idx + len(ast["post"])]
+        match = check_match(sub_seq, ast["post"])
+        if match:
+            ante_seqs.append(backward_translate(sub_seq, ast))
+            idx += len(ast["post"])
+        else:
+            ante_seqs.append([post_seq[idx]])
+            idx += 1
+
+        if idx == len(post_seq):
+            break
+
+    # Build a list of all possible ante seqs: separate with product,
+    # flatten the list, and join
+    ante_seqs = [
+        " ".join(itertools.chain.from_iterable(candidate))
+        for candidate in itertools.product(*ante_seqs)
+    ]
+
+    return ante_seqs

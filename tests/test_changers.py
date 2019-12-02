@@ -14,6 +14,8 @@ import unittest
 # Import the library being test and auxiliary libraries
 import alteruphono
 
+# TODO: could read the phonetic data a single time?
+
 
 class TestChangers(unittest.TestCase):
     """
@@ -46,6 +48,26 @@ class TestChangers(unittest.TestCase):
             ante_seq = test[1].split()
             post_seq = alteruphono.forward(ante_seq, ast)
             assert tuple(post_seq) == ref
+
+    def test_backward_hardcoded(self):
+        reference = {
+            ("p > b / _ V", "b a r b a"): (
+                "b a r b a",
+                "b a r p V",
+                "p V r b a",
+                "p V r p V",
+            )
+        }
+
+        # Read phonetic data
+        alteruphono.utils.read_phonetic_data()
+
+        # Run tests
+        for test, ref in reference.items():
+            ast = alteruphono.parse(test[0])
+            post_seq = test[1].split()
+            ante_seqs = alteruphono.backward(post_seq, ast)
+            assert tuple(sorted(ante_seqs)) == ref
 
     def test_forward_resources(self):
         # Read phonetic data

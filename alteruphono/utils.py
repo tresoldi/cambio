@@ -40,6 +40,7 @@ def descriptors2grapheme(descriptors):
     desc = tuple(sorted(descriptors[:]))
     for sound, feat_dict in globals.SOUNDS.items():
         # Collect all features and confirm if all are there
+        # TODO: better to sort when loading the SOUNDS
         features = tuple(sorted(feat_dict.values()))
         if desc == features:
             return sound
@@ -231,6 +232,7 @@ def read_sounds(featsys, filename=None):
     return sounds
 
 
+# TODO: better rename to `load`?
 def read_phonetic_data():
     """
     Return a single data structure with the default phonetic data.
