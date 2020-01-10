@@ -51,7 +51,7 @@ class TestChangers(unittest.TestCase):
 
     def test_backward_hardcoded(self):
         reference = {
-            ("p > b / _ V", "b a r b a"): (
+            ("p V > b a", "b a r b a"): (
                 "b a r b a",
                 "b a r p V",
                 "p V r b a",
