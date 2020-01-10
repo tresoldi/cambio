@@ -83,9 +83,29 @@ class TestChangers(unittest.TestCase):
             if tuple(test_post) != tuple(post_seq):
                 print()
                 print(change_id, change["RULE"])
-                print("TEST", test_ante)
-                print("TEST", test_post)
+                print("ANTE", test_ante)
+                print("POST", test_post)
                 print("MINE", post_seq)
+
+    def test_backward_resources(self):
+        # Read phonetic data
+        alteruphono.utils.read_phonetic_data()
+        sound_changes = alteruphono.utils.read_sound_changes()
+
+        for change_id, change in sorted(sound_changes.items()):
+            ast = alteruphono.parse(change["RULE"])
+            test_ante = ' '.join(change["TEST_ANTE"].split())
+            test_post = change["TEST_POST"].split()
+
+            ante_seqs = alteruphono.backward(test_post, ast)
+
+            # TODO: must check sound classes
+            if test_ante not in ante_seqs:
+                print()
+                print(change_id, change["RULE"])
+                print("ANTE", [test_ante])
+                print("POST", test_post)
+                print("MINE", ante_seqs)
 
 
 if __name__ == "__main__":

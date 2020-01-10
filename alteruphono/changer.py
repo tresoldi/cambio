@@ -114,14 +114,18 @@ def forward_translate(sequence, rule):
 
 # TODO: comment as we return two options, because it might or not apply...
 def backward_translate(sequence, rule):
+    print(rule)
+    print(sequence)
 
     # TODO: note that ante_seq is here the modified one
     ante_seq = []
-    for entry in rule["ante"]:
-        if "ipa" in entry:
-            ante_seq.append(entry["ipa"])
-        if "sound_class" in entry:
-            ante_seq.append(entry["sound_class"])
+    for ante_entry, post_entry in zip(rule["ante"], rule['post']):
+        if 'back-reference' in post_entry:
+            ante_seq.append(sequence[post_entry['back-reference']-1])
+        elif "ipa" in ante_entry:
+            ante_seq.append(ante_entry["ipa"])
+        elif "sound_class" in ante_entry:
+            ante_seq.append(ante_entry["sound_class"])
 
     return [sequence, ante_seq]
 
@@ -237,6 +241,7 @@ def backward(post_seq, ast):
         sub_seq = post_seq[idx : idx + len(ast["post"])]
         match = check_match(sub_seq, ast["post"])
         if match:
+            # TODO: respect back-reference (for sound classes and all)
             ante_seqs.append(backward_translate(sub_seq, ast))
             idx += len(ast["post"])
         else:
@@ -245,6 +250,8 @@ def backward(post_seq, ast):
 
         if idx == len(post_seq):
             break
+
+    print("...", ante_seqs)
 
     # Build a list of all possible ante seqs: separate with product,
     # flatten the list, and join
