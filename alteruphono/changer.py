@@ -119,9 +119,9 @@ def backward_translate(sequence, rule):
 
     # TODO: note that ante_seq is here the modified one
     ante_seq = []
-    for ante_entry, post_entry in zip(rule["ante"], rule['post']):
+    for idx, (ante_entry, post_entry) in enumerate(zip(rule["ante"], rule['post'])):
         if 'back-reference' in post_entry:
-            ante_seq.append(sequence[post_entry['back-reference']-1])
+            ante_seq.append(sequence[idx])
         elif "ipa" in ante_entry:
             ante_seq.append(ante_entry["ipa"])
         elif "sound_class" in ante_entry:
