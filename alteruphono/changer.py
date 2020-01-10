@@ -114,9 +114,6 @@ def forward_translate(sequence, rule):
 
 # TODO: comment as we return two options, because it might or not apply...
 def backward_translate(sequence, rule):
-    print(rule)
-    print(sequence)
-
     # TODO: note that ante_seq is here the modified one
     ante_seq = []
     for idx, (ante_entry, post_entry) in enumerate(zip(rule["ante"], rule['post'])):
@@ -127,7 +124,9 @@ def backward_translate(sequence, rule):
         elif "sound_class" in ante_entry:
             ante_seq.append(ante_entry["sound_class"])
 
-    return [sequence, ante_seq]
+    # NOTE: returning `sequence` for the unalterted ("did not apply")
+    # option -- should it be added outisde this function? TODO
+    return [' '.join(sequence), ' '.join(ante_seq)]
 
 
 def check_match(sequence, pattern):
@@ -235,13 +234,15 @@ def forward(ante_seq, ast, no_boundaries=False):
 
 
 def backward(post_seq, ast):
+    # TODO: add boundaries only if necessary, remove at the end
+    post_seq = ['#'] + post_seq + ['#']
+
     idx = 0
     ante_seqs = []
     while True:
         sub_seq = post_seq[idx : idx + len(ast["post"])]
         match = check_match(sub_seq, ast["post"])
         if match:
-            # TODO: respect back-reference (for sound classes and all)
             ante_seqs.append(backward_translate(sub_seq, ast))
             idx += len(ast["post"])
         else:
@@ -251,13 +252,10 @@ def backward(post_seq, ast):
         if idx == len(post_seq):
             break
 
-    print("...", ante_seqs)
-
-    # Build a list of all possible ante seqs: separate with product,
-    # flatten the list, and join
+    # Make sure everything is a list, so we don't iterate over the
+    # characters of a string; then, make a list of all possible strings
     ante_seqs = [
-        " ".join(itertools.chain.from_iterable(candidate))
-        for candidate in itertools.product(*ante_seqs)
+        " ".join(candidate) for candidate in itertools.product(*ante_seqs)
     ]
 
     return ante_seqs
