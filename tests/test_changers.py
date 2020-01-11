@@ -94,7 +94,7 @@ class TestChangers(unittest.TestCase):
 
         for change_id, change in sorted(sound_changes.items()):
             ast = alteruphono.parse(change["RULE"])
-            test_ante = ' '.join(change["TEST_ANTE"].split())
+            test_ante = " ".join(change["TEST_ANTE"].split())
             test_post = change["TEST_POST"].split()
 
             ante_seqs = alteruphono.backward(test_post, ast)

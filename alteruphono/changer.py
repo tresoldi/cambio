@@ -114,19 +114,28 @@ def forward_translate(sequence, rule):
 
 # TODO: comment as we return two options, because it might or not apply...
 def backward_translate(sequence, rule):
+    # Collect all information we have on what was matched,
+    # in terms of back-references and classes/features,
+    # from what we have in the reflex
+    value = {}
+    for post_entry, token in zip(rule["post"], sequence):
+        if "back-reference" in post_entry:
+            idx = post_entry["back-reference"]
+            value[idx - 1] = token
+
     # TODO: note that ante_seq is here the modified one
     ante_seq = []
-    for idx, (ante_entry, post_entry) in enumerate(zip(rule["ante"], rule['post'])):
-        if 'back-reference' in post_entry:
-            ante_seq.append(sequence[idx])
-        elif "ipa" in ante_entry:
+    for idx, ante_entry in enumerate(rule["ante"]):
+        if "ipa" in ante_entry:
             ante_seq.append(ante_entry["ipa"])
         elif "sound_class" in ante_entry:
-            ante_seq.append(ante_entry["sound_class"])
+            ante_seq.append(value.get(idx, ante_entry["sound_class"]))
+        elif "alternative" in ante_entry:
+            ante_seq.append(value.get(idx, "ALT"))
 
     # NOTE: returning `sequence` for the unalterted ("did not apply")
     # option -- should it be added outisde this function? TODO
-    return [' '.join(sequence), ' '.join(ante_seq)]
+    return [" ".join(sequence), " ".join(ante_seq)]
 
 
 def check_match(sequence, pattern):
@@ -233,18 +242,31 @@ def forward(ante_seq, ast, no_boundaries=False):
     return post_seq
 
 
+# TODO: deal with boundaries
 def backward(post_seq, ast):
-    # TODO: add boundaries only if necessary, remove at the end
-    post_seq = ['#'] + post_seq + ['#']
+    if post_seq[0] != "#":
+        post_seq = ["#"] + post_seq
+    if post_seq[-1] != "#":
+        post_seq = post_seq + ["#"]
+
+    # remove nulls from `post`, as they would be deleted;
+    # then, replace back-references
+    post_ast = [token for token in ast["post"] if "null" not in token]
+    post_ast = [
+        token
+        if "back-reference" not in token
+        else ast["ante"][token["back-reference"] - 1]
+        for token in post_ast
+    ]
 
     idx = 0
     ante_seqs = []
     while True:
-        sub_seq = post_seq[idx : idx + len(ast["post"])]
-        match = check_match(sub_seq, ast["post"])
+        sub_seq = post_seq[idx : idx + len(post_ast)]
+        match = check_match(sub_seq, post_ast)
         if match:
             ante_seqs.append(backward_translate(sub_seq, ast))
-            idx += len(ast["post"])
+            idx += len(post_ast)
         else:
             ante_seqs.append([post_seq[idx]])
             idx += 1
@@ -254,8 +276,17 @@ def backward(post_seq, ast):
 
     # Make sure everything is a list, so we don't iterate over the
     # characters of a string; then, make a list of all possible strings
+    def rem_bound(seq):
+        if seq[0] == "#":
+            seq = seq[1:]
+        if seq[-1] == "#":
+            seq = seq[:-1]
+
+        return seq.strip()
+
     ante_seqs = [
         " ".join(candidate) for candidate in itertools.product(*ante_seqs)
     ]
+    ante_seqs = [rem_bound(seq) for seq in ante_seqs]
 
     return ante_seqs
