@@ -9,6 +9,8 @@ from . import globals
 from . import utils
 
 # TODO: deal with custom features
+# TODO: have it as part of a class, erasing difference between forward
+#       and backward
 def apply_modifier(grapheme, modifier, inverse=False):
     """
     Apply a modifier to a grapheme.
@@ -19,7 +21,7 @@ def apply_modifier(grapheme, modifier, inverse=False):
         return grapheme
 
     # See if the (grapheme, modifier) combination has already been computed
-    cache_key = tuple([grapheme, modifier])
+    cache_key = tuple([grapheme, modifier, inverse])
     if cache_key in globals.APPLYMOD:
         return globals.APPLYMOD[cache_key]
 
@@ -27,12 +29,41 @@ def apply_modifier(grapheme, modifier, inverse=False):
     features = utils.parse_features(modifier)
 
     # Invert features if requested
-    # TODO: deal with custom features
+    # TODO: for the time being, just hard-coding them; should be
+    #       implemented in the Sound object
     if inverse:
-        features["positive"], features["negative"] = (
-            features["negative"],
-            features["positive"],
-        )
+        hard_coded = {
+            ("ɸ", "[+fricative]"): "p",
+            ("t", "[+voiceless]"): "d",
+            ("f", "[+voiceless]"): "v",
+            ("ɶ", "[+rounded]"): "a",
+            ("ĩ", "[+nasalized]"): "i",
+            ("t", "[+alveolar]"): "k",
+            ("c", "[+palatal]"): "k",
+            ("g", "[+voiced]"): "k",
+            ("k", "[+velar]"): "p",
+            ("ɲ", "[+palatal]"): "n",
+            ("d", "[+voiced]"): "t",
+            ("b", "[+voiced]"): "p",
+            ("b̪", "[+stop]"): "v",
+            ("g", "[+stop]"): "ɣ",
+            ("x", "[+voiceless]"): "ɣ",
+            ("d̪", "[+stop]"): "ð",
+            ("b", "[+stop]"): "β",
+            ("t̠", "[+post-alveolar]"): "k",
+            ("k", "[+voiceless]"): "g",
+        }
+        ret = hard_coded.get((grapheme, modifier), None)
+
+        if not ret:
+            raise ValueError(
+                "Missing hardcoded backwards modifier:", (grapheme, modifier)
+            )
+
+        # cache
+        globals.APPLYMOD[(grapheme, modifier, inverse)] = ret
+
+        return ret
 
     # Obtain the phonological descriptors for the base sound
     # TODO: consider redoing the logic, as we don't need to extract values
@@ -129,6 +160,7 @@ def backward_translate(sequence, rule):
     # a modifier is applied (for example, different places of
     # articulation) and get the merge with with source rule
     # (such only labials?)
+
     value = {}
     no_nulls = [token for token in rule["post"] if "null" not in token]
     for post_entry, token in zip(no_nulls, sequence):
@@ -194,8 +226,17 @@ def check_match(sequence, pattern):
         elif "alternative" in ref:
             # Check the sub-match for each alternative -- if one works, it
             # is ok
+            # TODO: apply modifiers everywhere (not only in IPA)
+            alts = [
+                alt
+                if "ipa" not in alt
+                else {"ipa": alt["ipa"], "modifier": ref.get("modifier", None)}
+                for alt in ref["alternative"]
+            ]
+
             alt_matches = [
-                check_match([token], [alt]) for alt in ref["alternative"]
+                check_match([token], [alt])
+                for alt in alts  # ref["alternative"]
             ]
             if not any(alt_matches):
                 return False
