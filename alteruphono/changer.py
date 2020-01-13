@@ -9,7 +9,7 @@ from . import globals
 from . import utils
 
 # TODO: deal with custom features
-def apply_modifier(grapheme, modifier):
+def apply_modifier(grapheme, modifier, inverse=False):
     """
     Apply a modifier to a grapheme.
     """
@@ -25,6 +25,14 @@ def apply_modifier(grapheme, modifier):
 
     # Parse the provided modifier
     features = utils.parse_features(modifier)
+
+    # Invert features if requested
+    # TODO: deal with custom features
+    if inverse:
+        features["positive"], features["negative"] = (
+            features["negative"],
+            features["positive"],
+        )
 
     # Obtain the phonological descriptors for the base sound
     # TODO: consider redoing the logic, as we don't need to extract values
@@ -117,21 +125,36 @@ def backward_translate(sequence, rule):
     # Collect all information we have on what was matched,
     # in terms of back-references and classes/features,
     # from what we have in the reflex
+    # TODO: could we get a set of potential sources when
+    # a modifier is applied (for example, different places of
+    # articulation) and get the merge with with source rule
+    # (such only labials?)
     value = {}
-    for post_entry, token in zip(rule["post"], sequence):
+    no_nulls = [token for token in rule["post"] if "null" not in token]
+    for post_entry, token in zip(no_nulls, sequence):
         if "back-reference" in post_entry:
             idx = post_entry["back-reference"]
-            value[idx - 1] = token
+            value[idx - 1] = apply_modifier(
+                token, post_entry.get("modifier", None), inverse=True
+            )
 
     # TODO: note that ante_seq is here the modified one
     ante_seq = []
     for idx, ante_entry in enumerate(rule["ante"]):
         if "ipa" in ante_entry:
             ante_seq.append(ante_entry["ipa"])
+        elif "alternative" in ante_entry:
+            # build alternative string, for cases when deleted
+            # TODO: modifiers etc
+            alt_string = "|".join(
+                [
+                    alt.get("ipa", alt.get("sound_class", "#"))
+                    for alt in ante_entry["alternative"]
+                ]
+            )
+            ante_seq.append(value.get(idx, alt_string))
         elif "sound_class" in ante_entry:
             ante_seq.append(value.get(idx, ante_entry["sound_class"]))
-        elif "alternative" in ante_entry:
-            ante_seq.append(value.get(idx, "ALT"))
 
     # NOTE: returning `sequence` for the unalterted ("did not apply")
     # option -- should it be added outisde this function? TODO
@@ -251,11 +274,16 @@ def backward(post_seq, ast):
 
     # remove nulls from `post`, as they would be deleted;
     # then, replace back-references
+    def _add_modifier(entry1, entry2):
+        v = entry1.copy()
+        v["modifier"] = entry2.get("modifier", None)
+        return v
+
     post_ast = [token for token in ast["post"] if "null" not in token]
     post_ast = [
         token
         if "back-reference" not in token
-        else ast["ante"][token["back-reference"] - 1]
+        else _add_modifier(ast["ante"][token["back-reference"] - 1], token)
         for token in post_ast
     ]
 
