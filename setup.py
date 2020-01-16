@@ -28,7 +28,7 @@ setup(
     packages=["alteruphono", "resources"],
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
     include_package_data=True,
-    install_requires=["pyclts>=2.0", "tatsu", "pygraphviz"],
+    install_requires=["pygraphviz"],
     entry_points={"console_scripts": ["alteruphono=alteruphono.__main__:main"]},
     test_suite="tests",
     tests_require=[],
