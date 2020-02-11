@@ -13,6 +13,7 @@ import unittest
 
 # Import the library being test and auxiliary libraries
 import alteruphono
+from alteruphono.parser import _tokens2ast
 
 # TODO: could read the phonetic data a single time?
 
@@ -81,7 +82,7 @@ class TestChangers(unittest.TestCase):
             post_seq = alteruphono.forward(test_ante, ast)
 
             if tuple(test_post) != tuple(post_seq):
-                print()
+                print("\nFORWARD")
                 print(change_id, change["RULE"])
                 print("ANTE", test_ante)
                 print("POST", test_post)
@@ -101,11 +102,23 @@ class TestChangers(unittest.TestCase):
 
             # TODO: must check sound classes
             if test_ante not in ante_seqs:
-                print()
-                print(change_id, change["RULE"])
-                print("ANTE", [test_ante])
-                print("POST", test_post)
-                print("MINE", ante_seqs)
+
+                ante_asts = [
+                    _tokens2ast(ante_seq.split()) for ante_seq in ante_seqs
+                ]
+                matches = [
+                    alteruphono.check_match(test_ante.split(), ante_ast)
+                    for ante_ast in ante_asts
+                ]
+
+                if not any(matches):
+                    print("\nBACKWARD")
+                    print(change_id, change["RULE"])
+                    print("ANTE", [test_ante])
+                    print("POST", test_post)
+                    print("MINE", ante_seqs)
+                    for i, a in enumerate(ante_asts):
+                        print(i, a)
 
 
 if __name__ == "__main__":
