@@ -41,13 +41,13 @@ class TestChangers(unittest.TestCase):
         }
 
         # Read phonetic data
-        alteruphono.utils.read_phonetic_data()
+        model = alteruphono.utils.read_phonetic_model()
 
         # Run tests
         for test, ref in reference.items():
             ast = alteruphono.parse(test[0])
             ante_seq = test[1].split()
-            post_seq = alteruphono.forward(ante_seq, ast)
+            post_seq = alteruphono.forward(ante_seq, ast, model)
             assert tuple(post_seq) == ref
 
     def test_backward_hardcoded(self):
@@ -61,31 +61,31 @@ class TestChangers(unittest.TestCase):
         }
 
         # Read phonetic data
-        alteruphono.utils.read_phonetic_data()
+        model = alteruphono.utils.read_phonetic_model()
 
         # Run tests
         for test, ref in reference.items():
             ast = alteruphono.parse(test[0])
             post_seq = test[1].split()
-            ante_seqs = alteruphono.backward(post_seq, ast)
+            ante_seqs = alteruphono.backward(post_seq, ast, model)
             assert tuple(sorted(ante_seqs)) == ref
 
     def test_forward_resources(self):
         # Read phonetic data
-        alteruphono.utils.read_phonetic_data()
+        model = alteruphono.utils.read_phonetic_model()
         sound_changes = alteruphono.utils.read_sound_changes()
 
         for change_id, change in sorted(sound_changes.items()):
             ast = alteruphono.parse(change["RULE"])
             test_ante = change["TEST_ANTE"].split()
             test_post = change["TEST_POST"].split()
-            post_seq = alteruphono.forward(test_ante, ast)
+            post_seq = alteruphono.forward(test_ante, ast, model)
 
             assert tuple(test_post) == tuple(post_seq)
 
     def test_backward_resources(self):
         # Read phonetic data
-        alteruphono.utils.read_phonetic_data()
+        model = alteruphono.utils.read_phonetic_model()
         sound_changes = alteruphono.utils.read_sound_changes()
 
         for change_id, change in sorted(sound_changes.items()):
@@ -93,7 +93,7 @@ class TestChangers(unittest.TestCase):
             test_ante = " ".join(change["TEST_ANTE"].split())
             test_post = change["TEST_POST"].split()
 
-            ante_seqs = alteruphono.backward(test_post, ast)
+            ante_seqs = alteruphono.backward(test_post, ast, model)
 
             # NOTE: it can contain sound classes, etc.
             ante_seqs_asts = [
@@ -102,7 +102,7 @@ class TestChangers(unittest.TestCase):
             ]
             matches = [
                 alteruphono.changer.check_match(
-                    test_ante.split(" "), ante_seq_ast
+                    test_ante.split(" "), ante_seq_ast, model
                 )
                 for ante_seq_ast in ante_seqs_asts
             ]

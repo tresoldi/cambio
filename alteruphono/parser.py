@@ -16,8 +16,7 @@ import re
 import unicodedata
 
 # Import package
-
-from . import globals
+from . import utils
 
 # TODO: implement an `__all__`
 # TODO: verify why NFC normalization is failing
@@ -85,6 +84,7 @@ def parse_features(text):
                 positive.append(feature)
 
     return {"positive": positive, "negative": negative, "custom": custom}
+
 
 # TODO: rewrite with a regular expression deciding whether there is a
 # context
@@ -243,11 +243,6 @@ def _merge_context(ast, context, offset_ref=None):
 
     return merged_ast
 
-def _clear_text(text):
-    #text = unicodedata.normalize("NFC", text)
-    text = re.sub(r"\s+", " ", text).strip()
-
-    return text
 
 def parse(rule_text):
     """
@@ -260,7 +255,7 @@ def parse(rule_text):
     """
 
     # Clean and normalize the string containing the rule
-    rule_text = _clear_text(rule_text)
+    rule_text = utils.clear_text(rule_text)
 
     # Tokenize all parts and collect the tokens in quasi-asts
     ante_tokens, post_tokens, context_tokens = _tokenize_rule(rule_text)

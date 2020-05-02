@@ -5,13 +5,13 @@ Module implementing the forward and backward changers.
 import itertools
 
 # Import other library modules
-from . import globals
+from . import parser
 from . import utils
 
 # TODO: deal with custom features
 # TODO: have it as part of a class, erasing difference between forward
 #       and backward
-def apply_modifier(grapheme, modifier, inverse=False):
+def apply_modifier(grapheme, modifier, model, inverse=False):
     """
     Apply a modifier to a grapheme.
     """
@@ -20,13 +20,8 @@ def apply_modifier(grapheme, modifier, inverse=False):
     if not modifier:
         return grapheme
 
-    # See if the (grapheme, modifier) combination has already been computed
-    cache_key = tuple([grapheme, modifier, inverse])
-    if cache_key in globals.APPLYMOD:
-        return globals.APPLYMOD[cache_key]
-
     # Parse the provided modifier
-    features = utils.parse_features(modifier)
+    features = parser.parse_features(modifier)
 
     # Invert features if requested
     # TODO: for the time being, just hard-coding them; should be
@@ -60,18 +55,15 @@ def apply_modifier(grapheme, modifier, inverse=False):
                 "Missing hardcoded backwards modifier:", (grapheme, modifier)
             )
 
-        # cache
-        globals.APPLYMOD[(grapheme, modifier, inverse)] = ret
-
         return ret
 
     # Obtain the phonological descriptors for the base sound
     # TODO: consider redoing the logic, as we don't need to extract values
     #       given that those are already properly organized in the data
     # TODO: build an ipa description no matter what...
-    if grapheme not in globals.SOUNDS:
+    if grapheme not in model['SOUNDS']:
         return "%s%s" % (grapheme, modifier)
-    descriptors = list(globals.SOUNDS[grapheme].values())
+    descriptors = list(model['SOUNDS'][grapheme].values())
 
     # Remove requested features
     # TODO: write tests
@@ -85,31 +77,28 @@ def apply_modifier(grapheme, modifier, inverse=False):
         descriptors = [
             value
             for value in descriptors
-            if globals.FEATURES[value] != globals.FEATURES[feature]
+            if model['FEATURES'][value] != model['FEATURES'][feature]
         ]
     descriptors += features["positive"]
 
     # Obtain the grapheme based on the description
     # TODO: decide if we should just memoize
     descriptors = tuple(sorted(descriptors))
-    grapheme = globals.DESC2GRAPH.get(descriptors, None)
+    grapheme = model['DESC2GRAPH'].get(descriptors, None)
     if not grapheme:
-        grapheme = utils.descriptors2grapheme(descriptors)
+        grapheme = utils.descriptors2grapheme(descriptors, model)
 
         # TODO: should always return, can we guarantee?
         if grapheme:
-            globals.DESC2GRAPH[descriptors] = grapheme
+            model['DESC2GRAPH'][descriptors] = grapheme
         else:
             # TODO: better order?
             grapheme = "[%s]" % ",".join(descriptors)
 
-    # cache
-    globals.APPLYMOD[cache_key] = grapheme
-
     return grapheme
 
 
-def forward_translate(sequence, rule):
+def forward_translate(sequence, rule, model):
     """
     Translate an intermediary `ante` to `post` sequence.
     """
@@ -143,7 +132,7 @@ def forward_translate(sequence, rule):
             else:
                 token = sequence[entry["back-reference"] - 1]
                 post_seq.append(
-                    apply_modifier(token, entry.get("modifier", None))
+                    apply_modifier(token, entry.get("modifier", None), model)
                 )
         elif "null" in entry:
             pass
@@ -152,7 +141,7 @@ def forward_translate(sequence, rule):
 
 
 # TODO: comment as we return two options, because it might or not apply...
-def backward_translate(sequence, rule):
+def backward_translate(sequence, rule, model):
     # Collect all information we have on what was matched,
     # in terms of back-references and classes/features,
     # from what we have in the reflex
@@ -167,7 +156,7 @@ def backward_translate(sequence, rule):
         if "back-reference" in post_entry:
             idx = post_entry["back-reference"]
             value[idx - 1] = apply_modifier(
-                token, post_entry.get("modifier", None), inverse=True
+                token, post_entry.get("modifier", None), model, inverse=True
             )
 
     # TODO: note that ante_seq is here the modified one
@@ -193,7 +182,7 @@ def backward_translate(sequence, rule):
     return [" ".join(sequence), " ".join(ante_seq)]
 
 
-def check_match(sequence, pattern):
+def check_match(sequence, pattern, model):
     """
     Check if a sequence matches a given pattern.
     """
@@ -204,7 +193,7 @@ def check_match(sequence, pattern):
 
     for token, ref in zip(sequence, pattern):
         if "ipa" in ref:
-            ipa = apply_modifier(ref["ipa"], ref["modifier"])
+            ipa = apply_modifier(ref["ipa"], ref["modifier"], model)
             if token != ipa:
                 return False
         elif "boundary" in ref:
@@ -214,8 +203,8 @@ def check_match(sequence, pattern):
             # Apply the modifier to all the items in the sound class,
             # so we can check if the `token` is actually there.
             modified = [
-                apply_modifier(grapheme, ref["modifier"])
-                for grapheme in globals.SOUND_CLASSES[ref["sound_class"]][
+                apply_modifier(grapheme, ref["modifier"], model)
+                for grapheme in model["SOUND_CLASSES"][ref["sound_class"]][
                     "graphemes"
                 ]
             ]
@@ -235,7 +224,7 @@ def check_match(sequence, pattern):
             ]
 
             alt_matches = [
-                check_match([token], [alt])
+                check_match([token], [alt], model)
                 for alt in alts  # ref["alternative"]
             ]
             if not any(alt_matches):
@@ -244,7 +233,7 @@ def check_match(sequence, pattern):
     return True
 
 
-def forward(ante_seq, ast, no_boundaries=False):
+def forward(ante_seq, ast, model, no_boundaries=False):
     """
     Apply a sound change in forward direction.
 
@@ -286,9 +275,9 @@ def forward(ante_seq, ast, no_boundaries=False):
     post_seq = []
     while True:
         sub_seq = ante_seq[idx : idx + len(ast["ante"])]
-        match = check_match(sub_seq, ast["ante"])
+        match = check_match(sub_seq, ast["ante"], model)
         if match:
-            post_seq += forward_translate(sub_seq, ast)
+            post_seq += forward_translate(sub_seq, ast, model)
             idx += len(ast["ante"])
         else:
             post_seq.append(ante_seq[idx])
@@ -307,7 +296,7 @@ def forward(ante_seq, ast, no_boundaries=False):
 
 
 # TODO: deal with boundaries
-def backward(post_seq, ast):
+def backward(post_seq, ast, model):
     if post_seq[0] != "#":
         post_seq = ["#"] + post_seq
     if post_seq[-1] != "#":
@@ -332,9 +321,9 @@ def backward(post_seq, ast):
     ante_seqs = []
     while True:
         sub_seq = post_seq[idx : idx + len(post_ast)]
-        match = check_match(sub_seq, post_ast)
+        match = check_match(sub_seq, post_ast, model)
         if match:
-            ante_seqs.append(backward_translate(sub_seq, ast))
+            ante_seqs.append(backward_translate(sub_seq, ast, model))
             idx += len(post_ast)
         else:
             ante_seqs.append([post_seq[idx]])

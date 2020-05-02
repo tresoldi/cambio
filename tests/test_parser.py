@@ -22,7 +22,7 @@ class TestParser(unittest.TestCase):
 
     def test_parse(self):
         # Read phonetic data
-        alteruphono.utils.read_phonetic_data()
+        alteruphono.utils.read_phonetic_model()
 
         reference = {
             "p > b": {
@@ -78,7 +78,7 @@ class TestParser(unittest.TestCase):
         }
 
         for feat_str, ref in reference.items():
-            ret = alteruphono.utils.parse_features(feat_str)
+            ret = alteruphono.parser.parse_features(feat_str)
             assert tuple(ret["positive"]) == ref["positive"]
             assert tuple(ret["negative"]) == ref["negative"]
             assert tuple(sorted(ret["custom"].items())) == ref["custom"]

@@ -5,17 +5,17 @@ Defines auxiliary functions, structures, and data for the library.
 # Python standard libraries imports
 import csv
 from pathlib import Path
+import re
+import unicodedata
 
 # Import from other modules
-from .parser import parse_features
-from . import globals
+from . import parser
 
-# Set the resource directory; this is safe as we already added
-# `zip_safe=False` to setup.py
+# Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 
-def descriptors2grapheme(descriptors):
+def descriptors2grapheme(descriptors, model):
     # make sure we can manipulate these descriptors
     descriptors = list(descriptors)
 
@@ -38,7 +38,7 @@ def descriptors2grapheme(descriptors):
 
     # TODO: should cache this?
     desc = tuple(sorted(descriptors))
-    for sound, feat_dict in globals.SOUNDS.items():
+    for sound, feat_dict in model['SOUNDS'].items():
         # Collect all features and confirm if all are there
         # TODO: better to sort when loading the SOUNDS
         features = tuple(sorted(feat_dict.values()))
@@ -48,13 +48,13 @@ def descriptors2grapheme(descriptors):
     # TODO: fixes in case we missed
     if "breathy" in desc:
         new_desc = [v for v in desc if v != "breathy"]
-        new_gr = descriptors2grapheme(new_desc)
+        new_gr = descriptors2grapheme(new_desc, model)
         if new_gr:
             return "%s[breathy]" % new_gr
 
     if "long" in desc:
         new_desc = [v for v in desc if v != "long"]
-        new_gr = descriptors2grapheme(new_desc)
+        new_gr = descriptors2grapheme(new_desc, model)
         if new_gr:
             return "%sː" % new_gr
 
@@ -89,7 +89,7 @@ def features2graphemes(feature_str, sounds):
     """
 
     # Parse the feature string
-    features = parse_features(feature_str)
+    features = parser.parse_features(feature_str)
 
     # Iterate over all sounds in the transcription system
     graphemes = []
@@ -119,7 +119,6 @@ def features2graphemes(feature_str, sounds):
     return tuple(graphemes)
 
 
-# TODO: comment on `sounds`
 def read_sound_classes(sounds, filename=None):
     """
     Read sound class definitions.
@@ -143,9 +142,13 @@ def read_sound_classes(sounds, filename=None):
         filename = filename.as_posix()
 
     with open(filename) as tsvfile:
-        reader = csv.DictReader(tsvfile, delimiter="\t")
         sound_classes = {}
-        for row in reader:
+        for row in csv.DictReader(tsvfile, delimiter="\t"):
+            # GRAPHEMES can hold either a list of graphemes separated by
+            # a vertical bar or a set of features that will be compiled
+            # into graphemes with `sounds`
+            # TODO: rename GRAPHEMES column
+            # TODO: consider what to do once a `Sound` dataclass is implemented
             if row["GRAPHEMES"]:
                 graphemes = tuple(row["GRAPHEMES"].split("|"))
             else:
@@ -158,35 +161,6 @@ def read_sound_classes(sounds, filename=None):
             }
 
     return sound_classes
-
-
-def read_sound_features(filename=None):
-    """
-    Read sound feature definitions.
-
-    Parameters
-    ----------
-    filename : string
-        Path to the TSV file holding the sound feature definition, defaulting
-        to the one provided with the library and based on the BIPA
-        transcription system.
-
-    Returns
-    -------
-    features : dict
-        A dictionary with feature values (such as "devoiced") as keys and
-        feature classes (such as "voicing") as values.
-    """
-
-    if not filename:
-        filename = RESOURCE_DIR / "features_bipa.tsv"
-        filename = filename.as_posix()
-
-    with open(filename) as tsvfile:
-        reader = csv.DictReader(tsvfile, delimiter="\t")
-        features = {row["VALUE"]: row["FEATURE"] for row in reader}
-
-    return features
 
 
 def read_sounds(featsys, filename=None):
@@ -216,11 +190,10 @@ def read_sounds(featsys, filename=None):
 
     sounds = {}
     with open(filename) as csvfile:
-        reader = csv.DictReader(csvfile, delimiter="\t")
-        for row in reader:
+        for row in csv.DictReader(csvfile, delimiter="\t"):
             features = row["NAME"].split()
 
-            # NOTE: currently skipping over clusters and tones
+            # TODO: currently skipping over clusters and tones
             if "from" in features:
                 continue
             if "tone" in features:
@@ -232,8 +205,40 @@ def read_sounds(featsys, filename=None):
     return sounds
 
 
+def read_sound_features(filename=None):
+    """
+    Read sound feature definitions.
+
+    Parameters
+    ----------
+    filename : string
+        Path to the TSV file holding the sound feature definition, defaulting
+        to the one provided with the library and based on the BIPA
+        transcription system.
+
+    Returns
+    -------
+    features : dict
+        A dictionary with feature values (such as "devoiced") as keys and
+        feature classes (such as "voicing") as values.
+    """
+
+    if not filename:
+        filename = RESOURCE_DIR / "features_bipa.tsv"
+        filename = filename.as_posix()
+
+    with open(filename) as tsvfile:
+        features = {
+            row["VALUE"]: row["FEATURE"]
+            for row in csv.DictReader(tsvfile, delimiter="\t")
+        }
+
+    return features
+
+
 # TODO: better rename to `load`?
-def read_phonetic_data():
+# TODO: allow multiple models, per dictory, perhaps metadata in the future, validation
+def read_phonetic_model():
     """
     Return a single data structure with the default phonetic data.
 
@@ -244,35 +249,37 @@ def read_phonetic_data():
         sound classes (key `classes`), and sound inventory (key `sounds`).
     """
 
-    globals.FEATURES = read_sound_features()
-    globals.SOUNDS = read_sounds(globals.FEATURES)
-    globals.SOUND_CLASSES = read_sound_classes(globals.SOUNDS)
-    globals.DESC2GRAPH = {}
-    globals.APPLYMOD = {}
+#    globals.FEATURES = read_sound_features()
+#    globals.SOUNDS = read_sounds(globals.FEATURES)
+#    globals.SOUND_CLASSES = read_sound_classes(globals.SOUNDS)
+#    globals.DESC2GRAPH = {}
+#    globals.APPLYMOD = {}
 
-    # Cache the `graphemes` for `sound_classes`
-    # TODO: should be cached in another variable?
-    for value in globals.SOUND_CLASSES.values():
-        value["graphemes"] = features2graphemes(
-            value["features"], globals.SOUNDS
-        )
+    model = {}
+    model['FEATURES'] = read_sound_features()
+    model['SOUNDS'] = read_sounds(model['FEATURES'])
+    model['SOUND_CLASSES'] = read_sound_classes(model['SOUNDS'])
+    model['DESC2GRAPH'] = {} # check usage
+    model['APPLYMOD'] = {} # check usage
 
+    return model
 
 def read_sound_changes(filename=None):
     """
-    Read sound changes.
+    Read a list of sound changes.
 
     Sound changes are stored in a TSV file holding a list of sound changes.
-    Mandatory fields are, besides a unique `ID`,
-    `RULE`, `TEST_ANTE`, and `TEST_POST`.
-    A floating-point `WEIGHT` may also be specified
-    (defaulting to 1.0 for all rules, unless specified).
+    Mandatory fields are a unique `ID` and the `RULE` itself, plus
+    the recommended `TEST_ANTE` and `TEST_POST`. A floating-point `WEIGHT`
+    for sampling might also be specified, and will default to 1.0 for
+    all rules if not provided.
 
     Parameters
     ----------
     filename : string
         Path to the TSV file holding the list of sound changes, defaulting
-        to the one provided by the library.
+        to the one distributed with the library. Strings are cleaned
+        upon loading, which includes Unicode normalization to the NFC form.
 
     Returns
     -------
@@ -288,12 +295,21 @@ def read_sound_changes(filename=None):
     # and target, as well as adding capturing parentheses to source (if
     # necessary) and replacing back-reference notation in targets
     with open(filename) as csvfile:
-        reader = csv.DictReader(csvfile, delimiter="\t")
         rules = {}
-        for row in reader:
+        for row in csv.DictReader(csvfile, delimiter="\t"):
             rule_id = int(row.pop("ID"))
+            row["RULE"] = clear_text(row["RULE"])
+            row["TEST_ANTE"] = clear_text(row["TEST_ANTE"])
+            row["TEST_POST"] = clear_text(row["TEST_POST"])
             row["WEIGHT"] = float(row.get("WEIGHT", 1.0))
 
             rules[rule_id] = row
 
     return rules
+
+
+def clear_text(text):
+    # text = unicodedata.normalize("NFC", text)
+    text = re.sub(r"\s+", " ", text).strip()
+
+    return text
