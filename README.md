@@ -87,6 +87,83 @@ Old version
   - Implement both PEG grammars from separate repository
   - Add support for custom replacement functions (deciding on notation)
 
+## Manual
+
+There are two basic elements: rules and sequences. A rule operates on
+a sequence, resulting in a single, potentially different, sequence in
+forwards direction, and in at least one, potentially different, sequence
+in backwards direction.
+
+Following the conventions and practices of CLTS, CLDF, Lingpy,
+and orthographic profiles, the
+proposed notation operates on "strings", that is, text in Unicode
+characters representing a sequence of one or more segments separated
+by spaces. The most common segments are sounds as represented by Unicode
+glyphs, so that a transcription like /haʊs/ ("house" in English Received
+Pronounciation) is represented as `"h a ʊ s"`, that is, not considering
+spaces, U+0068 (LATIN SMALL LETTER H),
+U+0061 (LATIN SMALL LETTER A),
+U+028A (LATIN SMALL LETTER UPSILON), and U+0073
+(LATIN SMALL LETTER S). The usage of spaces might seem inconventient and
+even odds at first, but the convention has proven useful with years of
+experience of phonological transcription for computer-assisted treatment, as
+not only it makes no automatic assumption of what constitutes a segment
+(for example, allowing user to work with fully atomic syllables), but
+facilitates validation work.
+
+A `rule` is a statement expressed in the `A > B / C _ D` notation, where
+C and D, both optional, express the preceding and following context.
+It is a shorthand to common notation, internally mapped to
+`C A D > B A D`. While A and B might expresses something different from
+historical evolution, such as correspondence, they are respectively named
+`ante` and `post`, and the rule can be real as "the sequence of segments
+A changes into the sequence of sounds B when preceded by C and followed by
+D".
+A, B, and C are referred as as "sequences", and are composed of one or
+more "segments". A "segment" is the basic, fundamental, atomic unit of a
+sequence. 
+
+Segments can be of X types:
+
+  - sound segments, such as phonemes (like `a` or `ʒ`) or whatever is
+    defined as an atomic segment by the used (for example, full-length
+    syllables such as `ba` or `ʈ͡ʂʰjou̯˨˩˦`). In most cases, a phonetic or
+    phonological transcription system such IPA or NAPA will be used; by
+    default, the system operates on BIPA, which also facilitates
+    normalization in terms of homoglyphs, etc.
+  - A bundle of features, expressed as comma separated feature-values
+    enclosed by square brackets, such as `[consonant]`, referring to all
+    consonants, `[unrounded,open-mid,central,vowel]`, referring to all
+    sounds matching this bundle of features (that is, `ɜ` and the same
+    sound with modifiers), etc. Complex relationships and tiers allow to
+    expressed between segments, as described later. By default, the system
+    of descriptors used by BIPA is used.
+  - Sound-classes, which are common short-hands for bundles of features,
+    such as `K` for `[consonant,velar]` or `R` for "resonants" (defined
+    internally as `[consonant,-stop]`). A default system, expressed in
+    table X, is provided, and can be replaced, modified, or extended by the
+    user. Sound-classes are expressed in all upper-case. 
+  - Back-references, used to refer to other segments in a sequence,
+    which are expressed by the at-symbol (`@`) and a
+    numeric index, such as `@1` or `@3` (1-based). These will are better
+    explored in X.
+  - Special segments related to sequences, which are
+    - `_` (underscore) for the "focus" in a context (from the name by
+      Hartman 2003), that is, the position where `ante` and `post` sequences
+      are found
+    - `#` (hash) for word boundaries
+    - `.` (dot) for syllable breaks
+
+Sound segments, sound-classes, and back-references can carry a modifier,
+which is following bundle of features the modifies the value expressed or
+referred to. For example `θ[voiced]` is equivalent to `ð`, `C[voiceless]`
+would match only voiceless consonants, `C[voiceless] ə @1[voiced]` would
+match sequences of voiceless consonants, followed by a schwa, followed by
+the corresponding voiced consonant (thus matching sequences like `p ə b`
+and `k ə g`, but not `p ə g`).
+
+Other non primitives include alternatives and sets.
+
 ## How to cite
 
 If you use `alteruphono`, please cite it as:
