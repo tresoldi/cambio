@@ -40,71 +40,61 @@ class TestChangers(unittest.TestCase):
             ("p|d a > @1{b,d} e", "d a p a"): ("d", "e", "b", "e"),
         }
 
-        # Read phonetic data
-        model = alteruphono.utils.read_phonetic_model()
-
-        # Run tests
+        # test with Model object
+        model = alteruphono.Model()
         for test, ref in reference.items():
-            ast = alteruphono.parse(test[0])
             ante_seq = test[1].split()
-            post_seq = alteruphono.forward(ante_seq, ast, model)
+            rule = alteruphono.parse_rule(test[0])
+            post_seq = model.forward(ante_seq, rule)
             assert tuple(post_seq) == ref
+
+    def test_forward_resources(self):
+        sound_changes = alteruphono.utils.read_sound_changes()
+
+        model = alteruphono.Model()
+        for change_id, change in sorted(sound_changes.items()):
+            test_ante = change["TEST_ANTE"].split()
+            test_post = change["TEST_POST"].split()
+            rule = alteruphono.parse_rule(change["RULE"])
+            post_seq = model.forward(test_ante, rule)
+            assert tuple(test_post) == tuple(post_seq)
 
     def test_backward_hardcoded(self):
         reference = {
             ("p V > b a", "b a r b a"): (
-                "b a r b a",
-                "b a r p V",
-                "p V r b a",
-                "p V r p V",
+                "# b a r b a #",
+                "# b a r p V #",
+                "# p V r b a #",
+                "# p V r p V #",
             )
         }
 
-        # Read phonetic data
-        model = alteruphono.utils.read_phonetic_model()
-
-        # Run tests
+        # test with Model object
+        model = alteruphono.Model()
         for test, ref in reference.items():
-            ast = alteruphono.parse(test[0])
             post_seq = test[1].split()
-            ante_seqs = alteruphono.backward(post_seq, ast, model)
-            assert tuple(sorted(ante_seqs)) == ref
-
-    def test_forward_resources(self):
-        # Read phonetic data
-        model = alteruphono.utils.read_phonetic_model()
-        sound_changes = alteruphono.utils.read_sound_changes()
-
-        for change_id, change in sorted(sound_changes.items()):
-            ast = alteruphono.parse(change["RULE"])
-            test_ante = change["TEST_ANTE"].split()
-            test_post = change["TEST_POST"].split()
-            post_seq = alteruphono.forward(test_ante, ast, model)
-
-            assert tuple(test_post) == tuple(post_seq)
+            rule = alteruphono.parse_rule(test[0])
+            ante_seqs = model.backward(post_seq, rule)
+            assert tuple(ante_seqs) == ref
 
     def test_backward_resources(self):
-        # Read phonetic data
-        model = alteruphono.utils.read_phonetic_model()
         sound_changes = alteruphono.utils.read_sound_changes()
 
+        model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
-            ast = alteruphono.parse(change["RULE"])
+            rule = alteruphono.parse_rule(change["RULE"])
+
             test_ante = " ".join(change["TEST_ANTE"].split())
             test_post = change["TEST_POST"].split()
 
-            ante_seqs = alteruphono.backward(test_post, ast, model)
-
-            # NOTE: it can contain sound classes, etc.
-            ante_seqs_asts = [
+            ante_seqs = model.backward(test_post, rule)
+            ante_asts = [
                 alteruphono.parser._tokens2ast(seq.split(" "))
                 for seq in ante_seqs
             ]
             matches = [
-                alteruphono.changer.check_match(
-                    test_ante.split(" "), ante_seq_ast, model
-                )
-                for ante_seq_ast in ante_seqs_asts
+                model.check_match(test_ante.split(" "), ante_ast)
+                for ante_ast in ante_asts
             ]
 
             assert any(matches)

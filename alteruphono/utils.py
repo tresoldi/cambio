@@ -9,13 +9,14 @@ import re
 import unicodedata
 
 # Import from other modules
-from . import parser
+# from . import parser
+import alteruphono.parser
 
 # Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 
-def descriptors2grapheme(descriptors, model):
+def descriptors2grapheme(descriptors, sounds):
     # make sure we can manipulate these descriptors
     descriptors = list(descriptors)
 
@@ -38,7 +39,7 @@ def descriptors2grapheme(descriptors, model):
 
     # TODO: should cache this?
     desc = tuple(sorted(descriptors))
-    for sound, feat_dict in model['SOUNDS'].items():
+    for sound, feat_dict in sounds.items():
         # Collect all features and confirm if all are there
         # TODO: better to sort when loading the SOUNDS
         features = tuple(sorted(feat_dict.values()))
@@ -48,13 +49,13 @@ def descriptors2grapheme(descriptors, model):
     # TODO: fixes in case we missed
     if "breathy" in desc:
         new_desc = [v for v in desc if v != "breathy"]
-        new_gr = descriptors2grapheme(new_desc, model)
+        new_gr = descriptors2grapheme(new_desc, sounds)
         if new_gr:
             return "%s[breathy]" % new_gr
 
     if "long" in desc:
         new_desc = [v for v in desc if v != "long"]
-        new_gr = descriptors2grapheme(new_desc, model)
+        new_gr = descriptors2grapheme(new_desc, sounds)
         if new_gr:
             return "%sː" % new_gr
 
@@ -89,7 +90,7 @@ def features2graphemes(feature_str, sounds):
     """
 
     # Parse the feature string
-    features = parser.parse_features(feature_str)
+    features = alteruphono.parser.parse_features(feature_str)
 
     # Iterate over all sounds in the transcription system
     graphemes = []
@@ -150,7 +151,12 @@ def read_sound_classes(sounds, filename=None):
             # TODO: rename GRAPHEMES column
             # TODO: consider what to do once a `Sound` dataclass is implemented
             if row["GRAPHEMES"]:
-                graphemes = tuple(row["GRAPHEMES"].split("|"))
+                graphemes = tuple(
+                    [
+                        clear_text(grapheme)
+                        for grapheme in row["GRAPHEMES"].split("|")
+                    ]
+                )
             else:
                 graphemes = features2graphemes(row["GRAPHEMES"], sounds)
 
@@ -191,6 +197,7 @@ def read_sounds(featsys, filename=None):
     sounds = {}
     with open(filename) as csvfile:
         for row in csv.DictReader(csvfile, delimiter="\t"):
+            grapheme = clear_text(row["GRAPHEME"])
             features = row["NAME"].split()
 
             # TODO: currently skipping over clusters and tones
@@ -200,7 +207,7 @@ def read_sounds(featsys, filename=None):
                 continue
 
             descriptors = {featsys[feat]: feat for feat in features}
-            sounds[row["GRAPHEME"]] = descriptors
+            sounds[grapheme] = descriptors
 
     return sounds
 
@@ -249,20 +256,15 @@ def read_phonetic_model():
         sound classes (key `classes`), and sound inventory (key `sounds`).
     """
 
-#    globals.FEATURES = read_sound_features()
-#    globals.SOUNDS = read_sounds(globals.FEATURES)
-#    globals.SOUND_CLASSES = read_sound_classes(globals.SOUNDS)
-#    globals.DESC2GRAPH = {}
-#    globals.APPLYMOD = {}
-
     model = {}
-    model['FEATURES'] = read_sound_features()
-    model['SOUNDS'] = read_sounds(model['FEATURES'])
-    model['SOUND_CLASSES'] = read_sound_classes(model['SOUNDS'])
-    model['DESC2GRAPH'] = {} # check usage
-    model['APPLYMOD'] = {} # check usage
+    model["FEATURES"] = read_sound_features()
+    model["SOUNDS"] = read_sounds(model["FEATURES"])
+    model["SOUND_CLASSES"] = read_sound_classes(model["SOUNDS"])
+    model["DESC2GRAPH"] = {}  # check usage
+    model["APPLYMOD"] = {}  # check usage
 
     return model
+
 
 def read_sound_changes(filename=None):
     """
@@ -303,13 +305,17 @@ def read_sound_changes(filename=None):
             row["TEST_POST"] = clear_text(row["TEST_POST"])
             row["WEIGHT"] = float(row.get("WEIGHT", 1.0))
 
+            # TODO: remove boundary add when proper parsing is done in Model
+            row["TEST_ANTE"] = "# %s #" % row["TEST_ANTE"]
+            row["TEST_POST"] = "# %s #" % row["TEST_POST"]
+
             rules[rule_id] = row
 
     return rules
 
 
 def clear_text(text):
-    # text = unicodedata.normalize("NFC", text)
+    text = unicodedata.normalize("NFC", text)
     text = re.sub(r"\s+", " ", text).strip()
 
     return text

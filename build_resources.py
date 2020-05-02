@@ -10,6 +10,8 @@ libraries, which is necessary for preparing the Golang version of
 the library.
 """
 
+# TODO: use alteruphono.utils.clear_text
+
 # Import Python standard libraries
 import csv
 import logging

@@ -13,10 +13,9 @@ to diminish the dependency on Python.
 
 # Import Python standard libraries
 import re
-import unicodedata
 
 # Import package
-from . import utils
+import alteruphono.utils
 
 # TODO: implement an `__all__`
 # TODO: verify why NFC normalization is failing
@@ -244,7 +243,7 @@ def _merge_context(ast, context, offset_ref=None):
     return merged_ast
 
 
-def parse(rule_text):
+def parse_rule(rule_text):
     """
     Parse a sound change rule.
 
@@ -255,7 +254,7 @@ def parse(rule_text):
     """
 
     # Clean and normalize the string containing the rule
-    rule_text = utils.clear_text(rule_text)
+    rule_text = alteruphono.utils.clear_text(rule_text)
 
     # Tokenize all parts and collect the tokens in quasi-asts
     ante_tokens, post_tokens, context_tokens = _tokenize_rule(rule_text)

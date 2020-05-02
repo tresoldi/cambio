@@ -90,9 +90,22 @@ class TestUtils(unittest.TestCase):
 
         features = alteruphono.utils.read_sound_features()
         sounds = alteruphono.utils.read_sounds(features)
+        # TODO: reprint for test without sorting
         for feat_str, ref in reference.items():
             ret = alteruphono.utils.features2graphemes(feat_str, sounds)
-            assert tuple(ret) == ref
+
+            ret = tuple(
+                sorted(
+                    [alteruphono.utils.clear_text(grapheme) for grapheme in ret]
+                )
+            )
+            ref = tuple(
+                sorted(
+                    [alteruphono.utils.clear_text(grapheme) for grapheme in ret]
+                )
+            )
+
+            assert ret == ref
 
     def test_read_sound_classes(self):
         # using default
@@ -104,7 +117,10 @@ class TestUtils(unittest.TestCase):
         assert sc["K"]["features"] == "velar"
         assert sc["VN"]["description"] == "nasal vowel"
         assert sc["XXX"]["graphemes"] == tuple(
-            "ã̤ː̈|ḁ̯̃ː|ãː̈|ãː̟|ḁ̃ː|ã̯ː|ãː".split("|")
+            [
+                alteruphono.utils.clear_text(grapheme)
+                for grapheme in "ã̤ː̈|ḁ̯̃ː|ãː̈|ãː̟|ḁ̃ː|ã̯ː|ãː".split("|")
+            ]
         )
 
     def test_read_sound_features(self):
@@ -135,8 +151,8 @@ class TestUtils(unittest.TestCase):
         assert len(changes) == 800
         assert changes[13]["RULE"] == "N v|k|s -> n @2"
         assert changes[13]["WEIGHT"] == 1.0
-        assert changes[13]["TEST_POST"] == "i m l i n k o"
-        assert changes[13]["TEST_ANTE"] == "i m l i m k o"
+        assert changes[13]["TEST_POST"] == "# i m l i n k o #"
+        assert changes[13]["TEST_ANTE"] == "# i m l i m k o #"
 
 
 if __name__ == "__main__":
