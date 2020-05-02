@@ -3,9 +3,9 @@ Sound change parser.
 
 This module holds the functions, methods, and data for parsing sound
 changes from strings. While it was first specified as a formal grammar,
-by means of a Parsing Expression Grammar, it is now defined "manually",
+by means of a Parsing Expression Grammar, it is now implemented "manually",
 mostly using simple string manipulations and regular expressions with
-no look-behinds. The decision to move was motivated by the growing
+no look-behinds. The decision to change was motivated by the growing
 complexity of the grammar that had to hold a mutable set of graphemes
 and for the plans of expansion/conversion to different languages, trying
 to diminish the dependency on Python.
@@ -13,8 +13,15 @@ to diminish the dependency on Python.
 
 # Import Python standard libraries
 import re
+import unicodedata
+
+# Import package
 
 from . import globals
+
+# TODO: implement an `__all__`
+# TODO: verify why NFC normalization is failing
+# TODO: rename `position` to focus?
 
 # Defines the regular expression matching ante, post, and context
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
@@ -79,7 +86,8 @@ def parse_features(text):
 
     return {"positive": positive, "negative": negative, "custom": custom}
 
-
+# TODO: rewrite with a regular expression deciding whether there is a
+# context
 def _tokenize_rule(rule):
     """
     Internal function for tokenizing a rule.
@@ -111,7 +119,7 @@ def _translate(token):
 
     ret = None
 
-    # Try to match the tokens with what is easier verified with a regex
+    # Try to match the tokens with what is more easily verified with a regex
     backref_match = re.match(_RE_BACKREF, token)
     sc_match = re.match(_RE_SOUNDCLASS, token)
     ipamod_match = re.match(_RE_IPA_MOD, token)
@@ -129,8 +137,7 @@ def _translate(token):
         # If the string includes a vertical bar, it a list of alternatives;
         # alternatives can be pretty much anything, graphemes, sound classes
         #  (with modifiers or not), etc.
-        alternatives = [_translate(alt) for alt in token.split("|")]
-        ret = {"alternative": alternatives}
+        ret = {"alternative": [_translate(alt) for alt in token.split("|")]}
     elif backref_match:
         # Check if it is a back-reference, possibly with modifiers or set
         # correspondences
@@ -182,26 +189,27 @@ def _tokens2ast(tokens):
 
 def _merge_context(ast, context, offset_ref=None):
     """
-    Merge an "ante" or "post" AST with a context.
+    Merge an `ante` or `post` AST with a `context`.
 
-    The essentials of the operation is to add the left context at the
-    beginning and the right one at the end, but additional care must be
-    taken. The most important operation is to fix back-references, in
-    case it is needed. This is specified via the `offset_ref` numeric
-    variable: if provided, back-references will be fixed according to it
-    (as we need to know the length of the AST before the right context in
-    what we are referring to).
+    The essentials of the function is to add the left context at the
+    beginning and the right one at the endself.
+
+    The most important operation is to fix the indexes of back-references, in
+    case they are used. This is specified via the `offset_ref` numeric
+    variable: if provided, back-references will be positively shifted
+    according to it (as we need to know the length of the AST before the
+    right context in what we are referring to).
     """
 
     # if there is no context to merge, just return as it is
     if not context:
         return ast
 
-    # split at the `position` symbol, which is mandatory
+    # split at the `position` symbol of the context, which is mandatory
     pos_idx = ["position" in token for token in context].index(True)
     left, right = context[:pos_idx], context[pos_idx + 1 :]
 
-    # cache len of left and ast, for the offsetting
+    # cache len of `left` and of `ast`
     offset_left = len(left)
     offset_ast = offset_left + len(ast)
 
@@ -209,7 +217,8 @@ def _merge_context(ast, context, offset_ref=None):
     # always making copies here, so to treat the provided ASTs as immutable
     # ones.
     # TODO: move to a separate function? it would also make easier to
-    # take care of backreferences in alternatives, currently not supported
+    # take care of backreferences in alternatives, which are not
+    # supported at present
     merged_ast = []
     for token in ast:
         merged_ast.append(dict(token))
@@ -234,31 +243,42 @@ def _merge_context(ast, context, offset_ref=None):
 
     return merged_ast
 
+def _clear_text(text):
+    #text = unicodedata.normalize("NFC", text)
+    text = re.sub(r"\s+", " ", text).strip()
 
-def parse(rule):
+    return text
+
+def parse(rule_text):
     """
     Parse a sound change rule.
+
+    Rules are cleaned with the `_clear_text()` function before parsing,
+    which includes removal of multiple and trailing spaces and
+    Unicode normalization to the NFC form.
+
     """
 
-    # Basic string pre-processing, making logic and regexes easier
-    rule = re.sub(r"\s+", " ", rule).strip()
+    # Clean and normalize the string containing the rule
+    rule_text = _clear_text(rule_text)
 
     # Tokenize all parts and collect the tokens in quasi-asts
-    ante, post, context = _tokenize_rule(rule)
-    ante_ast = _tokens2ast(ante)
-    post_ast = _tokens2ast(post)
-    context_ast = _tokens2ast(context)
+    ante_tokens, post_tokens, context_tokens = _tokenize_rule(rule_text)
+    ante_ast = _tokens2ast(ante_tokens)
+    post_ast = _tokens2ast(post_tokens)
+    context_ast = _tokens2ast(context_tokens)
 
-    # context is necessary to follow tradition and to make things simpler to
-    # code for linguists, but it actually makes out lives harder
-    # join ante and post into single sequenes, taking care of back-references,
-    # already here
+    # The notation with context is necessary to follow the tradition,
+    # making adoption and usage easier among linguists, but it makes our
+    # processing much harder. Thus, we merge `ante` and `post` with the
+    # `context`, if any, already at parsing stage, taking care of
+    # issues such as indexes of back-references.
     # TODO: alternatives/sound classes/etc in context should be mapped
     # to back-reference to `ante` when used in `post`, which likely means
     # different asts for forward and back
-    new_ante_ast = _merge_context(ante_ast, context_ast)
-    new_post_ast = _merge_context(
+    merged_ante_ast = _merge_context(ante_ast, context_ast)
+    merged_post_ast = _merge_context(
         post_ast, context_ast, offset_ref=len(ante_ast)
     )
 
-    return {"ante": new_ante_ast, "post": new_post_ast}
+    return {"ante": merged_ante_ast, "post": merged_post_ast}
