@@ -13,6 +13,7 @@ import unittest
 
 # Import the library being test and auxiliary libraries
 import alteruphono
+from alteruphono.parser import _tokens2ast
 
 # TODO: could read the phonetic data a single time?
 
@@ -82,14 +83,6 @@ class TestChangers(unittest.TestCase):
 
             assert tuple(test_post) == tuple(post_seq)
 
-    #
-    #            if tuple(test_post) != tuple(post_seq):
-    #                print()
-    #                print(change_id, change["RULE"])
-    #                print("ANTE", test_ante)
-    #                print("POST", test_post)
-    #                print("MINE", post_seq)
-
     def test_backward_resources(self):
         # Read phonetic data
         alteruphono.utils.read_phonetic_data()
@@ -115,17 +108,6 @@ class TestChangers(unittest.TestCase):
             ]
 
             assert any(matches)
-
-            # if not any(matches):
-
-
-#            if test_ante not in ante_seqs:
-#            print()
-#                print(change_id, change["RULE"])#
-#                print("ANTE", [test_ante])
-#                print("POST", test_post)
-#                print("MINE", ante_seqs)
-#                print("MATCHES", matches)
 
 
 if __name__ == "__main__":

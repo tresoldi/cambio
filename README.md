@@ -20,16 +20,150 @@ pip install alteruphono
 The `pip` installation with also fetch dependencies, such as `pyclts`,
 if necessary. Installation in virtual environments is recommended.
 
+## Elements
+
+We are not exploring every detail of the formal grammar for annotating
+sound changes, such as the flexibility with spaces and tabulations or
+equivalent symbols for the arrows; for full information, interested parties
+can consult the reference PEG grammar and the source code.
+
+AlteruPhono operates by applying ordered lists of sound changes to
+textual representation of sound sequences.
+
+Sound changes are annotated in the `A -> B / C` syntax,
+whose constituents are
+for reference
+referred as "source" (A), "target" (B), and "context" (C), with the
+first two being mandatory; the other elements are named "arrow" and
+"slash". When applied to segment sequences, we refer to the original
+one as "ante" and to the resulting one (which might have been modified
+or not) as "post". So, with a rule "p -> b / _ a" applied to "pape":
+
+- `p` is the "source"
+- `b` is the "target"
+- `_ a` is the "context"
+- "pape" is the "ante (sequence)"
+- "bape" is the "post (sequence)"
+
+Note that, if applied backwards, a rule will have a post sequence but
+potentially more than one ante sequence. If the rule above is applied
+backwards to the post sequence "bape", as explained in the backwards
+definition and given that we have no complementary information, the
+result is a set of ante sequences "pape" and "bape".
+
+AlteruPhono operates on sound sequences expressed in standard 
+[CLDF](https://cldf.clld.org/)/[LingPy](http://lingpy.org) notation,
+derived for Cysouw work,
+i.e., as a string character string with tokens separated by single spaces.
+As such, a word like the English "chance" is represented not as
+"`/tʃæns/`" or `/t͡ʃæns/`, in proper IPA notation, but as "`tʃ æ n s`".
+While the notation might at first seem strange, it has proven its
+advantages with extensive work on linguistic databases, as it not only
+facilitates data entry and inspection, but also makes no assumptions about
+what constitutes a segment, no matter how obvious the segmentation might
+look to a linguist. On one had, being agnostic in terms of the segmentation
+allows the program to operate as a "dumb" machine, and on the other allows
+researchers to operate on different kinds of segmentation if suitable for
+their research, including treating whole syllables as segments. In order
+to facilitate the potentially tedious and error-prone task of manual
+segmentation, orthographic profiles can be used as in Lexibank.
+
+
+## Catalogs
+
+While they are not enforced and in some cases are not needed, such as
+when the system operates as a glorified search&replace, alteruphono is
+designed to operate with three main catalogs: graphemes, features, and
+segment classes.
+
+Graphemes are sequences of one or more textual characters where most
+characters are accepts (exceptions are...). 
+While in most cases it will correspond
+to common transcription system such as the IPA, and in most case correspond
+to a single sound or phoneme, this is not enforced and sequence of
+characters (with the exception of a white-space, a tabulation, a forward
+slash, square and curly brackets, and an arrow) can be used to represent
+anything defined as
+a segment in a corresponding catalog. Also note that the slash notation
+of Lexibank is supported. The default catalog distributed with alteruphono
+is based on the BIPA system of clts.
+
+Features are descriptors... Default is derived from BIPA descriptors,
+mostly articulatory, but we also incluse some distinctive feature
+systems.
+
+It is not necessary for a grapheme catalog to specify the features that
+compose each grapheme, but this severly limits the kind of operations
+possible, particularly when modelling observed or plausible sound
+changes.
+
+The default catalogs are derived from BIPA... such as in examle
+
+Segment classes are just shorthards. The default distributed with AlteruPhono
+includes a number of shorthands common in the literature and mostly
+unambiguous
+
+## Types
+
+- A **grapheme** is a sequence of one or more textual characters representing
+a segment, such as "`a`", "`kʷʰ`". 
+
+- A **bundle** is an explicit listing of features and values, as defined
+in a reference, enclosed in square brackets, such as 
+"`[open,front,vowel]`" or "`[-vowel]`". Features are separated by commas,
+with optional spaces, and may carry a specific value in the format
+`feature=value` with `value` being either a logical boolean ("true" or
+"false") or a numeric value; shorthands for "true" and "false" are
+defined as the operators "+" and "-"; if no "value" is provided, it defaults
+to "true" (so that `[open,front,vowel]` is internally translated to
+`[open=true,front=true,vowel=true]`). Note on back-references here
+(experimental)
+
+- A **modifier** is a bundle of feautes used to modify a basic value;
+for example, if "V" defines a segment class (see item below) of vowels,
+"V[long]" would restrict the set of matched segments to long vowels.
+
+- A **segment-class** is a short-hand to a bundle of features, as defined
+in a reference, intended to match one or more segments are expressed with
+one or more upper-case characters, such as "C" or
+"VL" (for [consonant] and [long,vowel], respectively, in the
+default). A segment class can have a modifier.
+
+- A **marker** is a single character non-segmental information. Defined
+markers are # for word-boundary, . for syllable break, + for morpheme
+boundary, stress marks and tone marks. Note that some markers,
+particularly suprasegmental features as stress and tone, in most cases
+will not be referred directly when writing rule, but by tiers. See
+section on tiers.
+
+- A **focus** is a special marker, represented by underscore, and used in
+context to indicate the position of the source and target. See reference
+when discuss contexts.
+
+- An **alternative** is a list of one or more segments (which tzype?)
+separated by a vertical bar, such "b|p". While in almost all cases of
+actual usage alternatives could be expressed by bundles (such 
+"b|p" as "[plosive,bilabial]" in most inventories, using an alternative is
+in most cases preferable for legibility
+
+- A **set** is a list of alternative segments where the order is
+significant, expressed between curly brackets and separated by commas,
+such as `{a,e}`. The order is significant in the sense that, in the
+case of a corresponding set, elements will be matched by their index:
+if `{a,e}` is matched with `{ɛ,i}`, all /a/ will become /ɛ/ and all
+/e/ will become /i/ (note how, with standard IPA descriptors, it would
+not be possible to express such raising in a an unambiguos way)
+
+- A **back-reference** is a reference to a previously matched segment,
+expressed by the symbol @ and the numeric index for the segment,
+(such as @2 for referring to the second element,
+the vowel /a/, in the segment sequence "b a"). As such, back-references
+allow to carry identities: if "V s V" means any intervocalic "s" and
+"a s a" means only "s" between "a", "V s @1" means any "s" in
+intervocalic position where the two vowels are equal. Back-references
+can take modifier.
+
 ## How to use
-
-Sound sequences are to be given in common
-[CLDF](https://cldf.clld.org/)/[LingPy](http://lingpy.org) notation, i.e.,
-as a single string with single space-separated graphemes. The library supports
-different transcription systems, defaulting BIPA as defined
-in [pyclts](https://pypi.org/project/pyclts/).
-
-Sound changes are defined by simplified regular expressions. Check
-the `resources/sounds_changes.tsv` for an example.
 
 A basic usage, drawing a random sound change from the default collection
 and applying it, is:

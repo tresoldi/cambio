@@ -13,4 +13,4 @@ __email__ = "tresoldi@shh.mpg.de"
 from alteruphono import globals
 from alteruphono import utils
 from alteruphono.parser import parse, parse_features
-from alteruphono.changer import forward, backward
+from alteruphono.changer import forward, backward, check_match
