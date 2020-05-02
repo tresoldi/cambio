@@ -80,12 +80,15 @@ class TestChangers(unittest.TestCase):
             test_post = change["TEST_POST"].split()
             post_seq = alteruphono.forward(test_ante, ast)
 
-            if tuple(test_post) != tuple(post_seq):
-                print()
-                print(change_id, change["RULE"])
-                print("ANTE", test_ante)
-                print("POST", test_post)
-                print("MINE", post_seq)
+            assert tuple(test_post) == tuple(post_seq)
+
+    #
+    #            if tuple(test_post) != tuple(post_seq):
+    #                print()
+    #                print(change_id, change["RULE"])
+    #                print("ANTE", test_ante)
+    #                print("POST", test_post)
+    #                print("MINE", post_seq)
 
     def test_backward_resources(self):
         # Read phonetic data
@@ -99,13 +102,30 @@ class TestChangers(unittest.TestCase):
 
             ante_seqs = alteruphono.backward(test_post, ast)
 
-            # TODO: must check sound classes
-            if test_ante not in ante_seqs:
-                print()
-                print(change_id, change["RULE"])
-                print("ANTE", [test_ante])
-                print("POST", test_post)
-                print("MINE", ante_seqs)
+            # NOTE: it can contain sound classes, etc.
+            ante_seqs_asts = [
+                alteruphono.parser._tokens2ast(seq.split(" "))
+                for seq in ante_seqs
+            ]
+            matches = [
+                alteruphono.changer.check_match(
+                    test_ante.split(" "), ante_seq_ast
+                )
+                for ante_seq_ast in ante_seqs_asts
+            ]
+
+            assert any(matches)
+
+            # if not any(matches):
+
+
+#            if test_ante not in ante_seqs:
+#            print()
+#                print(change_id, change["RULE"])#
+#                print("ANTE", [test_ante])
+#                print("POST", test_post)
+#                print("MINE", ante_seqs)
+#                print("MATCHES", matches)
 
 
 if __name__ == "__main__":
