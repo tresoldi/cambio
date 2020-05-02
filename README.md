@@ -7,7 +7,8 @@
 phonological representations, intended for use in simulations of language
 evolution.
 
-*Please remember that `alteruphono` is a work-in-progress.*
+*Please remember that, while usable, `alteruphono` is a work-in-progress.
+The best documentation is currently to check the tests.*
 
 ## Installation
 
@@ -51,7 +52,7 @@ backwards to the post sequence "bape", as explained in the backwards
 definition and given that we have no complementary information, the
 result is a set of ante sequences "pape" and "bape".
 
-AlteruPhono operates on sound sequences expressed in standard 
+AlteruPhono operates on sound sequences expressed in standard
 [CLDF](https://cldf.clld.org/)/[LingPy](http://lingpy.org) notation,
 derived for Cysouw work,
 i.e., as a string character string with tokens separated by single spaces.
@@ -77,7 +78,7 @@ designed to operate with three main catalogs: graphemes, features, and
 segment classes.
 
 Graphemes are sequences of one or more textual characters where most
-characters are accepts (exceptions are...). 
+characters are accepts (exceptions are...).
 While in most cases it will correspond
 to common transcription system such as the IPA, and in most case correspond
 to a single sound or phoneme, this is not enforced and sequence of
@@ -106,10 +107,10 @@ unambiguous
 ## Types
 
 - A **grapheme** is a sequence of one or more textual characters representing
-a segment, such as "`a`", "`kʷʰ`". 
+a segment, such as "`a`", "`kʷʰ`".
 
 - A **bundle** is an explicit listing of features and values, as defined
-in a reference, enclosed in square brackets, such as 
+in a reference, enclosed in square brackets, such as
 "`[open,front,vowel]`" or "`[-vowel]`". Features are separated by commas,
 with optional spaces, and may carry a specific value in the format
 `feature=value` with `value` being either a logical boolean ("true" or
@@ -142,7 +143,7 @@ when discuss contexts.
 
 - An **alternative** is a list of one or more segments (which tzype?)
 separated by a vertical bar, such "b|p". While in almost all cases of
-actual usage alternatives could be expressed by bundles (such 
+actual usage alternatives could be expressed by bundles (such
 "b|p" as "[plosive,bilabial]" in most inventories, using an alternative is
 in most cases preferable for legibility
 
@@ -255,7 +256,7 @@ A changes into the sequence of sounds B when preceded by C and followed by
 D".
 A, B, and C are referred as as "sequences", and are composed of one or
 more "segments". A "segment" is the basic, fundamental, atomic unit of a
-sequence. 
+sequence.
 
 Segments can be of X types:
 
@@ -276,7 +277,7 @@ Segments can be of X types:
     such as `K` for `[consonant,velar]` or `R` for "resonants" (defined
     internally as `[consonant,-stop]`). A default system, expressed in
     table X, is provided, and can be replaced, modified, or extended by the
-    user. Sound-classes are expressed in all upper-case. 
+    user. Sound-classes are expressed in all upper-case.
   - Back-references, used to refer to other segments in a sequence,
     which are expressed by the at-symbol (`@`) and a
     numeric index, such as `@1` or `@3` (1-based). These will are better
@@ -302,18 +303,18 @@ Other non primitives include alternatives and sets.
 
 If you use `alteruphono`, please cite it as:
 
-> Tresoldi, Tiago (2019). Alteruphono, a tool for simulating sound changes.
-Version 0.0.1dev. Jena. Available at: https://github.com/tresoldi/alteruphono
+> Tresoldi, Tiago (2020). Alteruphono, a tool for simulating sound changes.
+Version 0.2. Jena. Available at: https://github.com/tresoldi/alteruphono
 
 In BibTex:
 
 ```
-@misc{Tresoldi2019alteruphono,
+@misc{Tresoldi202alteruphono,
   author = {Tresoldi, Tiago},
-  title = {Alteruphono, a tool for simulating sound changes},
+  title = {Alteruphono, a tool for simulating sound changes. Version 0.2.},
   howpublished = {\url{https://github.com/tresoldi/alteruphono}},
   address = {Jena},
-  year = {2019},
+  year = {2020},
 }
 ```
 
@@ -321,10 +322,9 @@ In BibTex:
 
 Tiago Tresoldi (tresoldi@shh.mpg.de)
 
-The author was supported during development by the 
+The author was supported during development by the
 [ERC Grant #715618](https://cordis.europa.eu/project/rcn/206320/factsheet/en)
 for the project [CALC](http://calc.digling.org)
 (Computer-Assisted Language Comparison: Reconciling Computational and Classical
 Approaches in Historical Linguistics), led by
 [Johann-Mattis List](http://www.lingulist.de).
-
