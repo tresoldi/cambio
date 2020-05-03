@@ -19,7 +19,6 @@ import alteruphono.utils
 from alteruphono.rule import Rule
 
 # TODO: implement an `__all__`
-# TODO: verify why NFC normalization is failing
 # TODO: rename `position` to focus?
 
 # Defines the regular expression matching ante, post, and context
@@ -244,38 +243,55 @@ def _merge_context(ast, context, offset_ref=None):
     return merged_ast
 
 
-def parse_rule(rule_text):
-    """
-    Parse a sound change rule.
+# TODO: add output with __repr__/__str__, so we can serialize
+class Rule:
+    def __init__(self, rule_text=None):
+        # Initialize `_ante` and `_post` properties; these are intended to
+        # be internal and accessed with dot notation via .__getattr__()
+        self._ante = None
+        self._post = None
 
-    Rules are cleaned with the `_clear_text()` function before parsing,
-    which includes removal of multiple and trailing spaces and
-    Unicode normalization to the NFC form.
+        # If a `rule_text` was provided, store it for reference and parse
+        self._source = None
+        if rule_text:
+            self._source = rule_text
+            self.parse(rule_text)
 
-    """
+    def parse(self, rule_text):
+        """
+        Parse a sound change rule.
 
-    # Clean and normalize the string containing the rule
-    rule_text = alteruphono.utils.clear_text(rule_text)
+        Rules are cleaned with the `_clear_text()` function before parsing,
+        which includes removal of multiple and trailing spaces and
+        Unicode normalization to the NFC form.
+        """
 
-    # Tokenize all parts and collect the tokens in quasi-asts
-    ante_tokens, post_tokens, context_tokens = _tokenize_rule(rule_text)
-    ante_ast = _tokens2ast(ante_tokens)
-    post_ast = _tokens2ast(post_tokens)
-    context_ast = _tokens2ast(context_tokens)
+        # Clean and normalize the string containing the rule
+        rule_text = alteruphono.utils.clear_text(rule_text)
 
-    # The notation with context is necessary to follow the tradition,
-    # making adoption and usage easier among linguists, but it makes our
-    # processing much harder. Thus, we merge `ante` and `post` with the
-    # `context`, if any, already at parsing stage, taking care of
-    # issues such as indexes of back-references.
-    # TODO: alternatives/sound classes/etc in context should be mapped
-    # to back-reference to `ante` when used in `post`, which likely means
-    # different asts for forward and back
-    merged_ante_ast = _merge_context(ante_ast, context_ast)
-    merged_post_ast = _merge_context(
-        post_ast, context_ast, offset_ref=len(ante_ast)
-    )
+        # Tokenize all parts and collect the tokens in quasi-asts
+        ante_tokens, post_tokens, context_tokens = _tokenize_rule(rule_text)
+        ante_ast = _tokens2ast(ante_tokens)
+        post_ast = _tokens2ast(post_tokens)
+        context_ast = _tokens2ast(context_tokens)
 
-    return Rule(merged_ante_ast, merged_post_ast)
+        # The notation with context is necessary to follow the tradition,
+        # making adoption and usage easier among linguists, but it makes our
+        # processing much harder. Thus, we merge `ante` and `post` with the
+        # `context`, if any, already at parsing stage, taking care of
+        # issues such as indexes of back-references.
+        # TODO: alternatives/sound classes/etc in context should be mapped
+        # to back-reference to `ante` when used in `post`, which likely means
+        # different asts for forward and back
+        self._ante = _merge_context(ante_ast, context_ast)
+        self._post = _merge_context(
+            post_ast, context_ast, offset_ref=len(ante_ast)
+        )
 
-#    return {"ante": merged_ante_ast, "post": merged_post_ast}
+    def __getattr__(self, key):
+        if key == "ante":
+            return self._ante
+        elif key == "post":
+            return self._post
+
+        raise ValueError(f"Unknown attribute `{key}`.")

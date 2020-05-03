@@ -51,7 +51,7 @@ class TestParser(unittest.TestCase):
         }
 
         for rule, ref in reference.items():
-            ret = alteruphono.parse_rule(rule)
+            ret = alteruphono.Rule(rule)
             ret_ante = [tuple(sorted(token.items())) for token in ret.ante]
             ret_post = [tuple(sorted(token.items())) for token in ret.post]
 

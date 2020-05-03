@@ -40,7 +40,7 @@ class TestChangers(unittest.TestCase):
         model = alteruphono.Model()
         for test, ref in reference.items():
             ante_seq = test[1].split()
-            rule = alteruphono.parse_rule(test[0])
+            rule = alteruphono.Rule(test[0])
             post_seq = model.forward(ante_seq, rule)
             assert str(post_seq) == ref
 
@@ -51,7 +51,7 @@ class TestChangers(unittest.TestCase):
         for change_id, change in sorted(sound_changes.items()):
             test_ante = change["TEST_ANTE"].split()
             test_post = change["TEST_POST"]
-            rule = alteruphono.parse_rule(change["RULE"])
+            rule = alteruphono.Rule(change["RULE"])
             post_seq = model.forward(test_ante, rule)
             assert str(post_seq) == test_post
 
@@ -69,7 +69,7 @@ class TestChangers(unittest.TestCase):
         model = alteruphono.Model()
         for test, ref in reference.items():
             post_seq = test[1].split()
-            rule = alteruphono.parse_rule(test[0])
+            rule = alteruphono.Rule(test[0])
             ante_seqs = tuple(
                 [str(seq) for seq in model.backward(post_seq, rule)]
             )
@@ -80,7 +80,7 @@ class TestChangers(unittest.TestCase):
 
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
-            rule = alteruphono.parse_rule(change["RULE"])
+            rule = alteruphono.Rule(change["RULE"])
 
             test_ante = " ".join(change["TEST_ANTE"].split())
             test_post = change["TEST_POST"].split()
