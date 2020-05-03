@@ -25,19 +25,12 @@ class TestChangers(unittest.TestCase):
 
     def test_forward_hardcoded(self):
         reference = {
-            ("p > b", "# p a p a #"): ("#", "b", "a", "b", "a", "#"),
-            ("S > p / _ V", "t i s e"): ("p", "i", "s", "e"),
-            ("t[voiced] > s", "t a d a"): ("t", "a", "s", "a"),
-            ("S[voiceless] a > @1[fricative] a", "b a p a t a"): (
-                "b",
-                "a",
-                "ɸ",
-                "a",
-                "s",
-                "a",
-            ),
-            ("p|t a @1|k > p a t", "t a k"): ("p", "a", "t"),
-            ("p|d a > @1{b,d} e", "d a p a"): ("d", "e", "b", "e"),
+            ("p > b", "# p a p a #"): "# b a b a #",
+            ("S > p / _ V", "t i s e"): "# p i s e #",
+            ("t[voiced] > s", "t a d a"): "# t a s a #",
+            ("S[voiceless] a > @1[fricative] a", "b a p a t a"): "# b a ɸ a s a #",
+            ("p|t a @1|k > p a t", "t a k"): "# p a t #",
+            ("p|d a > @1{b,d} e", "d a p a"): "# d e b e #",
         }
 
         # test with Model object
@@ -46,7 +39,7 @@ class TestChangers(unittest.TestCase):
             ante_seq = test[1].split()
             rule = alteruphono.parse_rule(test[0])
             post_seq = model.forward(ante_seq, rule)
-            assert tuple(post_seq) == ref
+            assert str(post_seq) == ref
 
     def test_forward_resources(self):
         sound_changes = alteruphono.utils.read_sound_changes()
@@ -54,10 +47,10 @@ class TestChangers(unittest.TestCase):
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
             test_ante = change["TEST_ANTE"].split()
-            test_post = change["TEST_POST"].split()
+            test_post = change["TEST_POST"]
             rule = alteruphono.parse_rule(change["RULE"])
             post_seq = model.forward(test_ante, rule)
-            assert tuple(test_post) == tuple(post_seq)
+            assert str(post_seq) == test_post
 
     def test_backward_hardcoded(self):
         reference = {
@@ -74,7 +67,7 @@ class TestChangers(unittest.TestCase):
         for test, ref in reference.items():
             post_seq = test[1].split()
             rule = alteruphono.parse_rule(test[0])
-            ante_seqs = model.backward(post_seq, rule)
+            ante_seqs = tuple([str(seq) for seq in model.backward(post_seq, rule)])
             assert tuple(ante_seqs) == ref
 
     def test_backward_resources(self):
@@ -87,7 +80,9 @@ class TestChangers(unittest.TestCase):
             test_ante = " ".join(change["TEST_ANTE"].split())
             test_post = change["TEST_POST"].split()
 
-            ante_seqs = model.backward(test_post, rule)
+            ante_seqs = tuple([str(seq) for seq in model.backward(test_post, rule)])
+            print(ante_seqs)
+
             ante_asts = [
                 alteruphono.parser._tokens2ast(seq.split(" "))
                 for seq in ante_seqs

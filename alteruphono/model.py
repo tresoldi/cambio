@@ -3,6 +3,7 @@ from pathlib import Path
 
 import alteruphono.parser
 import alteruphono.utils
+from alteruphono.sequence import Sequence
 
 # TODO: create class for sequence and for rule
 class Model:
@@ -23,6 +24,8 @@ class Model:
         self.sound_classes = alteruphono.utils.read_sound_classes(
             self.sounds, f"{model_path}/sound_classes.tsv"
         )
+
+        # caches
         self.modifier_cache = {}
         self.desc2graph = {}
 
@@ -244,7 +247,7 @@ class Model:
             if idx == len(ante_seq):
                 break
 
-        return post_seq
+        return Sequence(post_seq)
 
     # TODO: comment as we return two options, because it might or not apply...
     def backward_translate(self, sequence, rule):
@@ -319,19 +322,8 @@ class Model:
                 break
 
         ante_seqs = [
-            " ".join(candidate) for candidate in itertools.product(*ante_seqs)
+            Sequence(" ".join(candidate)) for candidate in itertools.product(*ante_seqs)
         ]
 
-        #        return ante_seqs
 
-        # TODO: remove once the sequence class is implemented
-        new_seqs = []
-        for seq in ante_seqs:
-            if seq[0] != "#":
-                seq = "# " + seq
-            if seq[-1] != "#":
-                seq = seq + " #"
-
-            new_seqs.append(seq)
-
-        return new_seqs
+        return ante_seqs
