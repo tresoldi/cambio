@@ -194,7 +194,7 @@ class Model:
         post_seq = []
 
         # TODO: rename `entry` to `token`? also below
-        for entry in rule["post"]:
+        for entry in rule.post:
             if "ipa" in entry:
                 post_seq.append(entry["ipa"])
             elif "back-reference" in entry:
@@ -206,11 +206,11 @@ class Model:
                     # TODO: this is only working with BIPA, should we allow others?
                     ante_alts = [
                         alt["ipa"]
-                        for alt in rule["ante"][entry["back-reference"] - 1][
+                        for alt in rule.ante[entry["back-reference"] - 1][
                             "alternative"
                         ]
                     ]
-                    post_alts = rule["post"][entry["back-reference"] - 1][
+                    post_alts = rule.post[entry["back-reference"] - 1][
                         "correspondence"
                     ][1:-1].split(",")
 
@@ -228,6 +228,10 @@ class Model:
         return post_seq
 
     def forward(self, ante_seq, rule):
+        # Transform `ante_seq` in a Sequence, if necessary
+        if not isinstance(ante_seq, alteruphono.sequence.Sequence):
+            ante_seq = Sequence(ante_seq)
+
         # Iterate over the sequence, checking if subsequences match the
         # specified `ante`. While this could, once more, be perfomed with a
         # list comprehension, for easier conversion to Go it is better to
@@ -235,11 +239,11 @@ class Model:
         idx = 0
         post_seq = []
         while True:
-            sub_seq = ante_seq[idx : idx + len(rule["ante"])]
-            match = self.check_match(sub_seq, rule["ante"])
+            sub_seq = ante_seq[idx : idx + len(rule.ante)]
+            match = self.check_match(sub_seq, rule.ante)
             if match:
                 post_seq += self.forward_translate(sub_seq, rule)
-                idx += len(rule["ante"])
+                idx += len(rule.ante)
             else:
                 post_seq.append(ante_seq[idx])
                 idx += 1
@@ -260,7 +264,7 @@ class Model:
         # (such only labials?)
 
         value = {}
-        no_nulls = [token for token in rule["post"] if "null" not in token]
+        no_nulls = [token for token in rule.post if "null" not in token]
         for post_entry, token in zip(no_nulls, sequence):
             if "back-reference" in post_entry:
                 idx = post_entry["back-reference"]
@@ -270,7 +274,7 @@ class Model:
 
         # TODO: note that ante_seq is here the modified one
         ante_seq = []
-        for idx, ante_entry in enumerate(rule["ante"]):
+        for idx, ante_entry in enumerate(rule.ante):
             if "ipa" in ante_entry:
                 ante_seq.append(ante_entry["ipa"])
             elif "alternative" in ante_entry:
@@ -291,6 +295,10 @@ class Model:
         return [" ".join(sequence), " ".join(ante_seq)]
 
     def backward(self, post_seq, rule):
+        # Transform `post_seq` in a Sequence, if necessary
+        if not isinstance(post_seq, alteruphono.sequence.Sequence):
+            post_seq = Sequence(post_seq)
+
         # remove nulls from `post`, as they would be deleted;
         # then, replace back-references
         def _add_modifier(entry1, entry2):
@@ -298,11 +306,11 @@ class Model:
             v["modifier"] = entry2.get("modifier", None)
             return v
 
-        post_ast = [token for token in rule["post"] if "null" not in token]
+        post_ast = [token for token in rule.post if "null" not in token]
         post_ast = [
             token
             if "back-reference" not in token
-            else _add_modifier(rule["ante"][token["back-reference"] - 1], token)
+            else _add_modifier(rule.ante[token["back-reference"] - 1], token)
             for token in post_ast
         ]
 
@@ -322,8 +330,8 @@ class Model:
                 break
 
         ante_seqs = [
-            Sequence(" ".join(candidate)) for candidate in itertools.product(*ante_seqs)
+            Sequence(" ".join(candidate))
+            for candidate in itertools.product(*ante_seqs)
         ]
-
 
         return ante_seqs

@@ -3,6 +3,7 @@
 # TODO: text normalization here as well
 # TODO: add function to compare to string/list/tuple
 
+
 class Sequence:
     def __init__(self, sequence, sep=" "):
         # Split `sequence` string and convert to lists tuple ones
@@ -13,10 +14,10 @@ class Sequence:
 
         # Add boundaries if necessary
         # TODO: use .insert and .append
-        if sequence[0] != '#':
-            sequence = ['#'] + sequence
-        if sequence[-1] != '#':
-            sequence = sequence + ['#']
+        if sequence[0] != "#":
+            sequence = ["#"] + sequence
+        if sequence[-1] != "#":
+            sequence = sequence + ["#"]
 
         # Store sequence and separator (used to return as str)
         self._sequence = sequence
@@ -37,6 +38,9 @@ class Sequence:
         self._iter_idx += 1
 
         return ret
+
+    def __len__(self):
+        return len(self._sequence)
 
     def __repr__(self):
         return repr(self._sequence)

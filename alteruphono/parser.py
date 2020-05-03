@@ -16,6 +16,7 @@ import re
 
 # Import package
 import alteruphono.utils
+from alteruphono.rule import Rule
 
 # TODO: implement an `__all__`
 # TODO: verify why NFC normalization is failing
@@ -275,4 +276,6 @@ def parse_rule(rule_text):
         post_ast, context_ast, offset_ref=len(ante_ast)
     )
 
-    return {"ante": merged_ante_ast, "post": merged_post_ast}
+    return Rule(merged_ante_ast, merged_post_ast)
+
+#    return {"ante": merged_ante_ast, "post": merged_post_ast}

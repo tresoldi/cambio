@@ -14,3 +14,4 @@ from alteruphono import utils
 from alteruphono.parser import parse_rule
 from alteruphono.model import Model
 from alteruphono.sequence import Sequence
+from alteruphono.rule import Rule

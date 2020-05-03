@@ -28,7 +28,10 @@ class TestChangers(unittest.TestCase):
             ("p > b", "# p a p a #"): "# b a b a #",
             ("S > p / _ V", "t i s e"): "# p i s e #",
             ("t[voiced] > s", "t a d a"): "# t a s a #",
-            ("S[voiceless] a > @1[fricative] a", "b a p a t a"): "# b a ɸ a s a #",
+            (
+                "S[voiceless] a > @1[fricative] a",
+                "b a p a t a",
+            ): "# b a ɸ a s a #",
             ("p|t a @1|k > p a t", "t a k"): "# p a t #",
             ("p|d a > @1{b,d} e", "d a p a"): "# d e b e #",
         }
@@ -67,7 +70,9 @@ class TestChangers(unittest.TestCase):
         for test, ref in reference.items():
             post_seq = test[1].split()
             rule = alteruphono.parse_rule(test[0])
-            ante_seqs = tuple([str(seq) for seq in model.backward(post_seq, rule)])
+            ante_seqs = tuple(
+                [str(seq) for seq in model.backward(post_seq, rule)]
+            )
             assert tuple(ante_seqs) == ref
 
     def test_backward_resources(self):
@@ -80,8 +85,9 @@ class TestChangers(unittest.TestCase):
             test_ante = " ".join(change["TEST_ANTE"].split())
             test_post = change["TEST_POST"].split()
 
-            ante_seqs = tuple([str(seq) for seq in model.backward(test_post, rule)])
-            print(ante_seqs)
+            ante_seqs = tuple(
+                [str(seq) for seq in model.backward(test_post, rule)]
+            )
 
             ante_asts = [
                 alteruphono.parser._tokens2ast(seq.split(" "))
