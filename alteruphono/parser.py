@@ -16,10 +16,6 @@ import re
 
 # Import package
 import alteruphono.utils
-from alteruphono.rule import Rule
-
-# TODO: implement an `__all__`
-# TODO: rename `position` to focus?
 
 # Defines the regular expression matching ante, post, and context
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
@@ -125,7 +121,7 @@ def _translate(token):
 
     # Evaluate
     if token == "_":
-        ret = {"position": "_"}
+        ret = {"focus": "_"}
     elif token == "#":
         ret = {"boundary": "#"}
     elif token == ".":
@@ -204,8 +200,8 @@ def _merge_context(ast, context, offset_ref=None):
     if not context:
         return ast
 
-    # split at the `position` symbol of the context, which is mandatory
-    pos_idx = ["position" in token for token in context].index(True)
+    # split at the `focus` symbol of the context, which is mandatory
+    pos_idx = ["focus" in token for token in context].index(True)
     left, right = context[:pos_idx], context[pos_idx + 1 :]
 
     # cache len of `left` and of `ast`
