@@ -15,35 +15,22 @@ import unittest
 import alteruphono
 from alteruphono.parser import *
 
+
 class TestParser(unittest.TestCase):
     """
     Class for `alteruphono` tests related to parsers.
     """
 
     def test_parse(self):
-        # Read phonetic data
-        alteruphono.utils.read_phonetic_model()
-
         reference = {
-            "p > b": {
-                "ante": [TokenIPA("p")],
-                "post": [TokenIPA("b")],
-            },
+            "p > b": {"ante": [TokenIPA("p")], "post": [TokenIPA("b")]},
             "p|t r > @1[+voiced] / V _": {
                 "ante": [
                     TokenSoundClass("V"),
-                    TokenAlternative(
-                        [
-                            TokenIPA("p"),
-                            TokenIPA("t"),
-                        ]
-                    ),
+                    TokenAlternative([TokenIPA("p"), TokenIPA("t")]),
                     TokenIPA("r"),
                 ],
-                "post": [
-                    TokenBackRef(1),
-                    TokenBackRef(2, "[+voiced]"),
-                ],
+                "post": [TokenBackRef(1), TokenBackRef(2, "[+voiced]")],
             },
         }
 
@@ -61,18 +48,10 @@ class TestParser(unittest.TestCase):
     def test_parse_features(self):
         # define tests and references
         reference = {
-            "feat1": Features(
-                positive=["feat1"], negative=[]
-            ),
-            "[feat1]": Features(
-                positive=["feat1"], negative=[]
-            ),
-            "[+feat1]": Features(
-                positive=["feat1"], negative=[]
-            ),
-            "[-feat1]": Features(
-                positive=[], negative=["feat1"]
-            ),
+            "feat1": Features(positive=["feat1"], negative=[]),
+            "[feat1]": Features(positive=["feat1"], negative=[]),
+            "[+feat1]": Features(positive=["feat1"], negative=[]),
+            "[-feat1]": Features(positive=[], negative=["feat1"]),
             "[feat1,+feat2,-feat3]": Features(
                 positive=["feat1", "feat2"], negative=["feat3"]
             ),

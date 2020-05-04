@@ -15,6 +15,30 @@ import alteruphono.parser
 # Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
+# TODO: should be computed and not coded, see comments in model.py
+# TODO: compile the feature description to a Features object
+HARD_CODED_INVERSE_MODIFIER = {
+    ("ɸ", "[+fricative]"): "p",
+    ("t", "[+voiceless]"): "d",
+    ("f", "[+voiceless]"): "v",
+    ("ɶ", "[+rounded]"): "a",
+    ("ĩ", "[+nasalized]"): "i",
+    ("t", "[+alveolar]"): "k",
+    ("c", "[+palatal]"): "k",
+    ("g", "[+voiced]"): "k",
+    ("k", "[+velar]"): "p",
+    ("ɲ", "[+palatal]"): "n",
+    ("d", "[+voiced]"): "t",
+    ("b", "[+voiced]"): "p",
+    ("b̪", "[+stop]"): "v",
+    ("g", "[+stop]"): "ɣ",
+    ("x", "[+voiceless]"): "ɣ",
+    ("d̪", "[+stop]"): "ð",
+    ("b", "[+stop]"): "β",
+    ("t̠", "[+post-alveolar]"): "k",
+    ("k", "[+voiceless]"): "g",
+}
+
 
 def descriptors2grapheme(descriptors, sounds):
     # make sure we can manipulate these descriptors
@@ -118,129 +142,6 @@ def features2graphemes(feature_str, sounds):
     graphemes.sort(key=lambda item: (-len(item), item))
 
     return tuple(graphemes)
-
-
-def read_sound_classes(sounds, filename=None):
-    """
-    Read sound class definitions.
-
-    Parameters
-    ----------
-    filename : string
-        Path to the TSV file holding the sound class definition, defaulting
-        to the one provided with the library.
-
-    Returns
-    -------
-    sound_classes : dict
-        A dictionary with sound class names as keys (such as "A" or
-        "CV"), and corresponding descriptions and list of graphemes
-        as values.
-    """
-
-    if not filename:
-        filename = RESOURCE_DIR / "sound_classes.tsv"
-        filename = filename.as_posix()
-
-    with open(filename) as tsvfile:
-        sound_classes = {}
-        for row in csv.DictReader(tsvfile, delimiter="\t"):
-            # GRAPHEMES can hold either a list of graphemes separated by
-            # a vertical bar or a set of features that will be compiled
-            # into graphemes with `sounds`
-            # TODO: rename GRAPHEMES column
-            # TODO: consider what to do once a `Sound` dataclass is implemented
-            if row["GRAPHEMES"]:
-                graphemes = tuple(
-                    [
-                        clear_text(grapheme)
-                        for grapheme in row["GRAPHEMES"].split("|")
-                    ]
-                )
-            else:
-                graphemes = features2graphemes(row["GRAPHEMES"], sounds)
-
-            sound_classes[row["SOUND_CLASS"]] = {
-                "description": row["DESCRIPTION"],
-                "features": row["FEATURES"],
-                "graphemes": graphemes,
-            }
-
-    return sound_classes
-
-
-def read_sounds(featsys, filename=None):
-    """
-    Read sound definitions.
-
-    Parameters
-    ----------
-    featsys : dict
-        The feature system to be used.
-
-    filename : string
-        Path to the TSV file holding the sound definition, defaulting
-        to the one provided with the library and based on the BIPA
-        transcription system.
-
-    Returns
-    -------
-    sounds : dict
-        A dictionary with graphemes (such as "a") as keys and
-        feature definitions as values.
-    """
-
-    if not filename:
-        filename = RESOURCE_DIR / "sounds.tsv"
-        filename = filename.as_posix()
-
-    sounds = {}
-    with open(filename) as csvfile:
-        for row in csv.DictReader(csvfile, delimiter="\t"):
-            grapheme = clear_text(row["GRAPHEME"])
-            features = row["NAME"].split()
-
-            # TODO: currently skipping over clusters and tones
-            if "from" in features:
-                continue
-            if "tone" in features:
-                continue
-
-            descriptors = {featsys[feat]: feat for feat in features}
-            sounds[grapheme] = descriptors
-
-    return sounds
-
-
-def read_sound_features(filename=None):
-    """
-    Read sound feature definitions.
-
-    Parameters
-    ----------
-    filename : string
-        Path to the TSV file holding the sound feature definition, defaulting
-        to the one provided with the library and based on the BIPA
-        transcription system.
-
-    Returns
-    -------
-    features : dict
-        A dictionary with feature values (such as "devoiced") as keys and
-        feature classes (such as "voicing") as values.
-    """
-
-    if not filename:
-        filename = RESOURCE_DIR / "features_bipa.tsv"
-        filename = filename.as_posix()
-
-    with open(filename) as tsvfile:
-        features = {
-            row["VALUE"]: row["FEATURE"]
-            for row in csv.DictReader(tsvfile, delimiter="\t")
-        }
-
-    return features
 
 
 # TODO: better rename to `load`?
