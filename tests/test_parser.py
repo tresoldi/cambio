@@ -13,7 +13,7 @@ import unittest
 
 # Import the library being test and auxiliary libraries
 import alteruphono
-
+from alteruphono.parser import *
 
 class TestParser(unittest.TestCase):
     """
@@ -26,23 +26,23 @@ class TestParser(unittest.TestCase):
 
         reference = {
             "p > b": {
-                "ante": [alteruphono.parser.TokenIPA("p")],
-                "post": [alteruphono.parser.TokenIPA("b")],
+                "ante": [TokenIPA("p")],
+                "post": [TokenIPA("b")],
             },
             "p|t r > @1[+voiced] / V _": {
                 "ante": [
-                    alteruphono.parser.TokenSoundClass("V"),
-                    alteruphono.parser.TokenAlternative(
+                    TokenSoundClass("V"),
+                    TokenAlternative(
                         [
-                            alteruphono.parser.TokenIPA("p"),
-                            alteruphono.parser.TokenIPA("t"),
+                            TokenIPA("p"),
+                            TokenIPA("t"),
                         ]
                     ),
-                    alteruphono.parser.TokenIPA("r"),
+                    TokenIPA("r"),
                 ],
                 "post": [
-                    alteruphono.parser.TokenBackRef(1),
-                    alteruphono.parser.TokenBackRef(2, "[+voiced]"),
+                    TokenBackRef(1),
+                    TokenBackRef(2, "[+voiced]"),
                 ],
             },
         }
@@ -61,22 +61,22 @@ class TestParser(unittest.TestCase):
     def test_parse_features(self):
         # define tests and references
         reference = {
-            "feat1": alteruphono.parser.Features(
+            "feat1": Features(
                 positive=["feat1"], negative=[]
             ),
-            "[feat1]": alteruphono.parser.Features(
+            "[feat1]": Features(
                 positive=["feat1"], negative=[]
             ),
-            "[+feat1]": alteruphono.parser.Features(
+            "[+feat1]": Features(
                 positive=["feat1"], negative=[]
             ),
-            "[-feat1]": alteruphono.parser.Features(
+            "[-feat1]": Features(
                 positive=[], negative=["feat1"]
             ),
-            "[feat1,+feat2,-feat3]": alteruphono.parser.Features(
+            "[feat1,+feat2,-feat3]": Features(
                 positive=["feat1", "feat2"], negative=["feat3"]
             ),
-            "[feat1,-feat2,feat3=value,+feat4]": alteruphono.parser.Features(
+            "[feat1,-feat2,feat3=value,+feat4]": Features(
                 positive=["feat1", "feat4"],
                 negative=["feat2"],
                 custom={"feat3": "value"},

@@ -4,6 +4,7 @@ from pathlib import Path
 import alteruphono.parser
 import alteruphono.utils
 from alteruphono.sequence import Sequence
+from alteruphono.ast import *
 
 from copy import copy
 
@@ -172,7 +173,7 @@ class Model:
                 alts = [
                     alt
                     if alt.toktype != "ipa"
-                    else alteruphono.parser.TokenIPA(alt.ipa, ref.modifier)
+                    else TokenIPA(alt.ipa, ref.modifier)
                     for alt in ref.alternative
                 ]
 

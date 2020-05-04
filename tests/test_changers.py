@@ -14,6 +14,7 @@ import unittest
 # Import the library being test and auxiliary libraries
 import alteruphono
 from alteruphono.parser import _tokens2ast
+from alteruphono.ast import *
 
 # TODO: could read the phonetic data a single time?
 
