@@ -5,17 +5,41 @@ Defines auxiliary functions, structures, and data for the library.
 # Python standard libraries imports
 import csv
 from pathlib import Path
+import re
+import unicodedata
 
 # Import from other modules
-from .parser import parse_features
-from . import globals
+from alteruphono.parser import parse_features
 
-# Set the resource directory; this is safe as we already added
-# `zip_safe=False` to setup.py
+# Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
+# TODO: should be computed and not coded, see comments in model.py
+# TODO: compile the feature description to a Features object
+HARD_CODED_INVERSE_MODIFIER = {
+    ("ɸ", "[+fricative]"): "p",
+    ("t", "[+voiceless]"): "d",
+    ("f", "[+voiceless]"): "v",
+    ("ɶ", "[+rounded]"): "a",
+    ("ĩ", "[+nasalized]"): "i",
+    ("t", "[+alveolar]"): "k",
+    ("c", "[+palatal]"): "k",
+    ("g", "[+voiced]"): "k",
+    ("k", "[+velar]"): "p",
+    ("ɲ", "[+palatal]"): "n",
+    ("d", "[+voiced]"): "t",
+    ("b", "[+voiced]"): "p",
+    ("b̪", "[+stop]"): "v",
+    ("g", "[+stop]"): "ɣ",
+    ("x", "[+voiceless]"): "ɣ",
+    ("d̪", "[+stop]"): "ð",
+    ("b", "[+stop]"): "β",
+    ("t̠", "[+post-alveolar]"): "k",
+    ("k", "[+voiceless]"): "g",
+}
 
-def descriptors2grapheme(descriptors):
+
+def descriptors2grapheme(descriptors, sounds):
     # make sure we can manipulate these descriptors
     descriptors = list(descriptors)
 
@@ -38,7 +62,7 @@ def descriptors2grapheme(descriptors):
 
     # TODO: should cache this?
     desc = tuple(sorted(descriptors))
-    for sound, feat_dict in globals.SOUNDS.items():
+    for sound, feat_dict in sounds.items():
         # Collect all features and confirm if all are there
         # TODO: better to sort when loading the SOUNDS
         features = tuple(sorted(feat_dict.values()))
@@ -48,13 +72,13 @@ def descriptors2grapheme(descriptors):
     # TODO: fixes in case we missed
     if "breathy" in desc:
         new_desc = [v for v in desc if v != "breathy"]
-        new_gr = descriptors2grapheme(new_desc)
+        new_gr = descriptors2grapheme(new_desc, sounds)
         if new_gr:
             return "%s[breathy]" % new_gr
 
     if "long" in desc:
         new_desc = [v for v in desc if v != "long"]
-        new_gr = descriptors2grapheme(new_desc)
+        new_gr = descriptors2grapheme(new_desc, sounds)
         if new_gr:
             return "%sː" % new_gr
 
@@ -99,13 +123,13 @@ def features2graphemes(feature_str, sounds):
 
         # Check if all positive features are there; we can skip
         # immediately if they don't match
-        pos_match = all(feat in sound_features for feat in features["positive"])
+        pos_match = all(feat in sound_features for feat in features.positive)
         if not pos_match:
             continue
 
         # Check if none of the negative features are there, skipping if not
         neg_match = all(
-            feat not in sound_features for feat in features["negative"]
+            feat not in sound_features for feat in features.negative
         )
         if not neg_match:
             continue
@@ -119,160 +143,22 @@ def features2graphemes(feature_str, sounds):
     return tuple(graphemes)
 
 
-# TODO: comment on `sounds`
-def read_sound_classes(sounds, filename=None):
-    """
-    Read sound class definitions.
-
-    Parameters
-    ----------
-    filename : string
-        Path to the TSV file holding the sound class definition, defaulting
-        to the one provided with the library.
-
-    Returns
-    -------
-    sound_classes : dict
-        A dictionary with sound class names as keys (such as "A" or
-        "CV"), and corresponding descriptions and list of graphemes
-        as values.
-    """
-
-    if not filename:
-        filename = RESOURCE_DIR / "sound_classes.tsv"
-        filename = filename.as_posix()
-
-    with open(filename) as tsvfile:
-        reader = csv.DictReader(tsvfile, delimiter="\t")
-        sound_classes = {}
-        for row in reader:
-            if row["GRAPHEMES"]:
-                graphemes = tuple(row["GRAPHEMES"].split("|"))
-            else:
-                graphemes = features2graphemes(row["GRAPHEMES"], sounds)
-
-            sound_classes[row["SOUND_CLASS"]] = {
-                "description": row["DESCRIPTION"],
-                "features": row["FEATURES"],
-                "graphemes": graphemes,
-            }
-
-    return sound_classes
-
-
-def read_sound_features(filename=None):
-    """
-    Read sound feature definitions.
-
-    Parameters
-    ----------
-    filename : string
-        Path to the TSV file holding the sound feature definition, defaulting
-        to the one provided with the library and based on the BIPA
-        transcription system.
-
-    Returns
-    -------
-    features : dict
-        A dictionary with feature values (such as "devoiced") as keys and
-        feature classes (such as "voicing") as values.
-    """
-
-    if not filename:
-        filename = RESOURCE_DIR / "features_bipa.tsv"
-        filename = filename.as_posix()
-
-    with open(filename) as tsvfile:
-        reader = csv.DictReader(tsvfile, delimiter="\t")
-        features = {row["VALUE"]: row["FEATURE"] for row in reader}
-
-    return features
-
-
-def read_sounds(featsys, filename=None):
-    """
-    Read sound definitions.
-
-    Parameters
-    ----------
-    featsys : dict
-        The feature system to be used.
-
-    filename : string
-        Path to the TSV file holding the sound definition, defaulting
-        to the one provided with the library and based on the BIPA
-        transcription system.
-
-    Returns
-    -------
-    sounds : dict
-        A dictionary with graphemes (such as "a") as keys and
-        feature definitions as values.
-    """
-
-    if not filename:
-        filename = RESOURCE_DIR / "sounds.tsv"
-        filename = filename.as_posix()
-
-    sounds = {}
-    with open(filename) as csvfile:
-        reader = csv.DictReader(csvfile, delimiter="\t")
-        for row in reader:
-            features = row["NAME"].split()
-
-            # NOTE: currently skipping over clusters and tones
-            if "from" in features:
-                continue
-            if "tone" in features:
-                continue
-
-            descriptors = {featsys[feat]: feat for feat in features}
-            sounds[row["GRAPHEME"]] = descriptors
-
-    return sounds
-
-
-# TODO: better rename to `load`?
-def read_phonetic_data():
-    """
-    Return a single data structure with the default phonetic data.
-
-    Returns
-    -------
-    data : dict
-        A dictionary with default sound features (key `features`),
-        sound classes (key `classes`), and sound inventory (key `sounds`).
-    """
-
-    globals.FEATURES = read_sound_features()
-    globals.SOUNDS = read_sounds(globals.FEATURES)
-    globals.SOUND_CLASSES = read_sound_classes(globals.SOUNDS)
-    globals.DESC2GRAPH = {}
-    globals.APPLYMOD = {}
-
-    # Cache the `graphemes` for `sound_classes`
-    # TODO: should be cached in another variable?
-    for value in globals.SOUND_CLASSES.values():
-        value["graphemes"] = features2graphemes(
-            value["features"], globals.SOUNDS
-        )
-
-
 def read_sound_changes(filename=None):
     """
-    Read sound changes.
+    Read a list of sound changes.
 
     Sound changes are stored in a TSV file holding a list of sound changes.
-    Mandatory fields are, besides a unique `ID`,
-    `RULE`, `TEST_ANTE`, and `TEST_POST`.
-    A floating-point `WEIGHT` may also be specified
-    (defaulting to 1.0 for all rules, unless specified).
+    Mandatory fields are a unique `ID` and the `RULE` itself, plus
+    the recommended `TEST_ANTE` and `TEST_POST`. A floating-point `WEIGHT`
+    for sampling might also be specified, and will default to 1.0 for
+    all rules if not provided.
 
     Parameters
     ----------
     filename : string
         Path to the TSV file holding the list of sound changes, defaulting
-        to the one provided by the library.
+        to the one distributed with the library. Strings are cleaned
+        upon loading, which includes Unicode normalization to the NFC form.
 
     Returns
     -------
@@ -288,12 +174,25 @@ def read_sound_changes(filename=None):
     # and target, as well as adding capturing parentheses to source (if
     # necessary) and replacing back-reference notation in targets
     with open(filename) as csvfile:
-        reader = csv.DictReader(csvfile, delimiter="\t")
         rules = {}
-        for row in reader:
+        for row in csv.DictReader(csvfile, delimiter="\t"):
             rule_id = int(row.pop("ID"))
+            row["RULE"] = clear_text(row["RULE"])
+            row["TEST_ANTE"] = clear_text(row["TEST_ANTE"])
+            row["TEST_POST"] = clear_text(row["TEST_POST"])
             row["WEIGHT"] = float(row.get("WEIGHT", 1.0))
+
+            # TODO: remove boundary add when proper parsing is done in Model
+            row["TEST_ANTE"] = "# %s #" % row["TEST_ANTE"]
+            row["TEST_POST"] = "# %s #" % row["TEST_POST"]
 
             rules[rule_id] = row
 
     return rules
+
+
+def clear_text(text):
+    text = unicodedata.normalize("NFC", text)
+    text = re.sub(r"\s+", " ", text).strip()
+
+    return text
