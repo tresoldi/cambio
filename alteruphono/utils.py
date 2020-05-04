@@ -9,8 +9,7 @@ import re
 import unicodedata
 
 # Import from other modules
-# from . import parser
-import alteruphono.parser
+from alteruphono.parser import parse_features
 
 # Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
@@ -114,7 +113,7 @@ def features2graphemes(feature_str, sounds):
     """
 
     # Parse the feature string
-    features = alteruphono.parser.parse_features(feature_str)
+    features = parse_features(feature_str)
 
     # Iterate over all sounds in the transcription system
     graphemes = []
@@ -142,29 +141,6 @@ def features2graphemes(feature_str, sounds):
     graphemes.sort(key=lambda item: (-len(item), item))
 
     return tuple(graphemes)
-
-
-# TODO: better rename to `load`?
-# TODO: allow multiple models, per dictory, perhaps metadata in the future, validation
-def read_phonetic_model():
-    """
-    Return a single data structure with the default phonetic data.
-
-    Returns
-    -------
-    data : dict
-        A dictionary with default sound features (key `features`),
-        sound classes (key `classes`), and sound inventory (key `sounds`).
-    """
-
-    model = {}
-    model["FEATURES"] = read_sound_features()
-    model["SOUNDS"] = read_sounds(model["FEATURES"])
-    model["SOUND_CLASSES"] = read_sound_classes(model["SOUNDS"])
-    model["DESC2GRAPH"] = {}  # check usage
-    model["APPLYMOD"] = {}  # check usage
-
-    return model
 
 
 def read_sound_changes(filename=None):

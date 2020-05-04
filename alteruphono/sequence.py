@@ -22,6 +22,9 @@ class Sequence:
         elif isinstance(sequence, tuple):
             sequence = list(sequence)
 
+        # Make sure all entries are normalized
+        sequence = [alteruphono.utils.clear_text(token) for token in sequence]
+
         # Add boundaries if necessary
         if sequence[0] != "#":
             sequence.insert(0, "#")

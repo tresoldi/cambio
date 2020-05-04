@@ -16,7 +16,15 @@ import re
 
 # Import package
 import alteruphono.utils
-from alteruphono.ast import *
+from alteruphono.ast import Features
+from alteruphono.ast import TokenAlternative
+from alteruphono.ast import TokenBackRef
+from alteruphono.ast import TokenBoundary
+from alteruphono.ast import TokenFocus
+from alteruphono.ast import TokenIPA
+from alteruphono.ast import TokenNull
+from alteruphono.ast import TokenSoundClass
+from alteruphono.ast import TokenSylBreak
 
 # Defines the regular expression matching ante, post, and context
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")

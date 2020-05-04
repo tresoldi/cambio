@@ -7,16 +7,17 @@ as list of sounds, features, etc. By default, it will load the model
 distributed with the package.
 """
 
+# Import Python standard libraries
+from copy import copy
 import csv
 import itertools
 from pathlib import Path
 
+# Import package
 import alteruphono.parser
 import alteruphono.utils
 from alteruphono.sequence import Sequence
-from alteruphono.ast import *
-
-from copy import copy
+from alteruphono.ast import TokenIPA
 
 
 def read_sound_features(filename):
@@ -113,7 +114,9 @@ def read_sound_classes(sounds, filename):
                     ]
                 )
             else:
-                graphemes = features2graphemes(row["GRAPHEMES"], sounds)
+                graphemes = alteruphono.utils.features2graphemes(
+                    row["GRAPHEMES"], sounds
+                )
 
             sound_classes[row["SOUND_CLASS"]] = {
                 "description": row["DESCRIPTION"],
@@ -405,6 +408,7 @@ class Model:
         # the modifiers from the post sequence; in a way, it "fakes" the
         # rule being applied, so that something like "d > @1[+voiceless]"
         # is transformed in the equivalent "t > @1".
+        # TODO: remove copy, build new object
         def _add_modifier(entry1, entry2):
             # TODO: do we need a copy?
             v = copy(entry1)

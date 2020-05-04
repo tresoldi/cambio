@@ -110,7 +110,7 @@ class TokenAlternative(Token):
         self.modifier = modifier
 
     def __str__(self):
-        tmp = copy(self.__dict__)
+        tmp = self.__dict__.copy()
         tmp.pop("alternative")
         return "|".join([str(tok) for tok in self.alternative]) + str(tmp)
 
