@@ -8,7 +8,8 @@ phonological representations, intended for use in simulations of language
 evolution.
 
 *Please remember that, while usable, `alteruphono` is a work-in-progress.
-The best documentation is currently to check the tests.*
+The best documentation is currently to check the tests, and the
+library is not recommended for production usage.*
 
 ## Installation
 
@@ -18,8 +19,39 @@ In any standard Python environment, `alteruphono` can be installed with:
 pip install alteruphono
 ```
 
-The `pip` installation with also fetch dependencies, such as `pyclts`,
-if necessary. Installation in virtual environments is recommended.
+## How to use
+
+Detailed documentation can be found in the library source code and will
+be published along with the paper accompanying the library; terser
+technical description is available at the end of this document.
+Consultation of the
+[sound changes provided for testing purposes](https://github.com/tresoldi/alteruphono/blob/master/resources/sound_changes.tsv)
+is also recommended.
+
+For basic usage as a library, the `.forward()` and `.backward()` functions
+can be used as a wrapper for most common circumstances. In the
+examples below, a rule `p > t / _ V` (that is, /p/ turns into /t/ when
+followed by a vowel) is applied both in forward and backward direction
+to the `/pate/` sound sequence; the `.backward()` function correctly
+returns the two possible proto-forms:
+
+```python
+>>> import alteruphono
+>>> alteruphono.forward("# p a t e #", "p > t / _ V")
+['#', 't', 'a', 't', 'e', '#']
+>>> alteruphono.backward("# p a t e #", "p > t / _ V")
+[['#', 'p', 'a', 't', 'e', '#'], ['#', 'p', 'a', 'p', 'e', '#']]
+```
+
+A stand-alone command-line tool can be used to call these wrapper
+functions:
+
+```bash
+$ alteruphono forward "# p a t e #" "p > t / _ V"
+# t a t e #
+$ alteruphono backward "# p a t e #" "p > t / _ V"
+['# p a t e #', '# p a p e #']
+```
 
 ## Elements
 
@@ -164,35 +196,7 @@ allow to carry identities: if "V s V" means any intervocalic "s" and
 intervocalic position where the two vowels are equal. Back-references
 can take modifier.
 
-## How to use
 
-A basic usage, drawing a random sound change from the default collection
-and applying it, is:
-
-```python
-import alteruphono
-
-rules = alteruphono.utils.read_sound_changes()
-random_rules = [alteruphono.utils.random_change(rules) for r in range(3)]
-for rule in random_rules:
-    source = rule["source"]
-    target = rule["target"]
-    test_case = rule["test"].split("/")[0].strip()
-
-    print("%s -> %s" % (source, target))
-    print("  [%s] [%s]" % (test_case, alteruphono.apply_rule(test_case, source, target)))
-```
-
-returning:
-
-```
-V N C -> @1[+nasalized] @3
-  [a b ts a r i m b s u] [a b ts a r ĩ b s u]
-e i -> a i
-  [d i a z e i l e n] [d i a z a i l e n]
-n k|g -> ŋ @2
-  [a k a n k m i k s] [a k a ŋ k m i k s]
-```
 
 ## TODO
 
@@ -304,14 +308,14 @@ Other non primitives include alternatives and sets.
 If you use `alteruphono`, please cite it as:
 
 > Tresoldi, Tiago (2020). Alteruphono, a tool for simulating sound changes.
-Version 0.2. Jena. Available at: https://github.com/tresoldi/alteruphono
+Version 0.3. Jena. Available at: https://github.com/tresoldi/alteruphono
 
 In BibTex:
 
 ```
 @misc{Tresoldi202alteruphono,
   author = {Tresoldi, Tiago},
-  title = {Alteruphono, a tool for simulating sound changes. Version 0.2.},
+  title = {Alteruphono, a tool for simulating sound changes. Version 0.3.},
   howpublished = {\url{https://github.com/tresoldi/alteruphono}},
   address = {Jena},
   year = {2020},
