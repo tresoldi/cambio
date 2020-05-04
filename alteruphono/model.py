@@ -101,18 +101,18 @@ class Model:
         # Remove requested features
         # TODO: write tests
         descriptors = [
-            value for value in descriptors if value not in features["negative"]
+            value for value in descriptors if value not in features.negative
         ]
 
         # Remove any descriptor from a feature type we are changing, and add
         # all positive descriptors
-        for feature in features["positive"]:
+        for feature in features.positive:
             descriptors = [
                 value
                 for value in descriptors
                 if self.features[value] != self.features[feature]
             ]
-        descriptors += features["positive"]
+        descriptors += features.positive
 
         # Obtain the grapheme based on the description
         # TODO: decide if we should just memoize
@@ -172,7 +172,7 @@ class Model:
                 alts = [
                     alt
                     if alt.toktype != "ipa"
-                    else alteruphono.parser.TokenIPA(alt.ipa, alt.modifier)
+                    else alteruphono.parser.TokenIPA(alt.ipa, ref.modifier)
                     for alt in ref.alternative
                 ]
 
@@ -180,6 +180,7 @@ class Model:
                     self.check_match([token], [alt])
                     for alt in alts  # ref["alternative"]
                 ]
+
                 if not any(alt_matches):
                     return False
 
@@ -298,8 +299,10 @@ class Model:
         if not isinstance(post_seq, alteruphono.sequence.Sequence):
             post_seq = Sequence(post_seq)
 
-        # remove nulls from `post`, as they would be deleted;
-        # then, replace back-references
+        # This method makes a copy of the original AST ante-tokens and applies
+        # the modifiers from the post sequence; in a way, it "fakes" the
+        # rule being applied, so that something like "d > @1[+voiceless]"
+        # is transformed in the equivalent "t > @1".
         def _add_modifier(entry1, entry2):
             # TODO: do we need a copy?
             v = copy(entry1)
@@ -319,6 +322,8 @@ class Model:
         while True:
             sub_seq = post_seq[idx : idx + len(post_ast)]
             match = self.check_match(sub_seq, post_ast)
+            #        print(idx, match, sub_seq, [str(t) for t in post_ast])
+
             if match:
                 ante_seqs.append(self.backward_translate(sub_seq, rule))
                 idx += len(post_ast)

@@ -28,61 +28,65 @@ class TestParser(unittest.TestCase):
             "p > b": {
                 "ante": [alteruphono.parser.TokenIPA("p")],
                 "post": [alteruphono.parser.TokenIPA("b")],
-
             },
             "p|t r > @1[+voiced] / V _": {
                 "ante": [
-                    (("modifier", None), ("sound_class", "V")),
-                    (
-                        (
-                            "alternative",
-                            [
-                                {"ipa": "p", "modifier": None},
-                                {"ipa": "t", "modifier": None},
-                            ],
-                        ),
+                    alteruphono.parser.TokenSoundClass("V"),
+                    alteruphono.parser.TokenAlternative(
+                        [
+                            alteruphono.parser.TokenIPA("p"),
+                            alteruphono.parser.TokenIPA("t"),
+                        ]
                     ),
-                    (("ipa", "r"), ("modifier", None)),
+                    alteruphono.parser.TokenIPA("r"),
                 ],
                 "post": [
-                    (("back-reference", 1),),
-                    (("back-reference", 2), ("modifier", "[+voiced]")),
+                    alteruphono.parser.TokenBackRef(1),
+                    alteruphono.parser.TokenBackRef(2, "[+voiced]"),
                 ],
             },
         }
 
-#        for rule, ref in reference.items():
-#            ret = alteruphono.Rule(rule)
-#            ret_ante = [tuple(sorted(token.items())) for token in ret.ante]
-#            ret_post = [tuple(sorted(token.items())) for token in ret.post]
-#
-#            assert tuple(ref["ante"]) == tuple(ret_ante)
-#            assert tuple(ref["post"]) == tuple(ret_post)
+        for rule, ref in reference.items():
+            ret = alteruphono.Rule(rule)
+
+            assert len(ref["ante"]) == len(ret.ante)
+            for ref_ante_tok, ret_ante_tok in zip(ref["ante"], ret.ante):
+                assert ref_ante_tok == ret_ante_tok
+
+            assert len(ref["post"]) == len(ret.post)
+            for ref_post_tok, ret_post_tok in zip(ref["post"], ret.post):
+                assert ref_post_tok == ret_post_tok
 
     def test_parse_features(self):
         # define tests and references
         reference = {
-            "feat1": {"positive": ("feat1",), "negative": (), "custom": ()},
-            "[feat1]": {"positive": ("feat1",), "negative": (), "custom": ()},
-            "[+feat1]": {"positive": ("feat1",), "negative": (), "custom": ()},
-            "[-feat1]": {"positive": (), "negative": ("feat1",), "custom": ()},
-            "[feat1,+feat2,-feat3]": {
-                "positive": ("feat1", "feat2"),
-                "negative": ("feat3",),
-                "custom": (),
-            },
-            "[feat1,-feat2,feat3=value,+feat4]": {
-                "positive": ("feat1", "feat4"),
-                "negative": ("feat2",),
-                "custom": (("feat3", "value"),),
-            },
+            "feat1": alteruphono.parser.Features(
+                positive=["feat1"], negative=[]
+            ),
+            "[feat1]": alteruphono.parser.Features(
+                positive=["feat1"], negative=[]
+            ),
+            "[+feat1]": alteruphono.parser.Features(
+                positive=["feat1"], negative=[]
+            ),
+            "[-feat1]": alteruphono.parser.Features(
+                positive=[], negative=["feat1"]
+            ),
+            "[feat1,+feat2,-feat3]": alteruphono.parser.Features(
+                positive=["feat1", "feat2"], negative=["feat3"]
+            ),
+            "[feat1,-feat2,feat3=value,+feat4]": alteruphono.parser.Features(
+                positive=["feat1", "feat4"],
+                negative=["feat2"],
+                custom={"feat3": "value"},
+            ),
         }
 
         for feat_str, ref in reference.items():
             ret = alteruphono.parser.parse_features(feat_str)
-            assert tuple(ret["positive"]) == ref["positive"]
-            assert tuple(ret["negative"]) == ref["negative"]
-            assert tuple(sorted(ret["custom"].items())) == ref["custom"]
+
+            assert ret == ref
 
 
 if __name__ == "__main__":

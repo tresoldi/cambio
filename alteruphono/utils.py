@@ -100,13 +100,13 @@ def features2graphemes(feature_str, sounds):
 
         # Check if all positive features are there; we can skip
         # immediately if they don't match
-        pos_match = all(feat in sound_features for feat in features["positive"])
+        pos_match = all(feat in sound_features for feat in features.positive)
         if not pos_match:
             continue
 
         # Check if none of the negative features are there, skipping if not
         neg_match = all(
-            feat not in sound_features for feat in features["negative"]
+            feat not in sound_features for feat in features.negative
         )
         if not neg_match:
             continue
