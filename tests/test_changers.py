@@ -98,6 +98,11 @@ class TestChangers(unittest.TestCase):
                 for ante_ast in ante_asts
             ]
 
+            print(change)
+            print(ante_seqs)
+            print(ante_asts)
+            print()
+
             assert any(matches)
 
 

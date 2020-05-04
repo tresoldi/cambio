@@ -5,6 +5,8 @@ import alteruphono.parser
 import alteruphono.utils
 from alteruphono.sequence import Sequence
 
+from copy import copy
+
 # TODO: create class for sequence and for rule
 class Model:
     def __init__(self, model_path=None):
@@ -143,19 +145,19 @@ class Model:
             return False
 
         for token, ref in zip(sequence, pattern):
-            if "ipa" in ref:
-                ipa = self.apply_modifier(ref["ipa"], ref["modifier"])
+            if ref.toktype == "ipa":
+                ipa = self.apply_modifier(ref.ipa, ref.modifier)
                 if token != ipa:
                     return False
-            elif "boundary" in ref:
+            elif ref.toktype == "boundary":
                 if token != "#":
                     return False
-            elif "sound_class" in ref:
+            elif ref.toktype == "sound_class":
                 # Apply the modifier to all the items in the sound class,
                 # so we can check if the `token` is actually there.
                 modified = [
-                    self.apply_modifier(grapheme, ref["modifier"])
-                    for grapheme in self.sound_classes[ref["sound_class"]][
+                    self.apply_modifier(grapheme, ref.modifier)
+                    for grapheme in self.sound_classes[ref.sound_class][
                         "graphemes"
                     ]
                 ]
@@ -163,18 +165,15 @@ class Model:
 
                 if token not in modified:
                     return False
-            elif "alternative" in ref:
+            elif ref.toktype == "alternative":
                 # Check the sub-match for each alternative -- if one works, it
                 # is ok
                 # TODO: apply modifiers everywhere (not only in IPA)
                 alts = [
                     alt
-                    if "ipa" not in alt
-                    else {
-                        "ipa": alt["ipa"],
-                        "modifier": ref.get("modifier", None),
-                    }
-                    for alt in ref["alternative"]
+                    if alt.toktype != "ipa"
+                    else alteruphono.parser.TokenIPA(alt.ipa, alt.modifier)
+                    for alt in ref.alternative
                 ]
 
                 alt_matches = [
@@ -195,35 +194,32 @@ class Model:
 
         # TODO: rename `entry` to `token`? also below
         for entry in rule.post:
-            if "ipa" in entry:
-                post_seq.append(entry["ipa"])
-            elif "back-reference" in entry:
+            # Note that this will, as intended, skip over `null`
+            if entry.toktype == "ipa":
+                post_seq.append(entry.ipa)
+            elif entry.toktype == "backref":
                 # Refer to `correspondence`, if specified
                 # -1 as back-references as 1-based, and Python lists 0-based
-                if "correspondence" in entry:
+                if entry.correspondence:
                     # get the alternative index in `ante`
                     # NOTE: `post_alts` has [1:-1] for the curly brackets
                     # TODO: this is only working with BIPA, should we allow others?
                     ante_alts = [
-                        alt["ipa"]
-                        for alt in rule.ante[entry["back-reference"] - 1][
-                            "alternative"
-                        ]
+                        alt.ipa
+                        for alt in rule.ante[entry.index - 1].alternative
                     ]
-                    post_alts = rule.post[entry["back-reference"] - 1][
-                        "correspondence"
-                    ][1:-1].split(",")
+                    post_alts = (
+                        rule.post[entry.index - 1]
+                        .correspondence[1:-1]
+                        .split(",")
+                    )
 
-                    idx = ante_alts.index(sequence[entry["back-reference"] - 1])
+                    idx = ante_alts.index(sequence[entry.index - 1])
 
                     post_seq.append(post_alts[idx])
                 else:
-                    token = sequence[entry["back-reference"] - 1]
-                    post_seq.append(
-                        self.apply_modifier(token, entry.get("modifier", None))
-                    )
-            elif "null" in entry:
-                pass
+                    token = sequence[entry.index - 1]
+                    post_seq.append(self.apply_modifier(token, entry.modifier))
 
         return post_seq
 
@@ -264,31 +260,34 @@ class Model:
         # (such only labials?)
 
         value = {}
-        no_nulls = [token for token in rule.post if "null" not in token]
+        no_nulls = [token for token in rule.post if token.toktype != "null"]
         for post_entry, token in zip(no_nulls, sequence):
-            if "back-reference" in post_entry:
-                idx = post_entry["back-reference"]
+            if post_entry.toktype == "backref":
+                idx = post_entry.index
                 value[idx - 1] = self.apply_modifier(
-                    token, post_entry.get("modifier", None), inverse=True
+                    token, post_entry.modifier, inverse=True
                 )
 
         # TODO: note that ante_seq is here the modified one
         ante_seq = []
         for idx, ante_entry in enumerate(rule.ante):
-            if "ipa" in ante_entry:
-                ante_seq.append(ante_entry["ipa"])
-            elif "alternative" in ante_entry:
+            if ante_entry.toktype == "ipa":
+                ante_seq.append(ante_entry.ipa)
+            elif ante_entry.toktype == "alternative":
                 # build alternative string, for cases when deleted
                 # TODO: modifiers etc
-                alt_string = "|".join(
-                    [
-                        alt.get("ipa", alt.get("sound_class", "#"))
-                        for alt in ante_entry["alternative"]
-                    ]
-                )
+                alts = []
+                for alt in ante_entry.alternative:
+                    if alt.toktype == "ipa":
+                        alts.append(alt.ipa)
+                    elif alt.toktype == "sound_class":
+                        alts.append(alt.sound_class)
+                    else:
+                        alts.append("#")
+                alt_string = "|".join(alts)
                 ante_seq.append(value.get(idx, alt_string))
-            elif "sound_class" in ante_entry:
-                ante_seq.append(value.get(idx, ante_entry["sound_class"]))
+            elif ante_entry.toktype == "sound_class":
+                ante_seq.append(value.get(idx, ante_entry.sound_class))
 
         # NOTE: returning `sequence` for the unalterted ("did not apply")
         # option -- should it be added outisde this function? TODO
@@ -302,15 +301,16 @@ class Model:
         # remove nulls from `post`, as they would be deleted;
         # then, replace back-references
         def _add_modifier(entry1, entry2):
-            v = entry1.copy()
-            v["modifier"] = entry2.get("modifier", None)
+            # TODO: do we need a copy?
+            v = copy(entry1)
+            v.modifier = entry2.modifier
             return v
 
-        post_ast = [token for token in rule.post if "null" not in token]
+        post_ast = [token for token in rule.post if token.toktype != "null"]
         post_ast = [
             token
-            if "back-reference" not in token
-            else _add_modifier(rule.ante[token["back-reference"] - 1], token)
+            if token.toktype != "backref"
+            else _add_modifier(rule.ante[token.index - 1], token)
             for token in post_ast
         ]
 

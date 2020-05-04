@@ -12,10 +12,87 @@ to diminish the dependency on Python.
 """
 
 # Import Python standard libraries
+from copy import copy
 import re
 
 # Import package
 import alteruphono.utils
+
+
+class Token:
+    def __init__(self):
+        pass
+
+    def __contains__(self, key):
+        return key in self.__dict__
+
+
+class TokenFocus(Token):
+    toktype = "focus"
+
+    def __init__(self, symbol="_"):
+        super().__init__()
+        self.symbol = symbol
+
+
+class TokenNull(Token):
+    toktype = "null"
+
+    def __init__(self):
+        super().__init__()
+
+
+class TokenBoundary(Token):
+    toktype = "boundary"
+
+    def __init__(self, symbol="#"):
+        super().__init__()
+        self.symbol = symbol
+
+
+class TokenSylBreak(Token):
+    toktype = "sylbreak"
+
+    def __init__(self, symbol="."):
+        super().__init__()
+        self.symbol = symbol
+
+
+class TokenIPA(Token):
+    toktype = "ipa"
+
+    def __init__(self, grapheme, modifier=None):
+        super().__init__()
+        self.ipa = grapheme
+        self.modifier = modifier
+
+
+class TokenSoundClass(Token):
+    toktype = "sound_class"
+
+    def __init__(self, sound_class, modifier=None):
+        super().__init__()
+        self.sound_class = sound_class
+        self.modifier = modifier
+
+
+class TokenBackRef(Token):
+    toktype = "backref"
+
+    def __init__(self, index, modifier=None, correspondence=None):
+        super().__init__()
+        self.index = index
+        self.modifier = modifier
+        self.correspondence = correspondence
+
+
+class TokenAlternative(Token):
+    toktype = "alternative"
+
+    def __init__(self, alternative):
+        super().__init__()
+        self.alternative = alternative
+
 
 # Defines the regular expression matching ante, post, and context
 _RE_ANTE_POST = re.compile(r"^(?P<ante>.+?)(=>|->|>)(?P<post>.+?)$")
@@ -121,48 +198,42 @@ def _translate(token):
 
     # Evaluate
     if token == "_":
-        ret = {"focus": "_"}
+        ret = TokenFocus()
     elif token == "#":
-        ret = {"boundary": "#"}
+        ret = TokenBoundary()
     elif token == ".":
-        ret = {"syllable": "."}
+        ret = TokenSylBreak()
     elif token == ":null:":
-        ret = {"null": "null"}
+        ret = TokenNull()
     elif "|" in token:
         # If the string includes a vertical bar, it a list of alternatives;
         # alternatives can be pretty much anything, graphemes, sound classes
         #  (with modifiers or not), etc.
-        ret = {"alternative": [_translate(alt) for alt in token.split("|")]}
+        alternative = [_translate(alt) for alt in token.split("|")]
+        ret = TokenAlternative(alternative)
     elif backref_match:
         # Check if it is a back-reference, possibly with modifiers or set
         # correspondences
-        if not backref_match.group("extra"):
-            ret = {"back-reference": int(backref_match.group("idx"))}
-        elif backref_match.group("extra")[0] == "[":
-            ret = {
-                "back-reference": int(backref_match.group("idx")),
-                "modifier": backref_match.group("extra"),
-            }
-        elif backref_match.group("extra")[0] == "{":
-            ret = {
-                "back-reference": int(backref_match.group("idx")),
-                "correspondence": backref_match.group("extra"),
-            }
+        index = int(backref_match.group("idx"))
+        modifier = None
+        correspondence = None
+        if backref_match.group("extra"):
+            if backref_match.group("extra")[0] == "[":
+                modifier = backref_match.group("extra")
+            elif backref_match.group("extra")[0] == "{":
+                correspondence = backref_match.group("extra")
+
+        ret = TokenBackRef(index, modifier, correspondence)
     elif sc_match:
-        # Check if it is sound-class, with optional modifier
-        ret = {
-            "sound_class": sc_match.group("sc"),
-            "modifier": sc_match.group("modifier"),
-        }
+        ret = TokenSoundClass(sc_match.group("sc"), sc_match.group("modifier"))
     elif ipamod_match:
         # IPA with modifier
-        ret = {
-            "ipa": ipamod_match.group("ipa"),
-            "modifier": ipamod_match.group("modifier"),
-        }
+        ret = TokenIPA(
+            ipamod_match.group("ipa"), ipamod_match.group("modifier")
+        )
     elif token in globals.SOUNDS:
         # At this point, it should be a grapheme; check if it is a valid one
-        ret = {"ipa": token}
+        ret = TokenIPA(token)
 
     return ret
 
@@ -201,7 +272,7 @@ def _merge_context(ast, context, offset_ref=None):
         return ast
 
     # split at the `focus` symbol of the context, which is mandatory
-    pos_idx = ["focus" in token for token in context].index(True)
+    pos_idx = [token.toktype == "focus" for token in context].index(True)
     left, right = context[:pos_idx], context[pos_idx + 1 :]
 
     # cache len of `left` and of `ast`
@@ -214,27 +285,28 @@ def _merge_context(ast, context, offset_ref=None):
     # TODO: move to a separate function? it would also make easier to
     # take care of backreferences in alternatives, which are not
     # supported at present
+    # TODO: do we really need copies?
     merged_ast = []
     for token in ast:
-        merged_ast.append(dict(token))
-        if "back-reference" in token:
-            merged_ast[-1]["back-reference"] += offset_left
+        merged_ast.append(copy(token))
+        if token.toktype == "backref":
+            merged_ast[-1].index += offset_left
 
     if offset_ref:
         merged_ast = (
-            [{"back-reference": i + 1} for i, _ in enumerate(left)]
+            [TokenBackRef(i + 1) for i, _ in enumerate(left)]
             + merged_ast
             + [
-                {"back-reference": i + 1 + offset_left + offset_ref}
+                TokenBackRef(i + 1 + offset_left + offset_ref)
                 for i, _ in enumerate(right)
             ]
         )
     else:
         merged_ast = left[:] + merged_ast
         for token in right:
-            merged_ast.append(dict(token))
-            if "back-reference" in token:
-                merged_ast[-1]["back-reference"] += offset_ast
+            merged_ast.append(copy(token))
+            if token.toktype == "backref":
+                merged_ast[-1].index += offset_ast
 
     return merged_ast
 
