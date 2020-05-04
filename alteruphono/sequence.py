@@ -1,7 +1,17 @@
 # TODO: allow different boundary symbols, including "^" and "$"
-# TODO: implement a Token/Sound class for elements, even if only strings
 # TODO: text normalization here as well
 # TODO: add function to compare to string/list/tuple
+
+"""
+Sequence class.
+
+This module defines a basic sequence class that allows to generalize
+operations with sound sequences, taking care of details such as boundaries,
+spaces, etc.
+"""
+
+# Import package
+import alteruphono.utils
 
 
 class Sequence:
@@ -13,11 +23,10 @@ class Sequence:
             sequence = list(sequence)
 
         # Add boundaries if necessary
-        # TODO: use .insert and .append
         if sequence[0] != "#":
-            sequence = ["#"] + sequence
+            sequence.insert(0, "#")
         if sequence[-1] != "#":
-            sequence = sequence + ["#"]
+            sequence.append("#")
 
         # Store sequence and separator (used to return as str)
         self._sequence = sequence
