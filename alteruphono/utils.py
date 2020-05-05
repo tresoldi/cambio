@@ -182,10 +182,6 @@ def read_sound_changes(filename=None):
             row["TEST_POST"] = clear_text(row["TEST_POST"])
             row["WEIGHT"] = float(row.get("WEIGHT", 1.0))
 
-            # TODO: remove boundary add when proper parsing is done in Model
-            row["TEST_ANTE"] = "# %s #" % row["TEST_ANTE"]
-            row["TEST_POST"] = "# %s #" % row["TEST_POST"]
-
             rules[rule_id] = row
 
     return rules
