@@ -38,6 +38,9 @@ HARD_CODED_INVERSE_MODIFIER = {
     ("k", "[+voiceless]"): "g",
 }
 
+# Custom package errors, for fuzzing, testing, etc.
+class AlteruPhonoError(Exception):
+    pass
 
 def descriptors2grapheme(descriptors, sounds):
     # make sure we can manipulate these descriptors

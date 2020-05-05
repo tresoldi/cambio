@@ -262,6 +262,8 @@ class Rule:
 
         # Extract `ante` and `post` and tokenize them
         match = re.match(_RE_ANTE_POST, ante_post)
+        if not match:
+            raise alteruphono.utils.AlteruPhonoError("Unable to parse rule.")
         ante_tokens = match.group("ante").strip()
         post_tokens = match.group("post").strip()
 

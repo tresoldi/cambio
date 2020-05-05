@@ -321,6 +321,10 @@ class Model:
         Apply forward transformation to a sequence given a rule.
         """
 
+        # Make sure the rule is a valid one
+        if not isinstance(rule, alteruphono.parser.Rule):
+            raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
+
         # Transform `ante_seq` in a Sequence, if necessary
         if not isinstance(ante_seq, alteruphono.sequence.Sequence):
             ante_seq = Sequence(ante_seq)
@@ -399,6 +403,10 @@ class Model:
         """
         Apply backward transformation to a sequence given a rule.
         """
+
+        # Make sure the rule is a valid one
+        if not isinstance(rule, alteruphono.parser.Rule):
+            raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
 
         # Transform `post_seq` in a Sequence, if necessary
         if not isinstance(post_seq, alteruphono.sequence.Sequence):
