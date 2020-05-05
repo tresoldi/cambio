@@ -21,7 +21,7 @@ def forward(sequence, rule):
 
     if isinstance(rule, str):
         rule = Rule(rule)
-        
+
     return model.forward(sequence, rule)
 
 

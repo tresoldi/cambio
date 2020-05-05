@@ -14,6 +14,7 @@ import unittest
 # Import the library being test and auxiliary libraries
 import alteruphono
 from alteruphono.parser import _tokens2ast
+from alteruphono.sequence import Sequence
 from alteruphono.ast import *
 
 # TODO: could read the phonetic data a single time?
@@ -51,10 +52,11 @@ class TestChangers(unittest.TestCase):
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
             test_ante = change["TEST_ANTE"].split()
-            test_post = change["TEST_POST"]
+            test_post = Sequence(change["TEST_POST"])
             rule = alteruphono.Rule(change["RULE"])
             post_seq = model.forward(test_ante, rule)
-            assert str(post_seq) == test_post
+
+            assert post_seq == test_post
 
     def test_backward_hardcoded(self):
         reference = {
@@ -83,7 +85,7 @@ class TestChangers(unittest.TestCase):
         for change_id, change in sorted(sound_changes.items()):
             rule = alteruphono.Rule(change["RULE"])
 
-            test_ante = " ".join(change["TEST_ANTE"].split())
+            test_ante = Sequence(change["TEST_ANTE"])
             test_post = change["TEST_POST"].split()
 
             ante_seqs = tuple(
@@ -95,8 +97,7 @@ class TestChangers(unittest.TestCase):
                 for seq in ante_seqs
             ]
             matches = [
-                model.check_match(test_ante.split(" "), ante_ast)
-                for ante_ast in ante_asts
+                model.check_match(test_ante, ante_ast) for ante_ast in ante_asts
             ]
 
             assert any(matches)

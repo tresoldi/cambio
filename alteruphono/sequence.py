@@ -59,3 +59,17 @@ class Sequence:
 
     def __str__(self):
         return self._sep.join(self._sequence)
+
+    # NOTE: not considering separator
+    def __eq__(self, other):
+        if len(self._sequence) != len(other._sequence):
+            return False
+
+        return all(
+            [
+                self_sound == other_sound
+                for self_sound, other_sound in zip(
+                    self._sequence, other._sequence
+                )
+            ]
+        )
