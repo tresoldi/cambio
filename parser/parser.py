@@ -46,6 +46,12 @@ def main():
     print("*", rule, "--", [ast1], type(ast1))
     pprint.pprint(ast1, indent=2, width=20)
 
+    for rule in rules:
+        ast = model.parse(rule)
+        print([rule])
+        pprint.pprint(ast)
+        print()
+
 #    for idx, a in enumerate(ast1.sequence):
 #        print(idx, len(a), a)
 

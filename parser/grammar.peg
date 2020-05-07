@@ -51,9 +51,9 @@ SEQUENCE_ELEMENT =
 SEGMENT =
     | boundary:BOUNDARY
     | empty:EMPTY
-    | backref:BACKREF
-    | sound_class:SOUND_CLASS
-    | ipa:ipa
+    | BACKREF
+    | SOUND_CLASS
+    | ipa
     ;
 
 ## Define feature keys, features (which include keys and values), and feature
@@ -77,13 +77,13 @@ FEATURE =
     | key:FEATURE_KEY "=" value:(r"true"|r"false")
     | key:FEATURE_KEY
     ;
-MODIFIER = [recons:RECONS] r"[" ",".{ feature_desc+:FEATURE }+ r"]" ;
+MODIFIER = [recons:RECONS] r"[" ",".{ @+:FEATURE }+ r"]" ;
 
 ## Defines a back-reference, an index with an optional modifier and
 ## reconstruction flag.
 BACKREF =
-    | [recons:RECONS] "@" index:/[0-9]+/ modifier:MODIFIER
-    | [recons:RECONS] "@" index:/[0-9]+/
+    | [recons:RECONS] "@" backref:/[0-9]+/ modifier:MODIFIER
+    | [recons:RECONS] "@" backref:/[0-9]+/
     ;
 
 ## Sound class labels are identifiers in uppercase letters or digits, with
