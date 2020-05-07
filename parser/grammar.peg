@@ -24,8 +24,8 @@
 ## captured as well. Note that we match the end of string `$` to guarantee
 ## that no extra material is included in the string (such as comments).
 start =
-    | ante:sequence arrow post:sequence slash context:sequence $
-    | ante:sequence arrow post:sequence $
+    | ante:SEQUENCE ARROW post:SEQUENCE SLASH context:SEQUENCE $
+    | ante:SEQUENCE ARROW post:SEQUENCE $
     ;
 
 ## Collect a sequence of `segment`s; the grammar syntax here (with the
@@ -38,20 +38,21 @@ start =
 ## easier and faster code when applying rules (as there are less queries).
 ## Note that `focus` is not listed among `segments`, as it cannot be
 ## repeated or used in an alternative by our definition.s
-sequence = { sequence_element }+ ;
-sequence_element =
-    | "|".{ @:segment }+
-    | focus:focus
+SEQUENCE = { SEQUENCE_ELEMENT }+ ;
+SEQUENCE_ELEMENT =
+    | "|".{ @:SEGMENT }+
+    | focus:FOCUS
     ;
 
 ## Define segments as all basic units of sound or position (including
 ## empty ones) that can be part of a `choice`
 ## TODO: investigate on alternatives with empty, for optionality
-segment =
-    | backref:backref
-    | sound_class:sound_class
-    | boundary:boundary
-    | empty:empty
+## TODO: strange bug, but `ipa` cannot be capital; investigate
+SEGMENT =
+    | boundary:BOUNDARY
+    | empty:EMPTY
+    | backref:BACKREF
+    | sound_class:SOUND_CLASS
     | ipa:ipa
     ;
 
@@ -70,19 +71,19 @@ segment =
 ## (`choice`), here the grammar will make 竜 TatSu capture this as
 ## a list also in cases of a single feature. This is intentional.
 ## TODO: allow values besides "true" and "false"
-feature_key = /[a-z][a-z0-9_-]+/ ;
-feature =
-    | value:(r"+"|r"-"|r"!") key:feature_key
-    | key:feature_key "=" value:(r"true"|r"false")
-    | key:feature_key
+FEATURE_KEY = /[a-z][a-z0-9_-]+/ ;
+FEATURE =
+    | value:(r"+"|r"-"|r"!") key:FEATURE_KEY
+    | key:FEATURE_KEY "=" value:(r"true"|r"false")
+    | key:FEATURE_KEY
     ;
-feature_desc = [recons:recons] r"[" ",".{ feature_desc+:feature }+ r"]" ;
+MODIFIER = [recons:RECONS] r"[" ",".{ feature_desc+:FEATURE }+ r"]" ;
 
 ## Defines a back-reference, an index with an optional modifier and
 ## reconstruction flag.
-backref =
-    | [recons:recons] "@" index:/[0-9]+/ modifier:feature_desc
-    | [recons:recons] "@" index:/[0-9]+/
+BACKREF =
+    | [recons:RECONS] "@" index:/[0-9]+/ modifier:MODIFIER
+    | [recons:RECONS] "@" index:/[0-9]+/
     ;
 
 ## Sound class labels are identifiers in uppercase letters or digits, with
@@ -90,10 +91,10 @@ backref =
 ## Sound class references can be optionally marked as reconstructions by
 ## a preceding asterisk, and optionally carry a feature description
 ## modifier.
-sound_class_label = /[A-Z][A-Z0-9]*/ ;
-sound_class =
-  | [recons:recons] sound_class:sound_class_label modifier:feature_desc
-  | [recons:recons] sound_class:sound_class_label
+SOUND_CLASS_LABEL = /[A-Z][A-Z0-9]*/ ;
+SOUND_CLASS =
+  | [recons:RECONS] sound_class:SOUND_CLASS_LABEL modifier:MODIFIER
+  | [recons:RECONS] sound_class:SOUND_CLASS_LABEL
   ;
 
 ## Define additional capture symbols (actually terminals). Notes:
@@ -101,22 +102,20 @@ sound_class =
 ##   - `boundary` includes regex-standard "^" and "$", but these are matched
 ##     in whatever position
 ## TODO: add symbols for syllable and morpheme boundary
-boundary = r"#"|r"^"|r"$";
-focus = r"_";
-empty = r":null:"|r"0";
+FOCUS = r"_";
+BOUNDARY = r"#"|r"^"|r"$";
+EMPTY = r":null:"|r"0";
 
 ## Define an IPA capture as all the characters which are non reserved;
 ## validation of the graphemes is carried after parsing, in code, and
 ## *not* in the grammar.
 ## TODO: compile list of reserved characters
 ## TODO: now that IPA is at the end, can we just match dot?
-ipa = [recons:recons] grapheme:/[^ @_#^$=>0|*\/\-]+/ ;
+ipa = [recons:RECONS] grapheme:/[^ @_#^$=>0|*\/\-]+/ ;
 
 ## Reconstruction markers
-recons = r"*" | r"**" ; 
-
-
+RECONS = r"*" | r"**" ;
 
 ## Define non-capture terminals.
-arrow = r"==>" | r"-->" | r"->" | r"=>" | r">" | r"→" | r"⇒" | r"⇾" | r"»";
-slash = r"//" | r"/" ;
+ARROW = r"==>" | r"-->" | r"->" | r"=>" | r">" | r"→" | r"⇒" | r"⇾" | r"»";
+SLASH = r"//" | r"/" ;

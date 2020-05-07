@@ -13,6 +13,7 @@ def main():
     with open("../resources/sound_changes.tsv") as tsvfile:
         rules = [row['RULE'] for row in  csv.DictReader(tsvfile, delimiter="\t")]
 
+    a = """
     TESTS = [
         ("arrow", [">", "->"]),
         ("slash", ["/", "//"]),
@@ -38,9 +39,10 @@ def main():
                 print("2", [rule], "--", [ast2], type(ast2))
             except:
                 pass
+    """
 
-    rule = "a p|b|#|V[+front] _ f|v"
-    ast1 = model.parse(rule, start="sequence")
+    rule = "# a p|b|#|V[+front] _ f|v"
+    ast1 = model.parse(rule, start="SEQUENCE")
     print("*", rule, "--", [ast1], type(ast1))
     pprint.pprint(ast1, indent=2, width=20)
 
