@@ -10,10 +10,8 @@
 ## TODO: add support to segmentation boundary ("significant") whitespace
 ##       with plus signs or parentheses
 ## TODO: add syllable breaks
-## TODO: different segment primitives for different parts of rule
 ## TODO: Consider allowing single-line comments in future versions.
 ##       with @@eol_comments :: /##([^\n]*?)$/
-## TODO: should the backreferece be part of alternative/sound?
 
 ## Define the grammar for parsing sound changes
 @@grammar::SOUND_CHANGE
@@ -22,45 +20,40 @@
 ## the three basic elements: an `ante` sequence (mandatory), a `post`
 ## sequence (mandatory), and a `context` sequence (optional). `ante` and
 ## `post` are separated by `arrow` terminals, which are not captured;
-## `post` and `context` are separated by `slash` terminals, also
-## uncaptured.
-
-## We also match the end of string `$` to guarantee that no extra material is
-## included in the string; if the user wants to add additional material,
-## such as comments, it must be removed before the parsing.
+## `post` and `context` are separated by `slash` terminals, which are not
+## captured as well. Note that we match the end of string `$` to guarantee
+## that no extra material is included in the string (such as comments).
 start =
-#    | source:sequence arrow target:sequence slash context:sequence $
-#    | source:sequence arrow target:sequence $
-segment $
-    | dummy $
+    | ante:sequence arrow post:sequence slash context:sequence $
+    | ante:sequence arrow post:sequence $
     ;
 
-dummy = boundary | focus | empty | arrow | slash ;
-
-## A `(sound) sequence` is defined as a sequence of one or more segments. It
-## is implied that they are separated by a whitespace, and such we need no
-## positive collection.
-#sequence = sequence:{segment}+;
-sequence = {segment}+;
-
-segment = "|".{@:segment_terminal}+;
-
-## Define a segment, the basic sound unit
-## TODO: move focus out of segment?
-segment_terminal =
-    backref:backref |
-    sound_class:sound_class |
-    boundary:boundary |
-    focus:focus |
-    empty:empty |
-    ipa:ipa
+## Collect a sequence of `segment`s; the grammar syntax here (with the
+## override from the `@:` operator) guarantees that `choice`s are returned
+## as list, while individual `segment`s are parsed "as is" in the AST.
+## While a formally more elegant approach would be to have even single
+## segments as lists, with the code logic in charge of abstracting it,
+## this decision makes the exploration much easier and intuitive for
+## people who are not accustomed with PEG grammars, and it also provides for
+## easier and faster code when applying rules (as there are less queries).
+## Note that `focus` is not listed among `segments`, as it cannot be
+## repeated or used in an alternative by our definition.s
+sequence = { sequence_element }+ ;
+sequence_element =
+    | "|".{ @:segment }+
+    | focus:focus
     ;
 
-## Defines a `choice` (an "alternative"); note that it might
-## be a single element, being up to the code to convert single
-## item alternatives to single items (if necessary).
-# TODO: move above?
-#choice = "|".{ choice_segment }+ ;
+## Define segments as all basic units of sound or position (including
+## empty ones) that can be part of a `choice`
+## TODO: investigate on alternatives with empty, for optionality
+segment =
+    | backref:backref
+    | sound_class:sound_class
+    | boundary:boundary
+    | empty:empty
+    | ipa:ipa
+    ;
 
 ## Define feature keys, features (which include keys and values), and feature
 ## descriptions (i.e., multiple features).
@@ -73,11 +66,10 @@ segment_terminal =
 ## of feature keys are accepts, with an implied positive value.
 ## Feature descriptions are composed of multiple features enclosed by
 ## square brackets and separated by commas.
-## Please note that due to the `@+:e` notation, 竜 TatSu will capture this as
-## a list even if there is a single item. This is intentional.
+## Please note that, unlike the somewhat analogous case of segment alternatives
+## (`choice`), here the grammar will make 竜 TatSu capture this as
+## a list also in cases of a single feature. This is intentional.
 ## TODO: allow values besides "true" and "false"
-## TODO: should mandate features, at least with operator? also solves the
-##       problem of having no `value` when presented only a `key`
 feature_key = /[a-z][a-z0-9_-]+/ ;
 feature =
     | value:(r"+"|r"-"|r"!") key:feature_key
@@ -104,15 +96,7 @@ sound_class =
   | [recons:recons] sound_class:sound_class_label
   ;
 
-# Define an IPA capture as all the characters which are non reserved;
-# validation of the graphemes is carried after parsing, in code, and
-# *not* in the grammar.
-# TODO: compile list of reserved characters
-# TODO: now that IPA is at the end, can we just match dot?
-ipa = [recons:recons] grapheme:/[^ @_#^$=>0|*\/\-]+/;
-recons = r"*" | r"**" ; ## Reconstruction markers
-
-## Define additional symbols. Notes:
+## Define additional capture symbols (actually terminals). Notes:
 ##   - the `arrow` and `slash` symbols are used but not captured
 ##   - `boundary` includes regex-standard "^" and "$", but these are matched
 ##     in whatever position
@@ -120,5 +104,19 @@ recons = r"*" | r"**" ; ## Reconstruction markers
 boundary = r"#"|r"^"|r"$";
 focus = r"_";
 empty = r":null:"|r"0";
+
+## Define an IPA capture as all the characters which are non reserved;
+## validation of the graphemes is carried after parsing, in code, and
+## *not* in the grammar.
+## TODO: compile list of reserved characters
+## TODO: now that IPA is at the end, can we just match dot?
+ipa = [recons:recons] grapheme:/[^ @_#^$=>0|*\/\-]+/ ;
+
+## Reconstruction markers
+recons = r"*" | r"**" ; 
+
+
+
+## Define non-capture terminals.
 arrow = r"==>" | r"-->" | r"->" | r"=>" | r">" | r"→" | r"⇒" | r"⇾" | r"»";
 slash = r"//" | r"/" ;

@@ -39,7 +39,7 @@ def main():
             except:
                 pass
 
-    rule = "a p|b|#|V[+front]"
+    rule = "a p|b|#|V[+front] _ f|v"
     ast1 = model.parse(rule, start="sequence")
     print("*", rule, "--", [ast1], type(ast1))
     pprint.pprint(ast1, indent=2, width=20)
