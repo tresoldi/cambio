@@ -1,0 +1,124 @@
+## Grammar for sound change formal notation
+##
+## Part of the `alteruphono` library;
+## see: https://github.com/tresoldi/alteruphono
+
+## TODO: should move all `recons` to `segment`?
+
+#######################
+
+## TODO: add support to segmentation boundary ("significant") whitespace
+##       with plus signs or parentheses
+## TODO: add syllable breaks
+## TODO: different segment primitives for different parts of rule
+## TODO: Consider allowing single-line comments in future versions.
+##       with @@eol_comments :: /##([^\n]*?)$/
+## TODO: should the backreferece be part of alternative/sound?
+
+## Define the grammar for parsing sound changes
+@@grammar::SOUND_CHANGE
+
+## The grammar `start` is defined as a "sound change rule" including
+## the three basic elements: an `ante` sequence (mandatory), a `post`
+## sequence (mandatory), and a `context` sequence (optional). `ante` and
+## `post` are separated by `arrow` terminals, which are not captured;
+## `post` and `context` are separated by `slash` terminals, also
+## uncaptured.
+
+## We also match the end of string `$` to guarantee that no extra material is
+## included in the string; if the user wants to add additional material,
+## such as comments, it must be removed before the parsing.
+start =
+#    | source:sequence arrow target:sequence slash context:sequence $
+#    | source:sequence arrow target:sequence $
+segment $
+    | dummy $
+    ;
+
+dummy = boundary | focus | empty | arrow | slash ;
+
+## A `(sound) sequence` is defined as a sequence of one or more segments. It
+## is implied that they are separated by a whitespace, and such we need no
+## positive collection.
+#sequence = sequence:{segment}+;
+sequence = {segment}+;
+
+segment = "|".{@:segment_terminal}+;
+
+## Define a segment, the basic sound unit
+## TODO: move focus out of segment?
+segment_terminal =
+    backref:backref |
+    sound_class:sound_class |
+    boundary:boundary |
+    focus:focus |
+    empty:empty |
+    ipa:ipa
+    ;
+
+## Defines a `choice` (an "alternative"); note that it might
+## be a single element, being up to the code to convert single
+## item alternatives to single items (if necessary).
+# TODO: move above?
+#choice = "|".{ choice_segment }+ ;
+
+## Define feature keys, features (which include keys and values), and feature
+## descriptions (i.e., multiple features).
+## As features can change across experiments, including due to named tiers,
+## there is no point in listing the features; we accept any valid identifier
+## as a key, delegating validation to code. Identifiers are composed of
+## lowercase letters, digits, underscores, and dashes, with the first
+## character a letter. In features, values can either precede and be an
+## operator, or follow and be a string value. Features composed only
+## of feature keys are accepts, with an implied positive value.
+## Feature descriptions are composed of multiple features enclosed by
+## square brackets and separated by commas.
+## Please note that due to the `@+:e` notation, 竜 TatSu will capture this as
+## a list even if there is a single item. This is intentional.
+## TODO: allow values besides "true" and "false"
+## TODO: should mandate features, at least with operator? also solves the
+##       problem of having no `value` when presented only a `key`
+feature_key = /[a-z][a-z0-9_-]+/ ;
+feature =
+    | value:(r"+"|r"-"|r"!") key:feature_key
+    | key:feature_key "=" value:(r"true"|r"false")
+    | key:feature_key
+    ;
+feature_desc = [recons:recons] r"[" ",".{ feature_desc+:feature }+ r"]" ;
+
+## Defines a back-reference, an index with an optional modifier and
+## reconstruction flag.
+backref =
+    | [recons:recons] "@" index:/[0-9]+/ modifier:feature_desc
+    | [recons:recons] "@" index:/[0-9]+/
+    ;
+
+## Sound class labels are identifiers in uppercase letters or digits, with
+## the first character obligatorily a letter.
+## Sound class references can be optionally marked as reconstructions by
+## a preceding asterisk, and optionally carry a feature description
+## modifier.
+sound_class_label = /[A-Z][A-Z0-9]*/ ;
+sound_class =
+  | [recons:recons] sound_class:sound_class_label modifier:feature_desc
+  | [recons:recons] sound_class:sound_class_label
+  ;
+
+# Define an IPA capture as all the characters which are non reserved;
+# validation of the graphemes is carried after parsing, in code, and
+# *not* in the grammar.
+# TODO: compile list of reserved characters
+# TODO: now that IPA is at the end, can we just match dot?
+ipa = [recons:recons] grapheme:/[^ @_#^$=>0|*\/\-]+/;
+recons = r"*" | r"**" ; ## Reconstruction markers
+
+## Define additional symbols. Notes:
+##   - the `arrow` and `slash` symbols are used but not captured
+##   - `boundary` includes regex-standard "^" and "$", but these are matched
+##     in whatever position
+## TODO: add symbols for syllable and morpheme boundary
+boundary = r"#"|r"^"|r"$";
+focus = r"_";
+empty = r":null:"|r"0";
+arrow = r"==>" | r"-->" | r"->" | r"=>" | r">" | r"→" | r"⇒" | r"⇾" | r"»";
+slash = r"//" | r"/" ;
