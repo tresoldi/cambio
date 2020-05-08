@@ -7,6 +7,9 @@ operate on the semantics nonetheless, this class load and compiles the
 grammar dinamically on the first call.
 """
 
+# Import Python standard libraries
+from pathlib import Path
+
 # Import 3rd party libraries
 import tatsu
 
@@ -35,5 +38,6 @@ class Parser:
         Internal function for loading and compiling a 竜 TatSu grammar.
         """
 
-        with open("grammar.peg") as grammar:
+        grammar_path = Path(__file__).parent /  "grammar.peg"
+        with open(grammar_path.as_posix()) as grammar:
             self._parser = tatsu.compile(grammar.read())
