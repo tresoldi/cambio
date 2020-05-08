@@ -16,6 +16,130 @@ from arpeggio.cleanpeg import ParserPEG
 # TODO: should normalization be applied here?
 # TODO: write auxiliary function for updating backrefs in ASTs?
 
+class AST(dict):
+    _frozen = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.update(*args, **kwargs)
+        self._frozen = True
+
+    @property
+    def frozen(self):
+        return self._frozen
+
+#    @property
+#    def parseinfo(self):
+#        try:
+#            return super().__getitem__('parseinfo')
+#        except KeyError:
+#            pass
+#
+#    def set_parseinfo(self, value):
+#        super().__setitem__('parseinfo', value)
+
+    def copy(self):
+        return self.__copy__()
+
+#    def asjson(self):
+#        return asjson(self)
+
+    def _set(self, key, value, force_list=False):
+        key = self._safekey(key)
+        previous = self.get(key)
+
+        if previous is None and force_list:
+            value = [value]
+        elif previous is None:
+            pass
+        elif isinstance(previous, list):
+            value = previous + [value]
+        else:
+            value = [previous, value]
+
+        super().__setitem__(key, value)
+
+    def _setlist(self, key, value):
+        return self._set(key, value, force_list=True)
+
+    def __copy__(self):
+        return AST(self)
+
+    def __getitem__(self, key):
+        if key in self:
+            return super().__getitem__(key)
+        key = self._safekey(key)
+        if key in self:
+            return super().__getitem__(key)
+
+    def __setitem__(self, key, value):
+        self._set(key, value)
+
+    def __delitem__(self, key):
+        key = self._safekey(key)
+        super().__delitem__(key)
+
+    def __setattr__(self, name, value):
+        if self._frozen and name not in vars(self):
+            raise AttributeError(
+                f'{type(self).__name__} attributes are fixed. '
+                f' Cannot set attribute "{name}".'
+            )
+        super().__setattr__(name, value)
+
+    def __getattr__(self, name):
+        key = self._safekey(name)
+        if key in self:
+            return self[key]
+        elif name in self:
+            return self[name]
+
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            return None
+
+    def __hasattribute__(self, name):
+        try:
+            super().__getattribute__(name)
+        except (TypeError, AttributeError):
+            return False
+        else:
+            return True
+
+    def __reduce__(self):
+        return (AST, (), None, None, iter(self.items()))
+
+    def _safekey(self, key):
+        while self.__hasattribute__(key):
+            key += '_'
+        return key
+
+    def _define(self, keys, list_keys=None):
+        for key in keys:
+            key = self._safekey(key)
+            if key not in self:
+                super().__setitem__(key, None)
+
+        for key in list_keys or []:
+            key = self._safekey(key)
+            if key not in self:
+                super().__setitem__(key, [])
+
+#    def __json__(self):
+#        return {
+#            name: asjson(value)
+#            for name, value in self.items()
+#        }
+
+    def __repr__(self):
+#        return repr(self.asjson())
+        return repr(self)
+
+    def __str__(self):
+#        return str(self.asjson())
+        return str(self)
+
 # Define Sound Change Visitor, for visiting the parse tree
 class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_op_feature(self, node, children):
@@ -90,41 +214,13 @@ class Parser:
         # Parse the tree and visit each node
         ast = arpeggio.visit_parse_tree(self._parser.parse(text), SC_Visitor())
 
-        print("***", ast)
-
         # Apply all necessary post-processing and return
-        #return self._post_process(ast)
+        return self._post_process(ast)
 
     def _post_process(self, ast):
         """
-        Apply post-processing to an AST returned by TatSu.
-
-        This could in part be performed by TatSu walkers, but was decided
-        to in code for easiness of conversion to other libraries/languages
-        if necessary.
+        Apply post-processing to an AST.
         """
-
-        # Internal function for performing conversions
-        # TODO: should more validation be performed here?
-        def _process(token):
-            # If it is a `choice` (list), call recursively
-            if isinstance(token, list):
-                return [_process(elem) for elem in token]
-
-            # Convert to a non-frozen dictionary
-            token_dict = dict(token)
-
-            # Operate changes
-            if "backref" in token_dict:
-                token_dict["backref"] = int(token_dict["backref"])
-
-            return AST(token_dict)
-
-        ast = AST({
-            'ante' : [_process(token) for token in ast.ante],
-            'post' : [_process(token) for token in ast.post],
-            'context' : [_process(token) for token in ast.get("context", [])]
-        })
 
         # The notation with context is necessary to follow the tradition,
         # making adoption and usage easier among linguists, but it makes our
