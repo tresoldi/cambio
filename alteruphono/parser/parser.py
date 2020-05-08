@@ -16,6 +16,39 @@ from arpeggio.cleanpeg import ParserPEG
 # TODO: should normalization be applied here?
 # TODO: write auxiliary function for updating backrefs in ASTs?
 
+from collections.abc import Mapping, Iterable
+
+def isiter(value):
+    return (
+        isinstance(value, Iterable) and
+        not isinstance(value, str)
+    )
+
+def asjson(obj, seen=None):
+    if isinstance(obj, Mapping) or isiter(obj):
+        # prevent traversal of recursive structures
+        if seen is None:
+            seen = set()
+        elif id(obj) in seen:
+            return '__RECURSIVE__'
+        seen.add(id(obj))
+
+    if hasattr(obj, '__json__') and type(obj) is not type:
+        return obj.__json__()
+    elif isinstance(obj, Mapping):
+        result = {}
+        for k, v in obj.items():
+            try:
+                result[k] = asjson(v, seen)
+            except TypeError:
+                debug('Unhashable key?', type(k), str(k))
+                raise
+        return result
+    elif isiter(obj):
+        return [asjson(e, seen) for e in obj]
+    else:
+        return obj
+
 class AST(dict):
     _frozen = False
 
@@ -41,8 +74,8 @@ class AST(dict):
     def copy(self):
         return self.__copy__()
 
-#    def asjson(self):
-#        return asjson(self)
+    def asjson(self):
+        return asjson(self)
 
     def _set(self, key, value, force_list=False):
         key = self._safekey(key)
@@ -126,53 +159,51 @@ class AST(dict):
             if key not in self:
                 super().__setitem__(key, [])
 
-#    def __json__(self):
-#        return {
-#            name: asjson(value)
-#            for name, value in self.items()
-#        }
+    def __json__(self):
+        return {
+            name: asjson(value)
+            for name, value in self.items()
+        }
 
     def __repr__(self):
-#        return repr(self.asjson())
-        return repr(self)
+        return repr(self.asjson())
 
     def __str__(self):
-#        return str(self.asjson())
-        return str(self)
+        return str(self.asjson())
 
 # Define Sound Change Visitor, for visiting the parse tree
 class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_op_feature(self, node, children):
-        return {'feature':children[1], 'value':children[0]}
+        return AST({'feature':children[1], 'value':children[0]})
 
     def visit_modifier(self, node, children):
         # don't collect square brackets
         return list(children[1])
 
     def visit_focus(self, node, children):
-        return {'focus':node.value}
+        return AST({'focus':node.value})
 
     def visit_choice(self, node, children):
         return list(children)
 
     def visit_boundary(self, node, children):
-        return {'boundary':node.value}
+        return AST({'boundary':node.value})
 
     def visit_empty(self, node, children):
-        return {'empty':node.value}
+        return AST({'empty':node.value})
 
     def visit_backref(self, node, children):
         # return only the index as integer, along with any modifier
         if len(children) == 2:
-            return {'backref':int(children[1])}
+            return AST({'backref':int(children[1])})
         else:
-            return {'backref':int(children[1]), 'modifier':children[2]}
+            return AST({'backref':int(children[1]), 'modifier':children[2]})
 
     def visit_sound_class(self, node, children):
-        return {'sound_class':node.value}
+        return AST({'sound_class':node.value})
 
     def visit_grapheme(self, node, children):
-        return {'grapheme':node.value}
+        return AST({'grapheme':node.value})
 
     # Don't capture `arrow`s
     def visit_arrow(self, node, children):
@@ -197,7 +228,7 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         for seq in children:
             ret.update(seq)
 
-        return ret
+        return AST(ret)
 
 class Parser:
     # Holds the real parser, loaded dinamically on first call
@@ -276,7 +307,7 @@ def _merge_context(ast, context, offset_ref=None):
     # that we don't use a list comprehension, but a loop, in order to
     # break as soon as the focus is found.
     for idx, token in enumerate(context):
-        if isinstance(token, tatsu.ast.AST):
+        if isinstance(token, AST):
             if "focus" in token:
                 break
     left, right = context[:idx], context[idx + 1 :]
@@ -330,4 +361,5 @@ if __name__ == "__main__":
         raise ValueError("Should provide the rule and only the rule.")
 
     p = Parser()
-    p(sys.argv[1])
+    v = p(sys.argv[1])
+    print(v)
