@@ -81,9 +81,10 @@ MODIFIER = [recons:RECONS] r"[" ",".{ @+:FEATURE }+ r"]" ;
 
 ## Defines a back-reference, an index with an optional modifier and
 ## reconstruction flag.
+INDEX = /[0-9]+/;
 BACKREF =
-    | [recons:RECONS] "@" backref:/[0-9]+/ modifier:MODIFIER
-    | [recons:RECONS] "@" backref:/[0-9]+/
+    | [recons:RECONS] "@" backref:INDEX modifier:MODIFIER
+    | [recons:RECONS] "@" backref:INDEX
     ;
 
 ## Sound class labels are identifiers in uppercase letters or digits, with

@@ -12,10 +12,13 @@ from pathlib import Path
 
 # Import 3rd party libraries
 import tatsu
+from tatsu.ast import AST
 
 # TODO: compile a prettified grammar for saving some time on loading?
-# TODO: check about color and trace options for parsing
+# TODO: check about `colorize` and `trace` options for parsing
 # TODO: should memoize? tatsu should already be memoizing enough
+# TODO: should normalization be applied here?
+# TODO: write auxiliary function for updating backrefs in ASTs?
 
 class Parser:
     # Holds the grammar, loaded dinamically on first call
@@ -24,15 +27,75 @@ class Parser:
     def __init__(self):
         pass
 
-    def __call__(self, text, start="start"):
+    def __call__(self, text, start="start", **kwargs):
         # Load and compile the grammar if necessary
         if not self._parser:
             self._load_grammar()
 
-        return self._parser.parse(text, start=start)
+        # Parse into an ast
+        ast = self._parser.parse(text, start=start, **kwargs)
+
+        # Apply all necessary post-processing and return
+        return self._post_process(ast)
+
+    def _post_process(self, ast):
+        """
+        Apply post-processing to an AST returned by TatSu.
+
+        This could in part be performed by TatSu walkers, but was decided
+        to in code for easiness of conversion to other libraries/languages
+        if necessary.
+        """
+
+        # Internal function for performing conversions
+        # TODO: should more validation be performed here?
+        def _process(token):
+            # If it is a `choice` (list), call recursively
+            if isinstance(token, list):
+                return [_process(elem) for elem in token]
+
+            # Convert to a non-frozen dictionary
+            token_dict = dict(token)
+
+            # Operate changes
+            if "backref" in token_dict:
+                token_dict["backref"] = int(token_dict["backref"])
+
+            return AST(token_dict)
+
+        ast = AST({
+            'ante' : [_process(token) for token in ast.ante],
+            'post' : [_process(token) for token in ast.post],
+            'context' : [_process(token) for token in ast.get("context", [])]
+        })
+
+        # The notation with context is necessary to follow the tradition,
+        # making adoption and usage easier among linguists, but it makes our
+        # processing much harder. Thus, we merge `.ante` and `.post` with the
+        # `.context` (if any), already here at parsing stage, taking care of
+        # issues such as indexes of back-references.
+        # TODO: if the rule has alternatives, sound_classes, or other
+        #       profilific rules in `context`, it might be necessary to
+        #       perform a more complex merging and add back-references in
+        #       `post` to what is matched in `ante`, which could potentially
+        #       even mean different ASTs for forward and backward. This
+        #       needs further and detailed investigation, or explicit
+        #       exclusion of such rules (the user could always have the
+        #       profilic rules in `ante` and `post`, manually doing what
+        #       would be done here).
+
+        # Just return if there is no context
+        if not ast.get("context"):
+            return ast
+
+        merged_ast = AST({
+            "ante" : _merge_context(ast.ante, ast.context),
+            "post" : _merge_context(ast.post, ast.context, offset_ref=len(ast.ante)),
+        })
+
+        return merged_ast
 
     # TODO: add logging
-    # TODO: use pathlib
     def _load_grammar(self):
         """
         Internal function for loading and compiling a 竜 TatSu grammar.
@@ -41,3 +104,69 @@ class Parser:
         grammar_path = Path(__file__).parent /  "grammar.peg"
         with open(grammar_path.as_posix()) as grammar:
             self._parser = tatsu.compile(grammar.read())
+
+def _merge_context(ast, context, offset_ref=None):
+    """
+    Merge an `ante` or `post` AST with a `context`.
+
+    The essentials of the function are to add the left context at the
+    beginning and the right one at the endself.
+
+    The most important operation is to fix the indexes of back-references, in
+    case they are used. This is specified via the `offset_ref` numeric
+    variable: if provided, back-references will be positively shifted
+    according to it (as we need to know the length of the AST before the
+    right context in what we are referring to).
+    """
+
+    # Split at the `focus` symbol of the context, which is mandatory. Note
+    # that we don't use a list comprehension, but a loop, in order to
+    # break as soon as the focus is found.
+    for idx, token in enumerate(context):
+        if isinstance(token, tatsu.ast.AST):
+            if "focus" in token:
+                break
+    left, right = context[:idx], context[idx + 1 :]
+
+    # cache the length of `left` and of `ast`
+    offset_left = len(left)
+    offset_ast = offset_left + len(ast)
+
+    # Merge the provided AST with the contextual one
+    # TODO: take care of backreferences in alternatives
+    merged_ast = []
+    for token in ast:
+        # `p @2 / a _` --> `a p @3`
+        if "backref" in token:
+            token_dict = dict(token)
+            token_dict["backref"] += offset_left
+            merged_ast.append(AST(token_dict))
+        else:
+            merged_ast.append(token)
+
+    # Apply the `offset_ref` if provided, using `offset_ast` otherwise,
+    # to build the final mapping. This is mostly responsible for
+    # turning `post` into a long series of back-references in most cases,
+    # such as in "V s -> @1 z @1 / # p|b r _ t|d", where `post`
+    # becomes "@1 @2 @3 @4 z @4 @6"
+    if offset_ref:
+        # Here we can just fill the backreferences, as there are no modifiers
+        merged_ast = (
+            [AST({"backref":i + 1}) for i, _ in enumerate(left)]
+            + merged_ast
+            + [
+                AST({"backref": i + 1 + offset_left + offset_ref})
+                for i, _ in enumerate(right)
+            ]
+        )
+    else:
+        merged_ast = left + merged_ast
+        for token in right:
+            if "backref" in token:
+                token_dict = dict(token)
+                token_dict["backref"] += offset_ast
+                merged_ast.append(AST(token_dict))
+            else:
+                merged_ast.append(token)
+
+    return merged_ast
