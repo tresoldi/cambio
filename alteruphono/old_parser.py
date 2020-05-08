@@ -224,10 +224,16 @@ def _merge_context(ast, context, offset_ref=None):
 
     return merged_ast
 
+class Rule:
+    def __init__(self, rule_text, ast):
+        self.source = rule_text
+        self.ante = ast.ante
+        self.post = ast.post
+
 
 # TODO: add output with __repr__/__str__, so we can serialize
 # TODO: add __eq__?
-class Rule:
+class OLDRule:
     def __init__(self, rule_text=None):
         # Initialize `_ante` and `_post` properties; these are intended to
         # be internal and accessed with dot notation via .__getattr__()

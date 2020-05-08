@@ -236,6 +236,7 @@ class Model:
 
         return grapheme
 
+    # TODO: return False as soon as possible
     def check_match(self, sequence, pattern):
         """
         Check if a sequence matches a given pattern.
@@ -246,14 +247,24 @@ class Model:
             return False
 
         for token, ref in zip(sequence, pattern):
-            if ref.toktype == "ipa":
-                ipa = self.apply_modifier(ref.ipa, ref.modifier)
+            # check choice (list) first
+            if isinstance(ref, list):
+                # Check the sub-match for each alternative; if the
+                # alternative is a grapheme, carry any modifier
+                # TODO: return as soon as possible
+
+                alt_matches = [self.check_match([token], [alt]) for alt in ref]
+
+                if not any(alt_matches):
+                    return False
+            elif "grapheme" in ref:
+                ipa = self.apply_modifier(ref.grapheme, ref.modifier)
                 if token != ipa:
                     return False
-            elif ref.toktype == "boundary":
+            elif "boundary" in ref:
                 if token != "#":
                     return False
-            elif ref.toktype == "sound_class":
+            elif "sound_class" in ref:
                 # Apply the modifier to all the items in the sound class,
                 # so we can check if the `token` is actually there.
                 modified = [
@@ -266,20 +277,7 @@ class Model:
 
                 if token not in modified:
                     return False
-            elif ref.toktype == "alternative":
-                # Check the sub-match for each alternative
-                # TODO: apply modifiers everywhere (not only in IPA)
-                alts = [
-                    alt
-                    if alt.toktype != "ipa"
-                    else TokenIPA(alt.ipa, ref.modifier)
-                    for alt in ref.alternative
-                ]
 
-                alt_matches = [self.check_match([token], [alt]) for alt in alts]
-
-                if not any(alt_matches):
-                    return False
 
         return True
 
@@ -370,23 +368,23 @@ class Model:
         #       not the one in the rule
         ante_seq = []
         for idx, ante_entry in enumerate(rule.ante):
-            if ante_entry.toktype == "ipa":
-                ante_seq.append(ante_entry.ipa)
-            elif ante_entry.toktype == "sound_class":
-                ante_seq.append(value.get(idx, ante_entry.sound_class))
-            elif ante_entry.toktype == "alternative":
+            if isinstance(ante_entry, list):
                 # build alternative string, for cases when deleted
                 # TODO: modifiers etc
                 alts = []
-                for alt in ante_entry.alternative:
-                    if alt.toktype == "ipa":
-                        alts.append(alt.ipa)
-                    elif alt.toktype == "sound_class":
+                for alt in ante_entry:
+                    if "grapheme" in alt:
+                        alts.append(alt.grapheme)
+                    elif "sound_class" in alt:
                         alts.append(alt.sound_class)
                     else:
                         alts.append("#")
                 alt_string = "|".join(alts)
                 ante_seq.append(value.get(idx, alt_string))
+            elif "grapheme" in ante_entry:
+                ante_seq.append(ante_entry.grapheme)
+            elif "sound_class" in ante_entry:
+                ante_seq.append(value.get(idx, ante_entry.sound_class))
 
         # Depending on the type of rule that was applied, the `ante_seq` list
         # might at this point have elements expressing more than one
