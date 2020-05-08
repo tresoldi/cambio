@@ -13,7 +13,7 @@ import unittest
 
 # Import the library being test and auxiliary libraries
 import alteruphono
-from alteruphono.parser import *
+from alteruphono.old_parser import *
 
 
 class TestParser(unittest.TestCase):
@@ -63,7 +63,7 @@ class TestParser(unittest.TestCase):
         }
 
         for feat_str, ref in reference.items():
-            ret = alteruphono.parser.parse_features(feat_str)
+            ret = alteruphono.old_parser.parse_features(feat_str)
 
             assert ret == ref
 

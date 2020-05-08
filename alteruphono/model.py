@@ -14,7 +14,7 @@ import itertools
 from pathlib import Path
 
 # Import package
-import alteruphono.parser
+import alteruphono.old_parser
 import alteruphono.utils
 from alteruphono.sequence import Sequence
 from alteruphono.ast import TokenIPA
@@ -167,7 +167,7 @@ class Model:
             return self.modifier_cache[cache_key]
 
         # Parse the provided modifier
-        features = alteruphono.parser.parse_features(modifier)
+        features = alteruphono.old_parser.parse_features(modifier)
 
         # Invert features if requested
         # TODO: for the time being, just hard-coding them; should be
@@ -322,7 +322,7 @@ class Model:
         """
 
         # Make sure the rule is a valid one
-        if not isinstance(rule, alteruphono.parser.Rule):
+        if not isinstance(rule, alteruphono.old_parser.Rule):
             raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
 
         # Transform `ante_seq` in a Sequence, if necessary
@@ -405,7 +405,7 @@ class Model:
         """
 
         # Make sure the rule is a valid one
-        if not isinstance(rule, alteruphono.parser.Rule):
+        if not isinstance(rule, alteruphono.old_parser.Rule):
             raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
 
         # Transform `post_seq` in a Sequence, if necessary

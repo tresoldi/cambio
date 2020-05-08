@@ -13,7 +13,7 @@ import unittest
 
 # Import the library being test and auxiliary libraries
 import alteruphono
-from alteruphono.parser import _tokens2ast
+from alteruphono.old_parser import _tokens2ast
 from alteruphono.sequence import Sequence
 from alteruphono.ast import *
 
@@ -93,7 +93,7 @@ class TestChangers(unittest.TestCase):
             )
 
             ante_asts = [
-                alteruphono.parser._tokens2ast(seq.split(" "))
+                alteruphono.old_parser._tokens2ast(seq.split(" "))
                 for seq in ante_seqs
             ]
             matches = [
