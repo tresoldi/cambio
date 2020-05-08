@@ -35,6 +35,8 @@ class Parser:
         # Parse into an ast
         ast = self._parser.parse(text, start=start, **kwargs)
 
+        print("***", ast)
+
         # Apply all necessary post-processing and return
         return self._post_process(ast)
 

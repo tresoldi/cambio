@@ -290,14 +290,15 @@ class Model:
 
         for entry in rule.post:
             # Note that this will, as intended, skip over `null`s
-            if entry.toktype == "ipa":
-                post_seq.append(entry.ipa)
-            elif entry.toktype == "backref":
+            if "grapheme" in entry:
+                post_seq.append(entry.grapheme)
+            elif "backref" in entry:
                 # Compute the actual index (Python lists are 0-based)
-                index = entry.index - 1
+                index = entry.backref - 1
 
                 # Refer to `correspondence`, if specified
-                if entry.correspondence:
+                # TODO: recheck correspondence
+                if "correspondence" in entry:
                     # get the alternative index in `ante`
                     # NOTE: `post_alts` has [1:-1] for the curly brackets
                     ante_alts = [
