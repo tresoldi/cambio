@@ -17,7 +17,7 @@ from pathlib import Path
 import alteruphono.old_parser
 import alteruphono.utils
 from alteruphono.sequence import Sequence
-from alteruphono.ast import TokenIPA
+#from alteruphono.ast import TokenIPA
 
 
 def read_sound_features(filename):
