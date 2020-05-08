@@ -1,0 +1,71 @@
+// TODO: segment only with descriptor?(modifier)
+// TODO: set correspondence
+
+// The symbol `rule` is defined as a "sound change rule" including
+// the three basic elements: an `ante` sequence (mandatory), a `post`
+// sequence (mandatory), and a `context` sequence (optional). `ante` and
+// `post` are separated by `arrow` terminals; `post` and `context` are
+// separated by `slash` terminals. Note that we match the end of string
+// EOF, to guarantee that no extra material is included (such as comments).
+rule = ante arrow post (slash context)? EOF
+
+// Define the three sequences in the rule.
+// TODO: Be more precise with the elements that are allowed in each one,
+//       such as only allowing focus in context and (to be decided) not
+//       allowing back-references in context.
+ante = sequence
+post = sequence
+context = sequence
+
+// Collect a sequence of `segment`s, with `choice`s collected as lists.
+// Note that `focus` is not listed among `segment`s, as it cannot be
+// repeated or used in an alternative by our definition.
+sequence = sequence_element+
+sequence_element = focus / segment
+
+// Define a "token", the basic sound or position unit. `choice` is
+// the first item to match, in PEG style.
+segment = choice / boundary / empty / backref / sound_class / grapheme
+
+// define a choice
+choice = basic ("|" basic)+
+basic = boundary / empty / backref / sound_class / grapheme
+
+// Define feature keys, features (which include keys and values), and feature
+// descriptions (i.e., multiple features).
+// As features can change across experiments, including due to named tiers,
+// there is no point in listing the features; we accept any valid identifier
+// as a key, delegating validation to code. Identifiers are composed of
+// lowercase letters, digits, underscores, and dashes, with the first
+// character a letter. In features, values can either precede and be an
+// operator, or follow and be a string value. Features composed only
+// of feature keys are accepted, with an implied positive value.
+// Feature descriptions are composed of multiple features enclosed by
+// square brackets and separated by commas.
+// TODO: allow values besides "true" and "false"
+// TODO: add only_feature_key?
+feature_key = r'[a-z][a-z0-9_-]+'
+feature = op_feature / feature_val
+op_feature = r'\+|\-|!' feature_key
+feature_val = feature_key r'=' r'true|false'
+feature_list = feature ("," feature)?
+modifier = r'\[' feature_list r'\]'
+
+// Sound class labels are identifiers in uppercase letters or digits, with
+// the first character obligatorily a letter.
+sound_class = r'[A-Z][A-Z0-9]*'
+
+// Defines a back-reference.
+backref = r'@' r'[0-9]+' (modifier)?
+
+// excludes "-" as part of feature names
+grapheme = r'[^ \[\]|/>@-]+'
+
+// Define additional capture symbols (actually terminals).
+focus = r'_'
+boundary = r'#'
+empty = r':null:|0'
+
+// Define terminals for structure, not really used.
+arrow = r'->|>'
+slash = r'/'

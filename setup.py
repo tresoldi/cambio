@@ -28,7 +28,7 @@ setup(
     packages=["alteruphono", "resources"],
     keywords=["sound change", "phonology", "phonetics", "Lautwandel"],
     include_package_data=True,
-    install_requires=["tatsu"],
+    install_requires=["arpeggio"],
     entry_points={"console_scripts": ["alteruphono=alteruphono.__main__:main"]},
     test_suite="tests",
     tests_require=[],
