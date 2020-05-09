@@ -46,7 +46,12 @@ class AST(dict):
     def frozen(self):
         return self._frozen
 
-    def copy(self):
+    def copy(self, update={}):
+        if update:
+            tmp = dict(self)
+            tmp.update(update)
+            return AST(tmp)
+
         return self.__copy__()
 
     def asjson(self):

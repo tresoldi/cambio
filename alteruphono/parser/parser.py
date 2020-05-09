@@ -14,16 +14,18 @@ from arpeggio.peg import ParserPEG
 from alteruphono.ast import AST
 
 # TODO: compile a prettified grammar for saving some time on loading?
-# TODO: check about debug options
 # TODO: should memoize? -- almost surely yes
 # TODO: should normalization be applied here?
 # TODO: write auxiliary function for updating backrefs in ASTs?
 
-
-# Define Sound Change Visitor, for visiting the parse tree
+# Define a visitor for semantic analysis of the parse tree. The semantic
+# operations are mostly obvious, just casting the returned dictionaries
+# into our `AST` class and returning a structure with as new nested
+# elements as possible.
 # TODO: add feature_val
 class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_op_feature(self, node, children):
+        # "+stop", "-voiced"
         return AST({"feature": children[1], "value": children[0]})
 
     def visit_only_feature_key(self, node, children):
@@ -53,24 +55,24 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         # skip the "@" sign and return the index as an integer,
         # along with any modifier
         # TODO: should the index be made 0-based already here?
-        if len(children) == 2:
-            return AST({"backref": int(children[1])})
-        else:
+        if len(children) == 3:  # @ index modifier
             return AST({"backref": int(children[1]), "modifier": children[2]})
+
+        return AST({"backref": int(children[1])})
 
     def visit_sound_class(self, node, children):
         # return the sound class along with any modifier
         if len(children) == 2:
             return AST({"sound_class": children[0], "modifier": children[1]})
-        else:
-            return AST({"sound_class": children[0]})
+
+        return AST({"sound_class": children[0]})
 
     def visit_grapheme(self, node, children):
         # return the grapheme along with any modifier
         if len(children) == 2:
             return AST({"grapheme": children[0], "modifier": children[1]})
-        else:
-            return AST({"grapheme": children[0]})
+
+        return AST({"grapheme": children[0]})
 
     # Don't capture `arrow`s or`slash`es
     # TODO: can remove?
@@ -132,50 +134,31 @@ class Parser:
         # Parse the tree and visit each node
         ast = arpeggio.visit_parse_tree(self._parser.parse(text), SC_Visitor())
 
-        # Apply rule post-processing if necessary
-        # TODO: do more properly, checking if ante/post/context are here
+        # Perform merging if the rule is the default (and if there is
+        # a context).
         if self.root_rule == "rule":
-            ast = self._post_process(ast)
+            if "context" in ast:
+                return AST(
+                    {
+                        "ante": _merge_context(ast.ante, ast.context),
+                        "post": _merge_context(
+                            ast.post, ast.context, offset_ref=len(ast.ante)
+                        ),
+                    }
+                )
 
         return ast
 
-    # TODO: this is only for `rule`? rename
-    def _post_process(self, ast):
-        """
-        Apply post-processing to an AST.
-        """
 
-        # The notation with context is necessary to follow the tradition,
-        # making adoption and usage easier among linguists, but it makes our
-        # processing much harder. Thus, we merge `.ante` and `.post` with the
-        # `.context` (if any), already here at parsing stage, taking care of
-        # issues such as indexes of back-references.
-        # TODO: if the rule has alternatives, sound_classes, or other
-        #       profilific rules in `context`, it might be necessary to
-        #       perform a more complex merging and add back-references in
-        #       `post` to what is matched in `ante`, which could potentially
-        #       even mean different ASTs for forward and backward. This
-        #       needs further and detailed investigation, or explicit
-        #       exclusion of such rules (the user could always have the
-        #       profilic rules in `ante` and `post`, manually doing what
-        #       would be done here).
-
-        # Just return if there is no context
-        if not ast.get("context"):
-            return ast
-
-        merged_ast = AST(
-            {
-                "ante": _merge_context(ast.ante, ast.context),
-                "post": _merge_context(
-                    ast.post, ast.context, offset_ref=len(ast.ante)
-                ),
-            }
-        )
-
-        return merged_ast
-
-
+# TODO: if the rule has alternatives, sound_classes, or other
+#       profilific rules in `context`, it might be necessary to
+#       perform a more complex merging and add back-references in
+#       `post` to what is matched in `ante`, which could potentially
+#       even mean different ASTs for forward and backward. This
+#       needs further and detailed investigation, or explicit
+#       exclusion of such rules (the user could always have the
+#       profilic rules in `ante` and `post`, manually doing what
+#       would be done here).
 def _merge_context(ast, context, offset_ref=None):
     """
     Merge an `ante` or `post` AST with a `context`.
@@ -194,9 +177,8 @@ def _merge_context(ast, context, offset_ref=None):
     # that we don't use a list comprehension, but a loop, in order to
     # break as soon as the focus is found.
     for idx, token in enumerate(context):
-        if isinstance(token, AST):
-            if "focus" in token:
-                break
+        if isinstance(token, AST) and "focus" in token:
+            break
     left, right = context[:idx], context[idx + 1 :]
 
     # cache the length of `left` and of `ast`
@@ -209,9 +191,9 @@ def _merge_context(ast, context, offset_ref=None):
     for token in ast:
         # `p @2 / a _` --> `a p @3`
         if "backref" in token:
-            token_dict = dict(token)
-            token_dict["backref"] += offset_left
-            merged_ast.append(AST(token_dict))
+            merged_ast.append(
+                token.copy({"backref": token.backref + offset_left})
+            )
         else:
             merged_ast.append(token)
 
@@ -234,9 +216,9 @@ def _merge_context(ast, context, offset_ref=None):
         merged_ast = left + merged_ast
         for token in right:
             if "backref" in token:
-                token_dict = dict(token)
-                token_dict["backref"] += offset_ast
-                merged_ast.append(AST(token_dict))
+                merged_ast.append(
+                    token.copy({"backref": token.backref + offset_ast})
+                )
             else:
                 merged_ast.append(token)
 
