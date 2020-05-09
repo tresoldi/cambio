@@ -1,72 +1,149 @@
-// TODO: segment only with descriptor?(modifier)
-// TODO: set correspondence
+// Grammar for sound change formal notation
+//
+// Part of the `alteruphono` library (https://github.com/tresoldi/alteruphono)
 
-// The symbol `rule` is defined as a "sound change rule" including
+// TODOs:
+//   - allow segment from descriptor (i.e., modifier)
+//   - implement set correspondence
+//   - add exclusion ("!" or "^", general operator)
+//   - add reconstruction flag
+//   - allow values besides "true" and "false" for feature descriptions
+//   - the current list of `grapheme` excludes is not allowing for potentially
+//     desirable graphemes (such as "@", used in X-SAMPA)
+
+// The main symbol `rule` is defined as a "sound change rule" including
 // the three basic elements: an `ante` sequence (mandatory), a `post`
 // sequence (mandatory), and a `context` sequence (optional). `ante` and
 // `post` are separated by `arrow` terminals; `post` and `context` are
 // separated by `slash` terminals. Note that we match the end of string
 // EOF, to guarantee that no extra material is included (such as comments).
-rule <- ante arrow post (slash context)? EOF ;
+rule <-
+    ante arrow post (slash context)? EOF
+    ;
 
 // Define the three sequences in the rule.
 // TODO: Be more precise with the elements that are allowed in each one,
 //       such as only allowing focus in context and (to be decided) not
 //       allowing back-references in context.
-ante <- sequence ;
-post <- sequence ;
-context <- sequence ;
+ante <-
+    sequence
+    ;
+post <-
+    sequence
+    ;
+context <-
+    sequence
+    ;
 
 // Collect a sequence of `segment`s, with `choice`s collected as lists.
 // Note that `focus` is not listed among `segment`s, as it cannot be
 // repeated or used in an alternative by our definition.
-sequence <- sequence_element+ ;
-sequence_element <- focus / segment ;
+sequence <-
+    sequence_element+
+    ;
+sequence_element <-
+    focus /
+    segment
+    ;
 
-// Define a "token", the basic sound or position unit. `choice` is
-// the first item to match, in PEG style.
-segment <- choice / boundary / empty / backref / sound_class / grapheme ;
+// Define a "segment", the basic sound or position unit, which might include
+// choices (alternatives) and set correspondences, thus being collected as
+// a list and requiring more precise handling. `choice` is the first item
+// in the list to guarantee, via PEG parsing, that we don't parse only the
+// first element of the choice as a singleton.
+segment <-
+    choice /
+    boundary /
+    empty /
+    backref /
+    sound_class /
+    grapheme
+    ;
 
-// define a choice
-choice <- basic ("|" basic)+ ;
-basic <- boundary / empty / backref / sound_class / grapheme ;
+// Define a choice and the singletons that can be part of it.
+choice <-
+    singleton ("|" singleton)+
+    ;
+singleton <-
+    boundary /
+    empty /
+    backref /
+    sound_class /
+    grapheme
+    ;
 
 // Define feature keys, features (which include keys and values), and feature
 // descriptions (i.e., multiple features).
-// As features can change across experiments, including due to named tiers,
+// As features can change across experiments, also due to named tiers,
 // there is no point in listing the features; we accept any valid identifier
 // as a key, delegating validation to code. Identifiers are composed of
 // lowercase letters, digits, underscores, and dashes, with the first
-// character a letter. In features, values can either precede and be an
-// operator, or follow and be a string value. Features composed only
-// of feature keys are accepted, with an implied positive value.
+// character a letter. In features, values can either precede keys as an
+// operator, or follow them (separated by spaces) as a string value.
+// Features composed only of feature keys are accepted, with an implied
+// positive value added during parsing/visitation.
 // Feature descriptions are composed of multiple features enclosed by
 // square brackets and separated by commas.
-// TODO: allow values besides "true" and "false"
-// TODO: add only_feature_key?
-feature_key <- r'[a-z][a-z0-9_-]+' ;
-feature <- op_feature / feature_val / only_feature_key ;
-op_feature <- r'\+|\-|!' feature_key ;
-feature_val <- feature_key r'=' r'true|false' ;
-only_feature_key <- feature_key ;
-feature_list <- feature ("," feature)? ;
-modifier <- r'\[' feature_list r'\]' ;
+feature_key <-
+    r'[a-z][a-z0-9_-]+'
+    ;
+op_feature <-
+    r'\+|\-|!' feature_key
+    ;
+feature_val <-
+    feature_key r'=' r'true|false'
+    ;
+only_feature_key <-
+    feature_key
+    ;
+feature <-
+    op_feature /
+    feature_val /
+    only_feature_key
+    ;
+feature_list <-
+    feature ("," feature)?
+    ;
+modifier <-
+    r'\[' feature_list r'\]'
+    ;
 
 // Sound class labels are identifiers in uppercase letters or digits, with
-// the first character obligatorily a letter.
-sound_class <- r'[A-Z][A-Z0-9]*' (modifier)? ;
+// the first character obligatorily a letter. Sound classes can carry
+// their own modifiers.
+sound_class <-
+    r'[A-Z][A-Z0-9]*' (modifier)?
+    ;
 
-// Defines a back-reference.
-backref <- r'@' r'[0-9]+' (modifier)? ;
+// Defines a back-reference. By specification, list indexes are 1-based.
+// Back-references can carry their own modifiers.
+backref <-
+    r'@' r'[0-9]+' (modifier)?
+    ;
 
-// excludes "-" as part of feature names
-grapheme <- r'[^ \[\]|/>@-]+' (modifier)? ;
+// Define a grapheme, most of the time an IPA grapheme (but validation is
+// not performed in the grammar). Almost all symbols are allowed, with the
+// few excluded in the regex more to avoid confusion than requirement.
+// graphemes can carry their own modifiers.
+grapheme <-
+    r'[^ \[\]|/>@-]+' (modifier)?
+    ;
 
-// Define additional capture symbols (actually terminals).
-focus <- r'_' ;
-boundary <- r'#' ;
-empty <- r':null:|0' ;
+// Define additional capture symbols (terminals).
+focus <-
+    r'_'
+    ;
+boundary <-
+    r'#'
+    ;
+empty <-
+    r':null:|0'
+    ;
 
-// Define terminals for structure, not really used.
-arrow <- r'->|>' ;
-slash <- r'/' ;
+// Define terminals for structure, not captured.
+arrow <-
+    r'->|>'
+    ;
+slash <-
+    r'/'
+    ;
