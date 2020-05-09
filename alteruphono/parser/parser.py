@@ -8,7 +8,7 @@ from pathlib import Path
 # Import 3rd-party libraries
 # TODO: should use traditional instead of clean PEG?
 import arpeggio
-from arpeggio.cleanpeg import ParserPEG
+from arpeggio.peg import ParserPEG
 
 # Import package
 from alteruphono.ast import AST

@@ -7,29 +7,29 @@
 // `post` are separated by `arrow` terminals; `post` and `context` are
 // separated by `slash` terminals. Note that we match the end of string
 // EOF, to guarantee that no extra material is included (such as comments).
-rule = ante arrow post (slash context)? EOF
+rule <- ante arrow post (slash context)? EOF ;
 
 // Define the three sequences in the rule.
 // TODO: Be more precise with the elements that are allowed in each one,
 //       such as only allowing focus in context and (to be decided) not
 //       allowing back-references in context.
-ante = sequence
-post = sequence
-context = sequence
+ante <- sequence ;
+post <- sequence ;
+context <- sequence ;
 
 // Collect a sequence of `segment`s, with `choice`s collected as lists.
 // Note that `focus` is not listed among `segment`s, as it cannot be
 // repeated or used in an alternative by our definition.
-sequence = sequence_element+
-sequence_element = focus / segment
+sequence <- sequence_element+ ;
+sequence_element <- focus / segment ;
 
 // Define a "token", the basic sound or position unit. `choice` is
 // the first item to match, in PEG style.
-segment = choice / boundary / empty / backref / sound_class / grapheme
+segment <- choice / boundary / empty / backref / sound_class / grapheme ;
 
 // define a choice
-choice = basic ("|" basic)+
-basic = boundary / empty / backref / sound_class / grapheme
+choice <- basic ("|" basic)+ ;
+basic <- boundary / empty / backref / sound_class / grapheme ;
 
 // Define feature keys, features (which include keys and values), and feature
 // descriptions (i.e., multiple features).
@@ -44,29 +44,29 @@ basic = boundary / empty / backref / sound_class / grapheme
 // square brackets and separated by commas.
 // TODO: allow values besides "true" and "false"
 // TODO: add only_feature_key?
-feature_key = r'[a-z][a-z0-9_-]+'
-feature = op_feature / feature_val / only_feature_key
-op_feature = r'\+|\-|!' feature_key
-feature_val = feature_key r'=' r'true|false'
-only_feature_key = feature_key
-feature_list = feature ("," feature)?
-modifier = r'\[' feature_list r'\]'
+feature_key <- r'[a-z][a-z0-9_-]+' ;
+feature <- op_feature / feature_val / only_feature_key ;
+op_feature <- r'\+|\-|!' feature_key ;
+feature_val <- feature_key r'=' r'true|false' ;
+only_feature_key <- feature_key ;
+feature_list <- feature ("," feature)? ;
+modifier <- r'\[' feature_list r'\]' ;
 
 // Sound class labels are identifiers in uppercase letters or digits, with
 // the first character obligatorily a letter.
-sound_class = r'[A-Z][A-Z0-9]*' (modifier)?
+sound_class <- r'[A-Z][A-Z0-9]*' (modifier)? ;
 
 // Defines a back-reference.
-backref = r'@' r'[0-9]+' (modifier)?
+backref <- r'@' r'[0-9]+' (modifier)? ;
 
 // excludes "-" as part of feature names
-grapheme = r'[^ \[\]|/>@-]+' (modifier)?
+grapheme <- r'[^ \[\]|/>@-]+' (modifier)? ;
 
 // Define additional capture symbols (actually terminals).
-focus = r'_'
-boundary = r'#'
-empty = r':null:|0'
+focus <- r'_' ;
+boundary <- r'#' ;
+empty <- r':null:|0' ;
 
 // Define terminals for structure, not really used.
-arrow = r'->|>'
-slash = r'/'
+arrow <- r'->|>' ;
+slash <- r'/' ;
