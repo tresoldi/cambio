@@ -75,15 +75,16 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         else:
             return AST({'grapheme':children[0]})
 
-    # Don't capture `arrow`s
+    # Don't capture `arrow`s or`slash`es
+    # TODO: can remove?
     def visit_arrow(self, node, children):
         pass
-
-    # Don't capture `slash`es
     def visit_slash(self, node, children):
         pass
 
     # Sequences
+    def visit_sequence(self, node, children):
+        return list(children)
     def visit_ante(self, node, children):
         return {'ante':list(children)}
     def visit_post(self, node, children):
@@ -104,8 +105,19 @@ class Parser:
     # Holds the real parser, loaded dinamically on first call
     _parser = None
 
-    def __init__(self, debug=False):
+    def __init__(self, root_rule="rule", debug=False):
         self.debug = debug
+        self.root_rule = root_rule
+
+    # TODO: add logging
+    def _load_grammar(self):
+        """
+        Internal function for loading and compiling a grammar.
+        """
+
+        grammar_path = Path(__file__).parent /  "sound_change.ebnf"
+        with open(grammar_path.as_posix()) as grammar:
+            self._parser = ParserPEG(grammar.read(), self.root_rule, ws='\t ', debug=self.debug)
 
     def __call__(self, text):
         # Load and compile the grammar if necessary
@@ -115,9 +127,14 @@ class Parser:
         # Parse the tree and visit each node
         ast = arpeggio.visit_parse_tree(self._parser.parse(text), SC_Visitor())
 
-        # Apply all necessary post-processing and return
-        return self._post_process(ast)
+        # Apply rule post-processing if necessary
+        # TODO: do more properly, checking if ante/post/context are here
+        if self.root_rule == "rule":
+            ast = self._post_process(ast)
 
+        return ast
+
+    # TODO: this is only for `rule`? rename
     def _post_process(self, ast):
         """
         Apply post-processing to an AST.
@@ -148,16 +165,6 @@ class Parser:
         })
 
         return merged_ast
-
-    # TODO: add logging
-    def _load_grammar(self):
-        """
-        Internal function for loading and compiling a grammar.
-        """
-
-        grammar_path = Path(__file__).parent /  "sound_change.ebnf"
-        with open(grammar_path.as_posix()) as grammar:
-            self._parser = ParserPEG(grammar.read(), 'rule', ws='\t ', debug=self.debug)
 
 def _merge_context(ast, context, offset_ref=None):
     """

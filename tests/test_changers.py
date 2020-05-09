@@ -91,6 +91,7 @@ class TestChangers(unittest.TestCase):
         sound_changes = alteruphono.utils.read_sound_changes()
 
         parser = alteruphono.parser.Parser()
+        seq_parser = alteruphono.parser.Parser(root_rule="sequence")
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
             rule = alteruphono.Rule(change["RULE"], parser(change['RULE']))
@@ -102,8 +103,12 @@ class TestChangers(unittest.TestCase):
                 [str(seq) for seq in model.backward(test_post, rule)]
             )
 
-            assert 1 == 1
-            # TODO: rewrite with new check match
+            # TODO: inspect all options returned, including ('# a k u n #', '# a k u p|t|k θ #'
+
+#            for seq in ante_seqs:
+#                print([seq])
+#                print(seq_parser(seq))
+
 #            ante_asts = [
 #                alteruphono.parser._tokens2ast(seq.split(" "))
 #                for seq in ante_seqs
