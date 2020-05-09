@@ -5,7 +5,7 @@ __init__ module for the `alteruphono` package.
 """
 
 # Version of the alteruphono package
-__version__ = "0.3"
+__version__ = "0.4"
 __author__ = "Tiago Tresoldi"
 __email__ = "tresoldi@shh.mpg.de"
 
