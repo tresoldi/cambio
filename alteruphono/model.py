@@ -162,9 +162,10 @@ class Model:
             return grapheme
 
         # Check if the combination has already been computed and cached
-        cache_key = tuple([grapheme, modifier, inverse])
-        if cache_key in self.modifier_cache:
-            return self.modifier_cache[cache_key]
+        # TODO: reimplement cache
+        #cache_key = tuple([grapheme, modifier, inverse])
+        #if cache_key in self.modifier_cache:
+        #    return self.modifier_cache[cache_key]
 
         # Parse the provided modifier
         features = alteruphono.old_parser.parse_features(modifier)
@@ -232,7 +233,8 @@ class Model:
                 grapheme = "[%s]" % ",".join(descriptors)
 
         # cache
-        self.modifier_cache[cache_key] = grapheme
+        # TODO: reimplement cache
+        #self.modifier_cache[cache_key] = grapheme
 
         return grapheme
 

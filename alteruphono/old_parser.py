@@ -16,6 +16,7 @@ import re
 
 # Import package
 import alteruphono.utils
+from alteruphono.ast import AST
 #from alteruphono.ast import Features
 #from alteruphono.ast import TokenAlternative
 #from alteruphono.ast import TokenBackRef
@@ -33,26 +34,8 @@ _RE_SOUNDCLASS = re.compile(r"^(?P<sc>[A-Z]+)(?P<modifier>\[.+\])?$")
 _RE_IPA_MOD = re.compile(r"^(?P<ipa>.+?)(?P<modifier>\[.+\])?$")
 
 
-def parse_features(text):
+def parse_features(modifier):
     """
-    Parse a string with feature definitions.
-
-    Feature definition strings are composed of one or more features names,
-    separated by a comma, each with an optional value (defaulting to
-    "positive"). Positive and negative are indicated by preceding "+" and
-    "-" operators, respectively. Custom string values are expressed with the
-    "key=value" notation.
-
-    A rather complex example of a feature definition is
-    `[feat1,-feat2,feat3=value,+feat4]`, returning "feat1" and "feat4"
-    as positive features, "feat2" as a negative feature, and the
-    custom "feat3" feature with value "value".
-
-    Parameters
-    ----------
-    text: string
-        A feature definition string.
-
     Returns
     -------
     features : Features
@@ -61,8 +44,23 @@ def parse_features(text):
         strings as keys and strings as values).
     """
 
-    # Clear text
-    text = alteruphono.utils.clear_text(text)
+    # TODO: write properly, currently without custom
+    # TODO: rename AST to something more general, out attrib class
+    # TODO: rename feature.feature to feature.name or something similar
+    positive, negative = [], []
+    for feature in modifier:
+        if feature.value == "+":
+            positive.append(feature.feature)
+        elif feature.value == "-":
+            negative.append(feature.feature)
+
+    # TODO: while sort? to cache/hash?
+    return AST({"positive":sorted(positive),
+    "negative":sorted(negative),
+    "custom":[]})
+
+    ######################################
+
 
     # Remove any brackets from the text that was received and strip it.
     # This allows to generalize this function, so if that it can be used
