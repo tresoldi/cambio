@@ -28,9 +28,12 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_op_feature(self, node, children):
         return AST({'feature':children[1], 'value':children[0]})
 
+    def visit_feature_list(self, node, children):
+        return list(children)
+
     def visit_modifier(self, node, children):
         # don't collect square brackets
-        return list(children[1])
+        return children[1]
 
     def visit_focus(self, node, children):
         return AST({'focus':node.value})
