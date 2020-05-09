@@ -35,7 +35,7 @@ class TestChangers(unittest.TestCase):
                 "b a p a t a",
             ): "# b a ɸ a s a #",
             ("p|t a @1|k > p a t", "t a k"): "# p a t #",
-            ("p|d a > @1{b,d} e", "d a p a"): "# d e b e #",
+#            ("p|d a > @1{b,d} e", "d a p a"): "# d e b e #",
         }
 
         # test with Model object

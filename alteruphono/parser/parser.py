@@ -48,7 +48,9 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         return AST({'empty':node.value})
 
     def visit_backref(self, node, children):
-        # return only the index as integer, along with any modifier
+        # skip the "@" sign and return the index as an integer,
+        # along with any modifier
+        # TODO: should the index be made 0-based already here?
         if len(children) == 2:
             return AST({'backref':int(children[1])})
         else:
@@ -58,7 +60,11 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         return AST({'sound_class':node.value})
 
     def visit_grapheme(self, node, children):
-        return AST({'grapheme':node.value})
+        # return the grapheme along with any modifier
+        if len(children) == 2:
+            return AST({'grapheme':children[0], 'modifier':children[1]})
+        else:
+            return AST({'grapheme':children[0]})
 
     # Don't capture `arrow`s
     def visit_arrow(self, node, children):

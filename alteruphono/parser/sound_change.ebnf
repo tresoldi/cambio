@@ -59,7 +59,7 @@ sound_class = r'[A-Z][A-Z0-9]*'
 backref = r'@' r'[0-9]+' (modifier)?
 
 // excludes "-" as part of feature names
-grapheme = r'[^ \[\]|/>@-]+'
+grapheme = r'[^ \[\]|/>@-]+' (modifier)?
 
 // Define additional capture symbols (actually terminals).
 focus = r'_'
