@@ -24,9 +24,14 @@ from alteruphono.ast import AST
 
 
 # Define Sound Change Visitor, for visiting the parse tree
+# TODO: add feature_val
 class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_op_feature(self, node, children):
         return AST({'feature':children[1], 'value':children[0]})
+
+    def visit_only_feature_key(self, node, children):
+        # default to positive
+        return AST({'feature':node.value, 'value': '+'})
 
     def visit_feature_list(self, node, children):
         return list(children)

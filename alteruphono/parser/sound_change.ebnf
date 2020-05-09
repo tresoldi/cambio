@@ -45,9 +45,10 @@ basic = boundary / empty / backref / sound_class / grapheme
 // TODO: allow values besides "true" and "false"
 // TODO: add only_feature_key?
 feature_key = r'[a-z][a-z0-9_-]+'
-feature = op_feature / feature_val
+feature = op_feature / feature_val / only_feature_key
 op_feature = r'\+|\-|!' feature_key
 feature_val = feature_key r'=' r'true|false'
+only_feature_key = feature_key
 feature_list = feature ("," feature)?
 modifier = r'\[' feature_list r'\]'
 
