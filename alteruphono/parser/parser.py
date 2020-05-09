@@ -20,18 +20,15 @@ from alteruphono.ast import AST
 # TODO: write auxiliary function for updating backrefs in ASTs?
 
 
-
-
-
 # Define Sound Change Visitor, for visiting the parse tree
 # TODO: add feature_val
 class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_op_feature(self, node, children):
-        return AST({'feature':children[1], 'value':children[0]})
+        return AST({"feature": children[1], "value": children[0]})
 
     def visit_only_feature_key(self, node, children):
         # default to positive
-        return AST({'feature':node.value, 'value': '+'})
+        return AST({"feature": node.value, "value": "+"})
 
     def visit_feature_list(self, node, children):
         return list(children)
@@ -41,44 +38,45 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         return children[1]
 
     def visit_focus(self, node, children):
-        return AST({'focus':node.value})
+        return AST({"focus": node.value})
 
     def visit_choice(self, node, children):
         return list(children)
 
     def visit_boundary(self, node, children):
-        return AST({'boundary':node.value})
+        return AST({"boundary": node.value})
 
     def visit_empty(self, node, children):
-        return AST({'empty':node.value})
+        return AST({"empty": node.value})
 
     def visit_backref(self, node, children):
         # skip the "@" sign and return the index as an integer,
         # along with any modifier
         # TODO: should the index be made 0-based already here?
         if len(children) == 2:
-            return AST({'backref':int(children[1])})
+            return AST({"backref": int(children[1])})
         else:
-            return AST({'backref':int(children[1]), 'modifier':children[2]})
+            return AST({"backref": int(children[1]), "modifier": children[2]})
 
     def visit_sound_class(self, node, children):
         # return the sound class along with any modifier
         if len(children) == 2:
-            return AST({'sound_class':children[0], 'modifier':children[1]})
+            return AST({"sound_class": children[0], "modifier": children[1]})
         else:
-            return AST({'sound_class':children[0]})
+            return AST({"sound_class": children[0]})
 
     def visit_grapheme(self, node, children):
         # return the grapheme along with any modifier
         if len(children) == 2:
-            return AST({'grapheme':children[0], 'modifier':children[1]})
+            return AST({"grapheme": children[0], "modifier": children[1]})
         else:
-            return AST({'grapheme':children[0]})
+            return AST({"grapheme": children[0]})
 
     # Don't capture `arrow`s or`slash`es
     # TODO: can remove?
     def visit_arrow(self, node, children):
         pass
+
     def visit_slash(self, node, children):
         pass
 
@@ -86,12 +84,15 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
     # is only visited if asked directly
     def visit_sequence(self, node, children):
         return list(children)
+
     def visit_ante(self, node, children):
-        return {'ante':list(children)}
+        return {"ante": list(children)}
+
     def visit_post(self, node, children):
-        return {'post':list(children)}
+        return {"post": list(children)}
+
     def visit_context(self, node, children):
-        return {'context': list(children)}
+        return {"context": list(children)}
 
     # Entry point
     def visit_rule(self, node, children):
@@ -101,6 +102,7 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
             ret.update(seq)
 
         return AST(ret)
+
 
 class Parser:
     # Holds the real parser, loaded dinamically on first call
@@ -116,9 +118,11 @@ class Parser:
         Internal function for loading and compiling a grammar.
         """
 
-        grammar_path = Path(__file__).parent /  "sound_change.ebnf"
+        grammar_path = Path(__file__).parent / "sound_change.ebnf"
         with open(grammar_path.as_posix()) as grammar:
-            self._parser = ParserPEG(grammar.read(), self.root_rule, ws='\t ', debug=self.debug)
+            self._parser = ParserPEG(
+                grammar.read(), self.root_rule, ws="\t ", debug=self.debug
+            )
 
     def __call__(self, text):
         # Load and compile the grammar if necessary
@@ -160,12 +164,17 @@ class Parser:
         if not ast.get("context"):
             return ast
 
-        merged_ast = AST({
-            "ante" : _merge_context(ast.ante, ast.context),
-            "post" : _merge_context(ast.post, ast.context, offset_ref=len(ast.ante)),
-        })
+        merged_ast = AST(
+            {
+                "ante": _merge_context(ast.ante, ast.context),
+                "post": _merge_context(
+                    ast.post, ast.context, offset_ref=len(ast.ante)
+                ),
+            }
+        )
 
         return merged_ast
+
 
 def _merge_context(ast, context, offset_ref=None):
     """
@@ -214,7 +223,7 @@ def _merge_context(ast, context, offset_ref=None):
     if offset_ref:
         # Here we can just fill the backreferences, as there are no modifiers
         merged_ast = (
-            [AST({"backref":i + 1}) for i, _ in enumerate(left)]
+            [AST({"backref": i + 1}) for i, _ in enumerate(left)]
             + merged_ast
             + [
                 AST({"backref": i + 1 + offset_left + offset_ref})
@@ -233,11 +242,13 @@ def _merge_context(ast, context, offset_ref=None):
 
     return merged_ast
 
+
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) != 2:
         raise ValueError("Should provide the rule and only the rule.")
 
-    p = Parser()
+    p = Parser(debug=True)
     v = p(sys.argv[1])
     print(v)
