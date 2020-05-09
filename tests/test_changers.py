@@ -47,13 +47,6 @@ class TestChangers(unittest.TestCase):
             ante_seq = test[1].split()
             post_seq = model.forward(ante_seq, rule)
 
-            if str(post_seq) != ref:
-                print("\n", "---", test)
-                print(rule.ante)
-                print(rule.post)
-                print(type(post_seq), [post_seq], [str(post_seq)])
-                print(type(ref), [ref])
-
             assert str(post_seq) == ref
 
     def test_forward_resources(self):
@@ -91,6 +84,7 @@ class TestChangers(unittest.TestCase):
             ante_seqs = tuple(
                 [str(seq) for seq in model.backward(post_seq, rule)]
             )
+
             assert tuple(ante_seqs) == ref
 
     def test_backward_resources(self):

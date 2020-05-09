@@ -54,7 +54,7 @@ modifier = r'\[' feature_list r'\]'
 
 // Sound class labels are identifiers in uppercase letters or digits, with
 // the first character obligatorily a letter.
-sound_class = r'[A-Z][A-Z0-9]*'
+sound_class = r'[A-Z][A-Z0-9]*' (modifier)?
 
 // Defines a back-reference.
 backref = r'@' r'[0-9]+' (modifier)?

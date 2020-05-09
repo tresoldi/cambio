@@ -62,7 +62,11 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
             return AST({'backref':int(children[1]), 'modifier':children[2]})
 
     def visit_sound_class(self, node, children):
-        return AST({'sound_class':node.value})
+        # return the sound class along with any modifier
+        if len(children) == 2:
+            return AST({'sound_class':children[0], 'modifier':children[1]})
+        else:
+            return AST({'sound_class':children[0]})
 
     def visit_grapheme(self, node, children):
         # return the grapheme along with any modifier
