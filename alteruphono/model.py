@@ -14,6 +14,7 @@ import itertools
 from pathlib import Path
 
 # Import package
+from alteruphono.ast import AST
 import alteruphono.old_parser
 import alteruphono.utils
 from alteruphono.sequence import Sequence
@@ -174,19 +175,23 @@ class Model:
         # TODO: for the time being, just hard-coding them; should be
         #       implemented with some search (that can be *very* expansive...)
         if inverse:
+            modifier_key = tuple(sorted([
+                (feat['feature'], feat['value'])
+                for feat in modifier
+            ], key=lambda f:f[0]))
 
             ret = alteruphono.utils.HARD_CODED_INVERSE_MODIFIER.get(
-                (grapheme, modifier), None
+                (grapheme, modifier_key), None
             )
 
             if not ret:
                 raise ValueError(
                     "Missing hardcoded backwards modifier:",
-                    (grapheme, modifier),
+                    (grapheme, modifier_key),
                 )
 
             # cache
-            self.modifier_cache[(grapheme, modifier, inverse)] = ret
+            self.modifier_cache[(grapheme, modifier_key, inverse)] = ret
 
             return ret
 
@@ -360,10 +365,10 @@ class Model:
         # in terms of back-references and classes/features,
         # from what we have in the reflex
         value = {}
-        no_nulls = [token for token in rule.post if token.toktype != "null"]
+        no_nulls = [token for token in rule.post if "empty" not in token]
         for post_entry, token in zip(no_nulls, sequence):
-            if post_entry.toktype == "backref":
-                value[post_entry.index - 1] = self.apply_modifier(
+            if "backref" in post_entry:
+                value[post_entry.backref - 1] = self.apply_modifier(
                     token, post_entry.modifier, inverse=True
                 )
 
@@ -419,17 +424,22 @@ class Model:
         # is transformed in the equivalent "t > @1".
         # TODO: remove copy, build new object
         def _add_modifier(entry1, entry2):
+            if isinstance(entry1, list):
+                return [_add_modifier(alt, entry2) for alt in entry1]
+
             # TODO: do we need a copy?
-            v = copy(entry1)
-            v.modifier = entry2.modifier
-            return v
+            v = dict(entry1)
+            if "modifier" in entry2:
+                v['modifier'] = entry2.modifier
+
+            return AST(v)
 
         # Compute the `post_ast`, applying modifiers and skipping nulls
-        post_ast = [token for token in rule.post if token.toktype != "null"]
+        post_ast = [token for token in rule.post if "empty" not in token]
         post_ast = [
             token
-            if token.toktype != "backref"
-            else _add_modifier(rule.ante[token.index - 1], token)
+            if "backref" not in token
+            else _add_modifier(rule.ante[token.backref - 1], token)
             for token in post_ast
         ]
 

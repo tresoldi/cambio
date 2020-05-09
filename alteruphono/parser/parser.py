@@ -82,7 +82,8 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_slash(self, node, children):
         pass
 
-    # Sequences
+    # Sequences -- if calling `rule`, will visit the three bottom, `sequence`
+    # is only visited if asked directly
     def visit_sequence(self, node, children):
         return list(children)
     def visit_ante(self, node, children):
