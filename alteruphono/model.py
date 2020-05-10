@@ -12,6 +12,7 @@ from copy import copy
 import csv
 import itertools
 from pathlib import Path
+import sys
 
 # Import package
 from alteruphono.ast import AST
@@ -129,6 +130,14 @@ def read_sound_classes(sounds, filename):
 
 
 class Model:
+    # Define our custom caches; we are not using Python's functools because
+    # we need a finer management of the cache. Note that this only holds
+    # forward and backward calls as a whole: other functions might
+    # implement their own caches
+    _cache_fw = {}
+    _cache_bw = {}
+    _cache_match = {}
+
     def __init__(self, model_path=None):
         # Read the model from disk, defaulting to the package one
         if not model_path:
@@ -253,6 +262,15 @@ class Model:
         if len(sequence) != len(pattern):
             return False
 
+        # Build cache key
+        cache_key = (
+            " ".join(sequence),
+            " ".join([str(token) for token in pattern])
+        )
+        if cache_key in self._cache_match:
+            return self._cache_match[cache_key]
+
+        ret = True
         for token, ref in zip(sequence, pattern):
             # check choice (list) first
             if isinstance(ref, list):
@@ -263,14 +281,14 @@ class Model:
                 alt_matches = [self.check_match([token], [alt]) for alt in ref]
 
                 if not any(alt_matches):
-                    return False
+                    ret = False
             elif "grapheme" in ref:
                 ipa = self.apply_modifier(ref.grapheme, ref.modifier)
                 if token != ipa:
-                    return False
+                    ret = False
             elif "boundary" in ref:
                 if token != "#":
-                    return False
+                    ret = False
             elif "sound_class" in ref:
                 # Apply the modifier to all the items in the sound class,
                 # so we can check if the `token` is actually there.
@@ -283,11 +301,14 @@ class Model:
                 modified = list({grapheme for grapheme in modified if grapheme})
 
                 if token not in modified:
-                    return False
+                    ret = False
 
+        # cache
+        self._cache_match[cache_key] = ret
 
-        return True
+        return ret
 
+    # TODO: rename `rule` to `pattern`
     def _forward_translate(self, sequence, rule):
         """
         Translate an intermediary `ante` to `post` sequence.
@@ -335,6 +356,16 @@ class Model:
         if not isinstance(ante_seq, alteruphono.sequence.Sequence):
             ante_seq = Sequence(ante_seq)
 
+        # TODO: should probably just count number of keys, for speed,
+        # as a recursive one can take too long and in our cases should
+        # be linear anyway
+#        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
+#        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
+#            alteruphono.utils.rec_getsizeof(self._cache_bw))
+        cache_key = (str(ante_seq), rule.source)
+        if cache_key in self._cache_fw:
+            print("FW cache hit", cache_key, self._cache_fw[cache_key])
+
         # Iterate over the sequence, checking if subsequences match the
         # specified `ante`. We operate inside a `while True` loop
         # because we don't allow overlapping matches, and as such the
@@ -357,6 +388,9 @@ class Model:
 
             if idx == len(ante_seq):
                 break
+
+        # add to cache
+        self._cache_fw[cache_key] = post_seq
 
         return Sequence(post_seq)
 
@@ -418,6 +452,16 @@ class Model:
         if not isinstance(post_seq, alteruphono.sequence.Sequence):
             post_seq = Sequence(post_seq)
 
+        # TODO: should probably just count number of keys, for speed,
+        # as a recursive one can take too long and in our cases should
+        # be linear anyway
+#        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
+#        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
+#            alteruphono.utils.rec_getsizeof(self._cache_bw))
+        cache_key = (str(post_seq), rule.source)
+        if cache_key in self._cache_bw:
+            print("BW cache hit", cache_key, self._cache_bw[cache_key])
+
         # This method makes a copy of the original AST ante-tokens and applies
         # the modifiers from the post sequence; in a way, it "fakes" the
         # rule being applied, so that something like "d > @1[+voiceless]"
@@ -469,5 +513,9 @@ class Model:
             Sequence(" ".join(candidate))
             for candidate in itertools.product(*ante_seqs)
         ]
+
+        # add to cache
+        # TODO: tuples from the beginning, for cache?
+        self._cache_bw[cache_key] = ante_seqs
 
         return ante_seqs

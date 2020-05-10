@@ -24,6 +24,14 @@ from alteruphono.ast import AST
 # elements as possible.
 # TODO: add feature_val
 class SC_Visitor(arpeggio.PTNodeVisitor):
+    # Don't capture `arrow`s or`slash`es
+    def visit_arrow(self, node, children):
+        pass
+
+    def visit_slash(self, node, children):
+        pass
+
+    # Feature captures
     def visit_op_feature(self, node, children):
         # "+stop", "-voiced"
         return AST({"feature": children[1], "value": children[0]})
@@ -73,14 +81,6 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
             return AST({"grapheme": children[0], "modifier": children[1]})
 
         return AST({"grapheme": children[0]})
-
-    # Don't capture `arrow`s or`slash`es
-    # TODO: can remove?
-    def visit_arrow(self, node, children):
-        pass
-
-    def visit_slash(self, node, children):
-        pass
 
     # Sequences -- if calling `rule`, will visit the three bottom, `sequence`
     # is only visited if asked directly

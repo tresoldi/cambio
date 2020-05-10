@@ -9,6 +9,7 @@ def isiter(value):
         not isinstance(value, str)
     )
 
+# TODO: sort to guarantee reproducibility -- at least with a flag
 def asjson(obj, seen=None):
     if isinstance(obj, Mapping) or isiter(obj):
         # prevent traversal of recursive structures
