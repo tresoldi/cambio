@@ -13,7 +13,6 @@ import unittest
 
 # Import the library being test and auxiliary libraries
 import alteruphono
-from alteruphono.old_parser import _tokens2ast
 from alteruphono.sequence import Sequence
 from alteruphono.ast import *
 
