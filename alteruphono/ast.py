@@ -33,7 +33,7 @@ from collections.abc import Mapping, Iterable
 def isiter(value):
     return isinstance(value, Iterable) and not isinstance(value, str)
 
-
+# TODO: rename function so this is an internal, non-confused one
 def asjson(obj, seen=None):
     if isinstance(obj, Mapping) or isiter(obj):
         # prevent traversal of recursive structures
@@ -65,8 +65,18 @@ class AST(dict):
     _frozen = False
 
     def __init__(self, *args, **kwargs):
+        # Initialize with new data
         super().__init__()
         self.update(*args, **kwargs)
+
+        # Given that the structure is immutable and the serialization is
+        # really expansive in terms of computing cycles, compute it once and
+        # store it
+        self._cache_json = asjson(self)
+        self._cache_repr = repr(self._cache_json)
+        self._cache_str = str(self._cache_json)
+
+        # Froze the structure
         self._frozen = True
 
     @property
@@ -82,7 +92,7 @@ class AST(dict):
         return self.__copy__()
 
     def asjson(self):
-        return asjson(self)
+        return self._cache_json
 
     def _set(self, key, value, force_list=False):
         key = self._safekey(key)
@@ -169,9 +179,9 @@ class AST(dict):
     def __json__(self):
         return {name: asjson(value) for name, value in self.items()}
 
-    # TODO: this should be a property, as it is frozen
+    # TODO: could we have a single one?
     def __repr__(self):
-        return repr(self.asjson())
+        return self._cache_repr
 
     def __str__(self):
-        return str(self.asjson())
+        return self._cache_str
