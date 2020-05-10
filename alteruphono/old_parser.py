@@ -19,7 +19,7 @@ import alteruphono.utils
 from alteruphono.ast import AST
 
 # TODO: rename to collect features or something in these lines
-def parse_features(modifier):
+def XXXparse_features(modifier):
     """
     Returns
     -------
@@ -46,7 +46,7 @@ def parse_features(modifier):
 
 
 # TODO: make just a dictionary? a data class? a named tuple?
-class Rule:
+class XXXRule:
     def __init__(self, rule_text, ast):
         self.source = rule_text
         self.ante = ast.ante
