@@ -24,6 +24,8 @@ class Sequence:
             sequence = list(sequence)
 
         # Make sure all entries are normalized
+        # TODO: make a single call when passing string, also no need for
+        #       space accounting in list
         sequence = [alteruphono.utils.clear_text(token) for token in sequence]
 
         # Add boundaries if necessary
@@ -33,7 +35,7 @@ class Sequence:
             sequence.append("#")
 
         # Store sequence and separator (used to return as str)
-        self._sequence = sequence
+        self._sequence = tuple(sequence)
         self._sep = sep
 
     def __getitem__(self, idx):
@@ -55,6 +57,7 @@ class Sequence:
     def __len__(self):
         return len(self._sequence)
 
+    # TODO: __repr__ and __str__ can be stored (as immutable)? do we need it?
     def __repr__(self):
         return repr(self._sequence)
 
@@ -63,14 +66,7 @@ class Sequence:
 
     # NOTE: not considering separator
     def __eq__(self, other):
-        if len(self._sequence) != len(other._sequence):
-            return False
+        return self._sequence == other._sequence
 
-        return all(
-            [
-                self_sound == other_sound
-                for self_sound, other_sound in zip(
-                    self._sequence, other._sequence
-                )
-            ]
-        )
+    def __hash__(self):
+        return hash(self._sequence)
