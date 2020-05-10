@@ -19,7 +19,7 @@ RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 # TODO: should be computed and not coded, see comments in model.py
 # TODO: compile the feature description to a Features object
 HARD_CODED_INVERSE_MODIFIER = {
-    ('ɸ', (('fricative', '+'),)): "p",
+    ("ɸ", (("fricative", "+"),)): "p",
     ("t", (("voiceless", "+"),)): "d",
     ("f", (("voiceless", "+"),)): "v",
     ("ɶ", (("rounded", "+"),)): "a",
@@ -31,7 +31,7 @@ HARD_CODED_INVERSE_MODIFIER = {
     ("ɲ", (("palatal", "+"),)): "n",
     ("d", (("voiced", "+"),)): "t",
     ("b", (("voiced", "+"),)): "p",
-    ("b̪",( ("stop", "+"),)): "v",
+    ("b̪", (("stop", "+"),)): "v",
     ("g", (("stop", "+"),)): "ɣ",
     ("x", (("voiceless", "+"),)): "ɣ",
     ("d̪", (("stop", "+"),)): "ð",
@@ -43,6 +43,7 @@ HARD_CODED_INVERSE_MODIFIER = {
 # Custom package errors, for fuzzing, testing, etc.
 class AlteruPhonoError(Exception):
     pass
+
 
 # originally from this recipe http://code.activestate.com/recipes/577504/
 def rec_getsizeof(o, handlers={}, verbose=False):
@@ -57,18 +58,19 @@ def rec_getsizeof(o, handlers={}, verbose=False):
 
     """
     dict_handler = lambda d: chain.from_iterable(d.items())
-    all_handlers = {tuple: iter,
-                    list: iter,
-                    dict: dict_handler,
-                    set: iter,
-                    frozenset: iter,
-                   }
-    all_handlers.update(handlers)     # user handlers take precedence
-    seen = set()                      # track which object id's have already been seen
-    default_size = sys.getsizeof(0)       # estimate sizeof object without __sizeof__
+    all_handlers = {
+        tuple: iter,
+        list: iter,
+        dict: dict_handler,
+        set: iter,
+        frozenset: iter,
+    }
+    all_handlers.update(handlers)  # user handlers take precedence
+    seen = set()  # track which object id's have already been seen
+    default_size = sys.getsizeof(0)  # estimate sizeof object without __sizeof__
 
     def sizeof(o):
-        if id(o) in seen:       # do not double count the same object
+        if id(o) in seen:  # do not double count the same object
             return 0
         seen.add(id(o))
         s = sys.getsizeof(o, default_size)
@@ -83,6 +85,7 @@ def rec_getsizeof(o, handlers={}, verbose=False):
         return s
 
     return sizeof(o)
+
 
 def descriptors2grapheme(descriptors, sounds):
     # make sure we can manipulate these descriptors

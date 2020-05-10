@@ -13,7 +13,8 @@ spaces, etc.
 # Import package
 import alteruphono.utils
 
-
+# TODO: drop this object and only use a controlled tuple? add an __hash__?
+#       or store internally as a tuple?
 class Sequence:
     def __init__(self, sequence, sep=" "):
         # Split `sequence` string and convert to lists tuple ones

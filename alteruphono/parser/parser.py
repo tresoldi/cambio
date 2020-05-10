@@ -38,9 +38,9 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         # "stop=true", "voiced=false"
         # TODO: correct after updating grammar for multiple values
         if children[2] == "true":
-            return AST({"feature":children[0], "value":"+"})
+            return AST({"feature": children[0], "value": "+"})
         elif children[2] == "false":
-            return AST({"feature":children[0], "value":"-"})
+            return AST({"feature": children[0], "value": "-"})
         else:
             raise ValueError("invalid value")
 

@@ -126,6 +126,7 @@ def read_sound_classes(sounds, filename):
 
     return sound_classes
 
+
 # TODO: rename to collect features or something in these lines
 def parse_features(modifier):
     """
@@ -148,9 +149,13 @@ def parse_features(modifier):
             negative.append(feature.feature)
 
     # TODO: while sort? to cache/hash?
-    return AST({"positive":sorted(positive),
-    "negative":sorted(negative),
-    "custom":[]})
+    return AST(
+        {
+            "positive": sorted(positive),
+            "negative": sorted(negative),
+            "custom": [],
+        }
+    )
 
 
 # TODO: make just a dictionary? a data class? a named tuple?
@@ -160,14 +165,19 @@ class Rule:
         self.ante = ast.ante
         self.post = ast.post
 
+
 class Model:
     # Define our custom caches; we are not using Python's functools because
     # we need a finer management of the cache. Note that this only holds
     # forward and backward calls as a whole: other functions might
     # implement their own caches
-    _cache_fw = {}
-    _cache_bw = {}
-    _cache_match = {}
+    # TODO: incorporate self.modifier_cache and self.desc2graph
+    _cache = {"forward": {}, "backward": {}, "match": {}}
+    _cache_stats = {
+        "forward": [0, 0],  # hits, misses
+        "backward": [0, 0],  # hits, misses
+        "match": [0, 0],  # hits, misses
+    }
 
     def __init__(self, model_path=None):
         # Read the model from disk, defaulting to the package one
@@ -192,6 +202,24 @@ class Model:
         self.modifier_cache = {}
         self.desc2graph = {}
 
+    def cache_query(self, collection, key):
+        if key in self._cache[collection]:
+            # Update individual and global hits
+            self._cache_stats[collection][0] += 1
+            self._cache[collection][key][0] += 1
+
+            print("> CACHE", collection, key, self._cache[collection][key])
+
+            return self._cache[collection][key][1]
+
+        # update miss
+        self._cache_stats[collection][1] += 1
+
+        return None
+
+    def cache_add(self, collection, key, value):
+        self._cache[collection][key] = [0, value]
+
     # TODO: deal with custom features
     def apply_modifier(self, grapheme, modifier, inverse=False):
         """
@@ -204,8 +232,8 @@ class Model:
 
         # Check if the combination has already been computed and cached
         # TODO: reimplement cache
-        #cache_key = tuple([grapheme, modifier, inverse])
-        #if cache_key in self.modifier_cache:
+        # cache_key = tuple([grapheme, modifier, inverse])
+        # if cache_key in self.modifier_cache:
         #    return self.modifier_cache[cache_key]
 
         # Parse the provided modifier
@@ -215,10 +243,12 @@ class Model:
         # TODO: for the time being, just hard-coding them; should be
         #       implemented with some search (that can be *very* expansive...)
         if inverse:
-            modifier_key = tuple(sorted([
-                (feat['feature'], feat['value'])
-                for feat in modifier
-            ], key=lambda f:f[0]))
+            modifier_key = tuple(
+                sorted(
+                    [(feat["feature"], feat["value"]) for feat in modifier],
+                    key=lambda f: f[0],
+                )
+            )
 
             ret = alteruphono.utils.HARD_CODED_INVERSE_MODIFIER.get(
                 (grapheme, modifier_key), None
@@ -279,7 +309,7 @@ class Model:
 
         # cache
         # TODO: reimplement cache
-        #self.modifier_cache[cache_key] = grapheme
+        # self.modifier_cache[cache_key] = grapheme
 
         return grapheme
 
@@ -290,16 +320,23 @@ class Model:
         """
 
         # If there is a length mismatch, it does not match by definition
+        # NOTE: with the standard code in place for forward and backward
+        #       operation, this test will always fail ("sequence" and
+        #       "pattern" will always have the same length), but it is worth
+        #       keeping the code as the `.check_match()` method is one
+        #       facing the users, who may provide sequences mismatched in
+        #       length.
         if len(sequence) != len(pattern):
             return False
 
         # Build cache key
         cache_key = (
             " ".join(sequence),
-            " ".join([str(token) for token in pattern])
+            " ".join([str(token) for token in pattern]),
         )
-        if cache_key in self._cache_match:
-            return self._cache_match[cache_key]
+        cache_val = self.cache_query("match", cache_key)
+        if cache_val:
+            return cache_val
 
         ret = True
         for token, ref in zip(sequence, pattern):
@@ -335,7 +372,7 @@ class Model:
                     ret = False
 
         # cache
-        self._cache_match[cache_key] = ret
+        self.cache_add("match", cache_key, ret)
 
         return ret
 
@@ -390,12 +427,13 @@ class Model:
         # TODO: should probably just count number of keys, for speed,
         # as a recursive one can take too long and in our cases should
         # be linear anyway
-#        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
-#        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
-#            alteruphono.utils.rec_getsizeof(self._cache_bw))
+        #        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
+        #        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
+        #            alteruphono.utils.rec_getsizeof(self._cache_bw))
         cache_key = (str(ante_seq), rule.source)
-        if cache_key in self._cache_fw:
-            print("FW cache hit", cache_key, self._cache_fw[cache_key])
+        cache_val = self.cache_query("forward", cache_key)
+        if cache_val:
+            return cache_val
 
         # Iterate over the sequence, checking if subsequences match the
         # specified `ante`. We operate inside a `while True` loop
@@ -421,7 +459,8 @@ class Model:
                 break
 
         # add to cache
-        self._cache_fw[cache_key] = post_seq
+        # TODO: deal with Sequence
+        self.cache_add("forward", cache_key, Sequence(post_seq))
 
         return Sequence(post_seq)
 
@@ -486,12 +525,13 @@ class Model:
         # TODO: should probably just count number of keys, for speed,
         # as a recursive one can take too long and in our cases should
         # be linear anyway
-#        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
-#        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
-#            alteruphono.utils.rec_getsizeof(self._cache_bw))
+        #        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
+        #        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
+        #            alteruphono.utils.rec_getsizeof(self._cache_bw))
         cache_key = (str(post_seq), rule.source)
-        if cache_key in self._cache_bw:
-            print("BW cache hit", cache_key, self._cache_bw[cache_key])
+        cache_val = self.cache_query("backward", cache_key)
+        if cache_val:
+            return cache_val
 
         # This method makes a copy of the original AST ante-tokens and applies
         # the modifiers from the post sequence; in a way, it "fakes" the
@@ -505,7 +545,7 @@ class Model:
             # TODO: do we need a copy?
             v = dict(entry1)
             if "modifier" in entry2:
-                v['modifier'] = entry2.modifier
+                v["modifier"] = entry2.modifier
 
             return AST(v)
 
@@ -547,6 +587,6 @@ class Model:
 
         # add to cache
         # TODO: tuples from the beginning, for cache?
-        self._cache_bw[cache_key] = ante_seqs
+        self.cache_add("forward", cache_key, ante_seqs)
 
         return ante_seqs

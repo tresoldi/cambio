@@ -60,6 +60,7 @@ def asjson(obj, seen=None):
         return obj
 
 
+# TODO: implement a __hash__ method
 class AST(dict):
     _frozen = False
 
@@ -168,6 +169,7 @@ class AST(dict):
     def __json__(self):
         return {name: asjson(value) for name, value in self.items()}
 
+    # TODO: this should be a property, as it is frozen
     def __repr__(self):
         return repr(self.asjson())
 
