@@ -3,10 +3,10 @@
 // Part of the `alteruphono` library (https://github.com/tresoldi/alteruphono)
 
 // TODOs:
-//   - allow segment from descriptor (i.e., modifier)
+//   - allow segment from descriptor (i.e., from modifier)
 //   - implement set correspondence
-//   - add exclusion ("!" or "^", general operator)
-//   - add reconstruction flag
+//   - add exclusion (with "!" or "^", general operator)
+//   - add reconstruction flag (only "*" for the time being)
 //   - allow values besides "true" and "false" for feature descriptions
 //   - the current list of `grapheme` excludes is not allowing for potentially
 //     desirable graphemes (such as "@", used in X-SAMPA)

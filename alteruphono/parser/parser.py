@@ -14,6 +14,7 @@ from alteruphono.ast import AST
 
 # TODO: should memoize? -- almost surely yes
 # TODO: should normalization be applied here?
+# TODO: do the `feature_parse` into positive/negative/custom already here
 
 # Define a visitor for semantic analysis of the parse tree. The semantic
 # operations are mostly obvious, just casting the returned dictionaries
@@ -32,6 +33,16 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
     def visit_op_feature(self, node, children):
         # "+stop", "-voiced"
         return AST({"feature": children[1], "value": children[0]})
+
+    def visit_feature_val(self, node, children):
+        # "stop=true", "voiced=false"
+        # TODO: correct after updating grammar for multiple values
+        if children[2] == "true":
+            return AST({"feature":children[0], "value":"+"})
+        elif children[2] == "false":
+            return AST({"feature":children[0], "value":"-"})
+        else:
+            raise ValueError("invalid value")
 
     def visit_only_feature_key(self, node, children):
         # default to positive
