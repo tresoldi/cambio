@@ -12,8 +12,7 @@ __email__ = "tresoldi@shh.mpg.de"
 # Build the namespace
 from alteruphono import utils
 from alteruphono.parser import parser
-from alteruphono.old_parser import Rule
-from alteruphono.model import Model
+from alteruphono.model import Model, Rule
 from alteruphono.sequence import Sequence
 
 # Define essential function for forward and backward

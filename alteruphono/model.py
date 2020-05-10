@@ -16,10 +16,8 @@ import sys
 
 # Import package
 from alteruphono.ast import AST
-import alteruphono.old_parser
 import alteruphono.utils
 from alteruphono.sequence import Sequence
-#from alteruphono.ast import TokenIPA
 
 
 def read_sound_features(filename):
@@ -128,6 +126,39 @@ def read_sound_classes(sounds, filename):
 
     return sound_classes
 
+# TODO: rename to collect features or something in these lines
+def parse_features(modifier):
+    """
+    Returns
+    -------
+    features : Features
+        A `Features` object, with attributes `.positive` (a list of strings),
+        `negative` (a list of strings), and `custom` (a dictionary with
+        strings as keys and strings as values).
+    """
+
+    # TODO: write properly, currently without custom
+    # TODO: rename AST to something more general, out attrib class
+    # TODO: rename feature.feature to feature.name or something similar
+    positive, negative = [], []
+    for feature in modifier:
+        if feature.value == "+":
+            positive.append(feature.feature)
+        elif feature.value == "-":
+            negative.append(feature.feature)
+
+    # TODO: while sort? to cache/hash?
+    return AST({"positive":sorted(positive),
+    "negative":sorted(negative),
+    "custom":[]})
+
+
+# TODO: make just a dictionary? a data class? a named tuple?
+class Rule:
+    def __init__(self, rule_text, ast):
+        self.source = rule_text
+        self.ante = ast.ante
+        self.post = ast.post
 
 class Model:
     # Define our custom caches; we are not using Python's functools because
@@ -178,7 +209,7 @@ class Model:
         #    return self.modifier_cache[cache_key]
 
         # Parse the provided modifier
-        features = alteruphono.old_parser.parse_features(modifier)
+        features = parse_features(modifier)
 
         # Invert features if requested
         # TODO: for the time being, just hard-coding them; should be
@@ -349,7 +380,7 @@ class Model:
         """
 
         # Make sure the rule is a valid one
-        if not isinstance(rule, alteruphono.old_parser.Rule):
+        if not isinstance(rule, Rule):
             raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
 
         # Transform `ante_seq` in a Sequence, if necessary
@@ -445,7 +476,7 @@ class Model:
         """
 
         # Make sure the rule is a valid one
-        if not isinstance(rule, alteruphono.old_parser.Rule):
+        if not isinstance(rule, Rule):
             raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
 
         # Transform `post_seq` in a Sequence, if necessary

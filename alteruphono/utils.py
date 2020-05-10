@@ -11,7 +11,7 @@ import sys
 import unicodedata
 
 # Import from other modules
-from alteruphono.old_parser import parse_features
+from alteruphono.model import parse_features
 
 # Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
