@@ -1,25 +1,49 @@
-# modified from TatSu, under BSD-3 clause license
+"""
+`AST` class for abstract syntax tree manipulation.
 
+ASTs are here implemented as a custom dictionary that works as a frozen
+one (fields/attributes cannot be changed after initialization, but there
+is a .copy() method that accepts an `update` dictionary) and which can
+be accessed both as dictionary fields (e.g., `ast['grapheme']`) and as
+attributes (e.g., `ast.grapheme`).
 
+It is a convenient solution for prototyping and experimenting, besides the
+easiness it provides for manipulation during simulations. It might in the
+future be replaced by some standard Python solution, probability data
+classes.
+
+The implementation extends the one used by the 竜 TatSu library as of
+2020.05.09. This module is licensed under the BSD-3 clause license of
+竜 TatSu.
+"""
+# NOTE: it seems unnecessary to sort serialization output (JSON), because
+# dictionaries in Python from 3.6 are actually sorted by order of insertion,
+# an order preserved during update (new items appended to the end). It
+# might be possible in some complex situations with a modification for
+# the order to be different, but it seems unlikely and not happening in
+# our context and usage (tests should confirm this, however). If this is
+# necessary, given how expansive sorting operations can be, this could
+# be implemeted as a `.safe_json()` method passing some sorting flag to
+# `asjson()`.
+
+# Import Python standard libraries
 from collections.abc import Mapping, Iterable
 
-def isiter(value):
-    return (
-        isinstance(value, Iterable) and
-        not isinstance(value, str)
-    )
 
-# TODO: sort to guarantee reproducibility -- at least with a flag
+def isiter(value):
+    return isinstance(value, Iterable) and not isinstance(value, str)
+
+
 def asjson(obj, seen=None):
     if isinstance(obj, Mapping) or isiter(obj):
         # prevent traversal of recursive structures
         if seen is None:
             seen = set()
         elif id(obj) in seen:
-            return '__RECURSIVE__'
+            return "__RECURSIVE__"
         seen.add(id(obj))
 
-    if hasattr(obj, '__json__') and type(obj) is not type:
+    if hasattr(obj, "__json__") and type(obj) is not type:
         return obj.__json__()
     elif isinstance(obj, Mapping):
         result = {}
@@ -27,13 +51,14 @@ def asjson(obj, seen=None):
             try:
                 result[k] = asjson(v, seen)
             except TypeError:
-                debug('Unhashable key?', type(k), str(k))
+                debug("Unhashable key?", type(k), str(k))
                 raise
         return result
     elif isiter(obj):
         return [asjson(e, seen) for e in obj]
     else:
         return obj
+
 
 class AST(dict):
     _frozen = False
@@ -96,7 +121,7 @@ class AST(dict):
     def __setattr__(self, name, value):
         if self._frozen and name not in vars(self):
             raise AttributeError(
-                f'{type(self).__name__} attributes are fixed. '
+                f"{type(self).__name__} attributes are fixed. "
                 f' Cannot set attribute "{name}".'
             )
         super().__setattr__(name, value)
@@ -126,7 +151,7 @@ class AST(dict):
 
     def _safekey(self, key):
         while self.__hasattribute__(key):
-            key += '_'
+            key += "_"
         return key
 
     def _define(self, keys, list_keys=None):
@@ -141,34 +166,10 @@ class AST(dict):
                 super().__setitem__(key, [])
 
     def __json__(self):
-        return {
-            name: asjson(value)
-            for name, value in self.items()
-        }
+        return {name: asjson(value) for name, value in self.items()}
 
     def __repr__(self):
         return repr(self.asjson())
 
     def __str__(self):
         return str(self.asjson())
-
-########################################
-
-# TODO: add __str__ and __repr__
-class Features:
-    def __init__(self, positive, negative, custom=None):
-        self.positive = positive
-        self.negative = negative
-        if not custom:
-            self.custom = {}
-        else:
-            self.custom = custom
-
-    def __eq__(self, other):
-        if tuple(sorted(self.positive)) != tuple(sorted(other.positive)):
-            return False
-
-        if tuple(sorted(self.negative)) != tuple(sorted(other.negative)):
-            return False
-
-        return self.custom == other.custom

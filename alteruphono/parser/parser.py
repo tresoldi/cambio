@@ -6,17 +6,14 @@ Sound Change parser.
 from pathlib import Path
 
 # Import 3rd-party libraries
-# TODO: should use traditional instead of clean PEG?
 import arpeggio
 from arpeggio.peg import ParserPEG
 
 # Import package
 from alteruphono.ast import AST
 
-# TODO: compile a prettified grammar for saving some time on loading?
 # TODO: should memoize? -- almost surely yes
 # TODO: should normalization be applied here?
-# TODO: write auxiliary function for updating backrefs in ASTs?
 
 # Define a visitor for semantic analysis of the parse tree. The semantic
 # operations are mostly obvious, just casting the returned dictionaries
