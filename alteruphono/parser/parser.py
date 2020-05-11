@@ -11,13 +11,17 @@ import arpeggio
 from arpeggio.peg import ParserPEG
 
 
-def isiter(value):
-    return isinstance(value, Iterable) and not isinstance(value, str)
+def json_value(obj, seen=None):
+    """
+    Return a JSON representation of a value.
 
+    The function accounts for recursive elements.
+    """
 
-# TODO: rename function so this is an internal, non-confused one
-def asjson(obj, seen=None):
-    if isinstance(obj, Mapping) or isiter(obj):
+    def _isiter(item):
+        return isinstance(item, Iterable) and not isinstance(item, str)
+
+    if isinstance(obj, Mapping) or _isiter(obj):
         # prevent traversal of recursive structures
         if seen is None:
             seen = set()
@@ -25,41 +29,45 @@ def asjson(obj, seen=None):
             return "__RECURSIVE__"
         seen.add(id(obj))
 
-    if hasattr(obj, "__json__") and type(obj) is not type:
+    if hasattr(obj, "__json__") and not isinstance(obj, type):
         return obj.__json__()
-    elif isinstance(obj, Mapping):
+
+    # TODO: check original code, would never get here
+    if isinstance(obj, Mapping):
         result = {}
-        for k, v in obj.items():
+        for key, val in obj.items():
             try:
-                result[k] = asjson(v, seen)
+                result[key] = json_value(val, seen)
             except TypeError:
-                debug("Unhashable key?", type(k), str(k))
-                raise
+                raise ValueError("Unhashable key?", type(key), str(key))
         return result
-    elif isiter(obj):
-        return [asjson(e, seen) for e in obj]
+    elif _isiter(obj):
+        return [json_value(e, seen) for e in obj]
     else:
         return obj
 
 
 # TODO: implement a __hash__ method
-# `AST` class for abstract syntax tree manipulation.
-#
-# ASTs are here implemented as a custom dictionary that works as a frozen
-# one (fields/attributes cannot be changed after initialization, but there
-# is a .copy() method that accepts an `update` dictionary) and which can
-# be accessed both as dictionary fields (e.g., `ast['grapheme']`) and as
-# attributes (e.g., `ast.grapheme`).
-#
-# It is a convenient solution for prototyping and experimenting, besides the
-# easiness it provides for manipulation during simulations. It might in the
-# future be replaced by some standard Python solution, probability data
-# classes.
-#
-# The implementation extends the one used by the 竜 TatSu library as of
-# 2020.05.09, and it is licensed under the BSD-3 clause license of
-# 竜 TatSu.
 class AST(dict):
+    """
+    `AST` class for abstract syntax tree manipulation.
+
+    ASTs are here implemented as a custom dictionary that works as a frozen
+    one (fields/attributes cannot be changed after initialization, but there
+    is a .copy() method that accepts an `update` dictionary) and which can
+    be accessed both as dictionary fields (e.g., `ast['grapheme']`) and as
+    attributes (e.g., `ast.grapheme`).
+
+    It is a convenient solution for prototyping and experimenting, besides the
+    easiness it provides for manipulation during simulations. It might in the
+    future be replaced by some standard Python solution, probability data
+    classes.
+
+    The implementation extends the one used by the 竜 TatSu library as of
+    2020.05.09, and it is licensed under the BSD-3 clause license of
+    竜 TatSu.
+    """
+
     _frozen = False
 
     def __init__(self, *args, **kwargs):
@@ -70,7 +78,7 @@ class AST(dict):
         # Given that the structure is immutable and the serialization is
         # really expansive in terms of computing cycles, compute it once and
         # store it
-        self._cache_json = asjson(self)
+        self._cache_json = json_value(self)
         self._cache_repr = repr(self._cache_json)
         self._cache_str = str(self._cache_json)
 
@@ -79,9 +87,10 @@ class AST(dict):
 
     @property
     def frozen(self):
+        """Property informing whether the AST is frozen."""
         return self._frozen
 
-    def copy(self, update={}):
+    def copy(self, update=None):
         if update:
             tmp = dict(self)
             tmp.update(update)
@@ -90,25 +99,26 @@ class AST(dict):
         return self.__copy__()
 
     def asjson(self):
+        """Return the AST as a JSON."""
         return self._cache_json
 
-    def _set(self, key, value, force_list=False):
+    def _set(self, key, item_value, force_list=False):
         key = self._safekey(key)
         previous = self.get(key)
 
         if previous is None and force_list:
-            value = [value]
+            item_value = [item_value]
         elif previous is None:
             pass
         elif isinstance(previous, list):
-            value = previous + [value]
+            item_value = previous + [item_value]
         else:
-            value = [previous, value]
+            item_value = [previous, item_value]
 
-        super().__setitem__(key, value)
+        super().__setitem__(key, item_value)
 
-    def _setlist(self, key, value):
-        return self._set(key, value, force_list=True)
+    def _setlist(self, key, item_value):
+        return self._set(key, item_value, force_list=True)
 
     def __copy__(self):
         return AST(self)
@@ -116,30 +126,31 @@ class AST(dict):
     def __getitem__(self, key):
         if key in self:
             return super().__getitem__(key)
+
         key = self._safekey(key)
         if key in self:
             return super().__getitem__(key)
 
-    def __setitem__(self, key, value):
-        self._set(key, value)
+    def __setitem__(self, key, item_value):
+        self._set(key, item_value)
 
     def __delitem__(self, key):
         key = self._safekey(key)
         super().__delitem__(key)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name, item_value):
         if self._frozen and name not in vars(self):
             raise AttributeError(
                 f"{type(self).__name__} attributes are fixed. "
                 f' Cannot set attribute "{name}".'
             )
-        super().__setattr__(name, value)
+        super().__setattr__(name, item_value)
 
     def __getattr__(self, name):
         key = self._safekey(name)
         if key in self:
             return self[key]
-        elif name in self:
+        if name in self:
             return self[name]
 
         try:
@@ -175,7 +186,7 @@ class AST(dict):
                 super().__setitem__(key, [])
 
     def __json__(self):
-        return {name: asjson(value) for name, value in self.items()}
+        return {name: json_value(value) for name, value in self.items()}
 
     # TODO: could we have a single one?
     def __repr__(self):
@@ -189,33 +200,52 @@ class AST(dict):
 # operations are mostly obvious, just casting the returned dictionaries
 # into our `AST` class and returning a structure with as new nested
 # elements as possible.
-class SC_Visitor(arpeggio.PTNodeVisitor):
+class SoundChangeVisitor(arpeggio.PTNodeVisitor):
+    """
+    Visitor for the semantic analysis of parse trees.
+    """
+
     # Don't capture `arrow`s or`slash`es
     def visit_arrow(self, node, children):
+        """Define visitor for the `arrow` rule."""
+        # pylint: disable=unused-argument,no-self-use,unnecessary-pass
+
         pass
 
     def visit_slash(self, node, children):
+        """Define visitor for the `slash` rule."""
+        # pylint: disable=unused-argument,no-self-use,unnecessary-pass
+
         pass
 
     # Feature captures
     def visit_op_feature(self, node, children):
+        """Define visitor for the `op_feature` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # "+stop", "-voiced", "voiced"
         if len(children) == 1:
             return AST({"feature": children[0], "value": "+"})
-        else:
-            return AST({"feature": children[1], "value": children[0]})
+
+        return AST({"feature": children[1], "value": children[0]})
 
     def visit_feature_val(self, node, children):
+        """Define visitor for the `feature_val` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # "stop=true", "voiced=false"
         # TODO: correct after updating grammar for multiple/custom values
         if children[2] == "true":
             return AST({"feature": children[0], "value": "+"})
-        elif children[2] == "false":
+        if children[2] == "false":
             return AST({"feature": children[0], "value": "-"})
-        else:
-            raise ValueError("invalid value")
+
+        raise ValueError("invalid value")
 
     def visit_feature_list(self, node, children):
+        """Define visitor for the `feature_list` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # TODO: write properly, currently without custom
         positive, negative = [], []
         for feature in children:
@@ -233,22 +263,40 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         )
 
     def visit_modifier(self, node, children):
+        """Define visitor for the `modifier` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # don't collect square brackets
         return children[1]
 
     def visit_focus(self, node, children):
+        """Define visitor for the `focus` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return AST({"focus": node.value})
 
     def visit_choice(self, node, children):
+        """Define visitor for the `choice` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return list(children)
 
     def visit_boundary(self, node, children):
+        """Define visitor for the `boundary` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return AST({"boundary": node.value})
 
     def visit_empty(self, node, children):
+        """Define visitor for the `empty` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return AST({"empty": node.value})
 
     def visit_backref(self, node, children):
+        """Define visitor for the `backref` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # skip the "@" sign and return the index as an integer,
         # along with any modifier; node that we substract one unit
         # as our lists indexed from 1 (unlike Python, from zero)
@@ -260,6 +308,9 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         return AST({"backref": int(children[1]) - 1})
 
     def visit_sound_class(self, node, children):
+        """Define visitor for the `sound_class` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # return the sound class along with any modifier
         if len(children) == 2:
             return AST({"sound_class": children[0], "modifier": children[1]})
@@ -267,6 +318,9 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         return AST({"sound_class": children[0]})
 
     def visit_grapheme(self, node, children):
+        """Define visitor for the `grapheme` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # return the grapheme along with any modifier
         if len(children) == 2:
             return AST({"grapheme": children[0], "modifier": children[1]})
@@ -276,19 +330,34 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
     # Sequences -- if calling `rule`, will visit the three bottom, `sequence`
     # is only visited if asked directly
     def visit_sequence(self, node, children):
+        """Define visitor for the `sequence` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return list(children)
 
     def visit_ante(self, node, children):
+        """Define visitor for the `ante` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return {"ante": list(children)}
 
     def visit_post(self, node, children):
+        """Define visitor for the `post` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return {"post": list(children)}
 
     def visit_context(self, node, children):
+        """Define visitor for the `context` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         return {"context": list(children)}
 
     # Entry point
     def visit_rule(self, node, children):
+        """Define visitor for the `rule` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
         # Combine all subsquences, dealing with context optionality
         ret = {}
         for seq in children:
@@ -298,6 +367,10 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
 
 
 class Parser:
+    """
+    Sound Change parser.
+    """
+
     # Holds the real parser, loaded dinamically on first call
     _parser = None
 
@@ -305,10 +378,9 @@ class Parser:
         self.debug = debug
         self.root_rule = root_rule
 
-    # TODO: add logging
-    def _load_grammar(self):
+    def load_grammar(self):
         """
-        Internal function for loading and compiling a grammar.
+        Loads and compiles the PEG grammar.
         """
 
         grammar_path = Path(__file__).parent / "sound_change.ebnf"
@@ -324,10 +396,12 @@ class Parser:
     def __call__(self, text):
         # Load and compile the grammar if necessary
         if not self._parser:
-            self._load_grammar()
+            self.load_grammar()
 
         # Parse the tree and visit each node
-        ast = arpeggio.visit_parse_tree(self._parser.parse(text), SC_Visitor())
+        ast = arpeggio.visit_parse_tree(
+            self._parser.parse(text), SoundChangeVisitor()
+        )
 
         # Perform merging if the rule is the default (and if there is
         # a context).
@@ -359,6 +433,7 @@ def _merge_context(ast, context, offset_ref=None):
     according to it (as we need to know the length of the AST before the
     right context in what we are referring to).
     """
+    # pylint: disable=undefined-loop-variable
 
     # Split at the `focus` symbol of the context, which is mandatory. Note
     # that we don't use a list comprehension, but a loop, in order to
@@ -413,6 +488,7 @@ def _merge_context(ast, context, offset_ref=None):
 
 
 if __name__ == "__main__":
+    # pylint: disable=invalid-name
     import sys
 
     if len(sys.argv) != 2:

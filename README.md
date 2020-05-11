@@ -12,6 +12,10 @@ The best documentation is currently to check the tests, and the
 library is not recommended for production usage.*
 
 ## Future improvements
+
+- Move from existing AST to a dictionary, mostly for speed and portability
+  (even if it might be the code more verbose); should still be a frozen
+  dictionary
 - Memoize `parser.__call__()` calls
 - Consider that, if a rule has alternatives, sound_classes, or other
   profilific rules in `context`, it might be necessary to
@@ -22,6 +26,7 @@ library is not recommended for production usage.*
   exclusion of such rules (the user could always have the
   profilic rules in `ante` and `post`, manually doing what
   would be done here).
+- Use logging where appropriate
 
 ## Installation
 
