@@ -133,11 +133,12 @@ class Model:
     # forward and backward calls as a whole: other functions might
     # implement their own caches
     # TODO: incorporate self.modifier_cache and self.desc2graph
-    _cache = {"forward": {}, "backward": {}, "match": {}}
+    _cache = {"forward": {}, "backward": {}, "match": {}, "modifier":{}}
     _cache_stats = {
         "forward": [0, 0],  # hits, misses
         "backward": [0, 0],  # hits, misses
         "match": [0, 0],  # hits, misses
+        "modifier": [0, 0], # hits, misses
     }
 
     def __init__(self, model_path=None):
@@ -160,7 +161,6 @@ class Model:
         )
 
         # caches
-        self.modifier_cache = {}
         self.desc2graph = {}
 
     def cache_query(self, collection, key):
@@ -196,6 +196,11 @@ class Model:
             return grapheme
 
         # Check if the combination has already been computed and cached
+        cache_key = (grapheme, str(modifier), inverse)
+        cache_val = self.cache_query("modifier", cache_key)
+        if cache_val:
+            return cache_val
+
         # TODO: reimplement cache
         # cache_key = tuple([grapheme, modifier, inverse])
         # if cache_key in self.modifier_cache:
@@ -218,7 +223,7 @@ class Model:
                 )
 
             # cache
-#            self.modifier_cache[(grapheme, modifier inverse)] = ret
+            self.cache_add("modifier", cache_key, ret)
 
             return ret
 
@@ -265,8 +270,8 @@ class Model:
                 grapheme = "[%s]" % ",".join(descriptors)
 
         # cache
-        # TODO: reimplement cache
-        # self.modifier_cache[cache_key] = grapheme
+        # TODO: rename `grapheme` to `ret` in the logic above
+        self.cache_add("modifier", cache_key, grapheme)
 
         return grapheme
 
