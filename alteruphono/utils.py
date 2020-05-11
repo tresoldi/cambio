@@ -11,14 +11,14 @@ import sys
 import unicodedata
 
 # Import from other modules
-#from alteruphono.model import parse_features
+# from alteruphono.model import parse_features
 
 # Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 # TODO: should be computed and not coded, see comments in model.py
 # TODO: compile the feature description to a Features object
-
+# TODO: should load from disk if found, seeding the cache
 HARD_CODED_INVERSE_MODIFIER = {
     ("ɸ", "{'positive': ['fricative'], 'negative': [], 'custom': []}"): "p",
     ("t", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "d",
@@ -37,7 +37,10 @@ HARD_CODED_INVERSE_MODIFIER = {
     ("x", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "ɣ",
     ("d̪", "{'positive': ['stop'], 'negative': [], 'custom': []}"): "ð",
     ("b", "{'positive': ['stop'], 'negative': [], 'custom': []}"): "β",
-    ("t̠", "{'positive': ['post-alveolar'], 'negative': [], 'custom': []}"): "k",
+    (
+        "t̠",
+        "{'positive': ['post-alveolar'], 'negative': [], 'custom': []}",
+    ): "k",
     ("k", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "g",
 }
 
@@ -88,52 +91,6 @@ def rec_getsizeof(o, handlers={}, verbose=False):
     return sizeof(o)
 
 
-def descriptors2grapheme(descriptors, sounds):
-    # make sure we can manipulate these descriptors
-    descriptors = list(descriptors)
-
-    # Run manual fixes related to pyclts
-    if "palatal" in descriptors and "fricative" in descriptors:
-        # Fricative palatals are described as alveolo-palatal in pyclts, so
-        # replace all of them
-        descriptors = [
-            feature if feature != "palatal" else "alveolo-palatal"
-            for feature in descriptors
-        ]
-
-    if "alveolo-palatal" in descriptors and "fricative" in descriptors:
-        if "sibilant" not in descriptors:
-            descriptors.append("sibilant")
-
-    if "alveolar" in descriptors and "fricative" in descriptors:
-        if "sibilant" not in descriptors:
-            descriptors.append("sibilant")
-
-    # TODO: should cache this?
-    desc = tuple(sorted(descriptors))
-    for sound, feat_dict in sounds.items():
-        # Collect all features and confirm if all are there
-        # TODO: better to sort when loading the SOUNDS
-        features = tuple(sorted(feat_dict.values()))
-        if desc == features:
-            return sound
-
-    # TODO: fixes in case we missed
-    if "breathy" in desc:
-        new_desc = [v for v in desc if v != "breathy"]
-        new_gr = descriptors2grapheme(new_desc, sounds)
-        if new_gr:
-            return "%s[breathy]" % new_gr
-
-    if "long" in desc:
-        new_desc = [v for v in desc if v != "long"]
-        new_gr = descriptors2grapheme(new_desc, sounds)
-        if new_gr:
-            return "%sː" % new_gr
-
-    return None
-
-
 # TODO: should cache or pre-process this: if not in list, compute
 def features2graphemes(feature_str, sounds):
     """
@@ -162,7 +119,7 @@ def features2graphemes(feature_str, sounds):
     """
 
     # Parse the feature string
-#    features = parse_features(feature_str)
+    #    features = parse_features(feature_str)
 
     # Iterate over all sounds in the transcription system
     graphemes = []

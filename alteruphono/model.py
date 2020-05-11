@@ -127,18 +127,19 @@ def read_sound_classes(sounds, filename):
 
     return sound_classes
 
+
 class Model:
     # Define our custom caches; we are not using Python's functools because
     # we need a finer management of the cache. Note that this only holds
     # forward and backward calls as a whole: other functions might
     # implement their own caches
     # TODO: incorporate self.modifier_cache and self.desc2graph
-    _cache = {"forward": {}, "backward": {}, "match": {}, "modifier":{}}
+    _cache = {"forward": {}, "backward": {}, "match": {}, "modifier": {}}
     _cache_stats = {
         "forward": [0, 0],  # hits, misses
         "backward": [0, 0],  # hits, misses
         "match": [0, 0],  # hits, misses
-        "modifier": [0, 0], # hits, misses
+        "modifier": [0, 0],  # hits, misses
     }
 
     def __init__(self, model_path=None):
@@ -258,9 +259,7 @@ class Model:
         descriptors = tuple(sorted(descriptors))
         grapheme = self.desc2graph.get(descriptors, None)
         if not grapheme:
-            grapheme = alteruphono.utils.descriptors2grapheme(
-                descriptors, self.sounds
-            )
+            grapheme = self.descriptors2grapheme(descriptors)
 
             # TODO: should always return, can we guarantee?
             if grapheme:
@@ -274,6 +273,53 @@ class Model:
         self.cache_add("modifier", cache_key, grapheme)
 
         return grapheme
+
+    # TODO: hardcode exceptions
+    def descriptors2grapheme(self, descriptors):
+        # make sure we can manipulate these descriptors
+        descriptors = list(descriptors)
+
+        # Run manual fixes related to pyclts
+        if "palatal" in descriptors and "fricative" in descriptors:
+            # Fricative palatals are described as alveolo-palatal in pyclts, so
+            # replace all of them
+            descriptors = [
+                feature if feature != "palatal" else "alveolo-palatal"
+                for feature in descriptors
+            ]
+
+        if "alveolo-palatal" in descriptors and "fricative" in descriptors:
+            if "sibilant" not in descriptors:
+                descriptors.append("sibilant")
+
+        if "alveolar" in descriptors and "fricative" in descriptors:
+            if "sibilant" not in descriptors:
+                descriptors.append("sibilant")
+
+        # TODO: should cache this?
+        ret = None
+        desc = tuple(sorted(descriptors))
+        for sound, feat_dict in self.sounds.items():
+            # Collect all features and confirm if all are there
+            # TODO: better to sort when loading the SOUNDS
+            features = tuple(sorted(feat_dict.values()))
+            if desc == features:
+                ret = sound
+
+        # TODO: fixes in case we missed
+        if "breathy" in desc:
+            new_desc = [v for v in desc if v != "breathy"]
+            new_gr = self.descriptors2grapheme(new_desc)
+            if new_gr:
+                ret = "%s[breathy]" % new_gr
+
+        if "long" in desc:
+            new_desc = [v for v in desc if v != "long"]
+            new_gr = self.descriptors2grapheme(new_desc)
+            if new_gr:
+                ret = "%sː" % new_gr
+
+        return ret
 
     # TODO: return False as soon as possible
     def check_match(self, sequence, pattern):
