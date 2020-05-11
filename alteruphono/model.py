@@ -393,24 +393,23 @@ class Model:
             if "grapheme" in entry:
                 post_seq.append(entry.grapheme)
             elif "backref" in entry:
-                # Compute the actual index (Python lists are 0-based)
-                index = entry.backref - 1
-
                 # Refer to `correspondence`, if specified
                 # TODO: recheck correspondence
                 if "correspondence" in entry:
                     # get the alternative index in `ante`
                     # NOTE: `post_alts` has [1:-1] for the curly brackets
                     ante_alts = [
-                        alt.ipa for alt in rule.ante[index].alternative
+                        alt.ipa for alt in rule.ante[entry.backref].alternative
                     ]
-                    post_alts = rule.post[index].correspondence[1:-1].split(",")
+                    post_alts = (
+                        rule.post[entry.backref].correspondence[1:-1].split(",")
+                    )
 
-                    idx = ante_alts.index(sequence[index])
+                    idx = ante_alts.index(sequence[entry.backref])
 
                     post_seq.append(post_alts[idx])
                 else:
-                    token = sequence[index]
+                    token = sequence[entry.backref]
                     post_seq.append(self.apply_modifier(token, entry.modifier))
 
         return post_seq
@@ -467,7 +466,7 @@ class Model:
         no_nulls = [token for token in rule.post if "empty" not in token]
         for post_entry, token in zip(no_nulls, sequence):
             if "backref" in post_entry:
-                value[post_entry.backref - 1] = self.apply_modifier(
+                value[post_entry.backref] = self.apply_modifier(
                     token, post_entry.modifier, inverse=True
                 )
 
@@ -536,7 +535,7 @@ class Model:
         post_ast = [
             token
             if "backref" not in token
-            else _add_modifier(rule.ante[token.backref - 1], token)
+            else _add_modifier(rule.ante[token.backref], token)
             for token in post_ast
         ]
 

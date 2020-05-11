@@ -10,6 +10,7 @@ from pathlib import Path
 import arpeggio
 from arpeggio.peg import ParserPEG
 
+
 def isiter(value):
     return isinstance(value, Iterable) and not isinstance(value, str)
 
@@ -249,12 +250,14 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
 
     def visit_backref(self, node, children):
         # skip the "@" sign and return the index as an integer,
-        # along with any modifier
-        # TODO: should the index be made 0-based already here?
+        # along with any modifier; node that we substract one unit
+        # as our lists indexed from 1 (unlike Python, from zero)
         if len(children) == 3:  # @ index modifier
-            return AST({"backref": int(children[1]), "modifier": children[2]})
+            return AST(
+                {"backref": int(children[1]) - 1, "modifier": children[2]}
+            )
 
-        return AST({"backref": int(children[1])})
+        return AST({"backref": int(children[1]) - 1})
 
     def visit_sound_class(self, node, children):
         # return the sound class along with any modifier
@@ -399,10 +402,10 @@ def _merge_context(ast, context, offset_ref=None):
     if offset_ref:
         # Here we can just fill the backreferences, as there are no modifiers
         merged_ast = (
-            [AST({"backref": i + 1}) for i, _ in enumerate(left)]
+            [AST({"backref": i}) for i, _ in enumerate(left)]
             + merged_ast
             + [
-                AST({"backref": i + 1 + offset_left + offset_ref})
+                AST({"backref": i + offset_left + offset_ref})
                 for i, _ in enumerate(right)
             ]
         )

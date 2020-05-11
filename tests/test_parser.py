@@ -26,7 +26,7 @@ class TestParser(unittest.TestCase):
         tests = [
             {
                 "rule": "p > b / _ V",
-                "ast": "{'ante': [{'grapheme': 'p'}, {'sound_class': 'V'}], 'post': [{'grapheme': 'b'}, {'backref': 2}]}",
+                "ast": "{'ante': [{'grapheme': 'p'}, {'sound_class': 'V'}], 'post': [{'grapheme': 'b'}, {'backref': 1}]}",
             },
             {
                 "rule": "p > b",
@@ -48,7 +48,7 @@ class TestParser(unittest.TestCase):
             },
             {
                 "rule": "a V p|b @1 @2[+stop] :null:",
-                "ast": "[{'grapheme': 'a'}, {'sound_class': 'V'}, [{'grapheme': 'p'}, {'grapheme': 'b'}], {'backref': 1}, {'backref': 2, 'modifier': {'positive': ['stop'], 'negative': [], 'custom': []}}, {'empty': ':null:'}]",
+                "ast": "[{'grapheme': 'a'}, {'sound_class': 'V'}, [{'grapheme': 'p'}, {'grapheme': 'b'}], {'backref': 0}, {'backref': 1, 'modifier': {'positive': ['stop'], 'negative': [], 'custom': []}}, {'empty': ':null:'}]",
             },
         ]
 
@@ -62,7 +62,7 @@ class TestParser(unittest.TestCase):
             {"rule": "ɚ", "ast": "{'grapheme': 'ɚ'}"},
             {"rule": "p|b", "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}]"},
             {"rule": "#", "ast": "{'boundary': '#'}"},
-            {"rule": "@3", "ast": "{'backref': 3}"},
+            {"rule": "@3", "ast": "{'backref': 2}"},
             {"rule": "VCLSSTP", "ast": "{'sound_class': 'VCLSSTP'}"},
             {"rule": "0", "ast": "{'empty': '0'}"},
         ]
@@ -81,7 +81,7 @@ class TestParser(unittest.TestCase):
             },
             {
                 "rule": "p|0|#|@1",
-                "ast": "[{'grapheme': 'p'}, {'empty': '0'}, {'boundary': '#'}, {'backref': 1}]",
+                "ast": "[{'grapheme': 'p'}, {'empty': '0'}, {'boundary': '#'}, {'backref': 0}]",
             },
         ]
 
@@ -109,10 +109,10 @@ class TestParser(unittest.TestCase):
 
     def test_parse_backref(self):
         tests = [
-            {"rule": "@1", "ast": "{'backref': 1}"},
+            {"rule": "@1", "ast": "{'backref': 0}"},
             {
                 "rule": "@3[-nasal]",
-                "ast": "{'backref': 3, 'modifier': {'positive': [], 'negative': ['nasal'], 'custom': []}}",
+                "ast": "{'backref': 2, 'modifier': {'positive': [], 'negative': ['nasal'], 'custom': []}}",
             },
         ]
 
