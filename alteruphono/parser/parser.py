@@ -10,13 +10,6 @@ from pathlib import Path
 import arpeggio
 from arpeggio.peg import ParserPEG
 
-# TODO: should memoize parser? -- almost surely yes
-# TODO: should normalization be applied here?
-# TODO: do the `feature_parse` into positive/negative/custom already here
-# TODO: parser should return a Rule, or at least allow so
-# TODO: allow comments in rule
-
-
 def isiter(value):
     return isinstance(value, Iterable) and not isinstance(value, str)
 
@@ -195,7 +188,6 @@ class AST(dict):
 # operations are mostly obvious, just casting the returned dictionaries
 # into our `AST` class and returning a structure with as new nested
 # elements as possible.
-# TODO: add feature_val
 class SC_Visitor(arpeggio.PTNodeVisitor):
     # Don't capture `arrow`s or`slash`es
     def visit_arrow(self, node, children):
@@ -214,7 +206,7 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
 
     def visit_feature_val(self, node, children):
         # "stop=true", "voiced=false"
-        # TODO: correct after updating grammar for multiple values
+        # TODO: correct after updating grammar for multiple/custom values
         if children[2] == "true":
             return AST({"feature": children[0], "value": "+"})
         elif children[2] == "false":
@@ -224,9 +216,6 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
 
     def visit_feature_list(self, node, children):
         # TODO: write properly, currently without custom
-        # TODO: rename AST to something more general, out attrib class
-        # TODO: rename feature.feature to feature.name or something similar
-        # TODO: should be mutable?
         positive, negative = [], []
         for feature in children:
             if feature.value == "+":
@@ -326,6 +315,10 @@ class Parser:
                 grammar.read(), self.root_rule, ws="\t ", debug=self.debug
             )
 
+    # NOTE: For saving cycles and to maintain the idea of an independent
+    # parser, we don't perform text normalization (such as mapping to
+    # Unicode NFC form) here; if necessary, it should be performed by
+    # the caller.
     def __call__(self, text):
         # Load and compile the grammar if necessary
         if not self._parser:

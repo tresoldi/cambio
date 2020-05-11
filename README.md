@@ -11,6 +11,9 @@ evolution.
 The best documentation is currently to check the tests, and the
 library is not recommended for production usage.*
 
+## Future improvements
+- Memoize `parser.__call__()` calls
+
 ## Installation
 
 In any standard Python environment, `alteruphono` can be installed with:
