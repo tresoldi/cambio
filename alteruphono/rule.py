@@ -2,6 +2,7 @@
 Module holding the `Rule` class.
 """
 
+
 class Rule:
     """
     Basic rule class.
@@ -27,6 +28,7 @@ class Rule:
 
     def __eq__(self, other):
         return self.source == other.source
+
 
 def make_rule(rule_text, parser):
     """
