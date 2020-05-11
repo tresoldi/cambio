@@ -206,8 +206,11 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
 
     # Feature captures
     def visit_op_feature(self, node, children):
-        # "+stop", "-voiced"
-        return AST({"feature": children[1], "value": children[0]})
+        # "+stop", "-voiced", "voiced"
+        if len(children) == 1:
+            return AST({"feature": children[0], "value": "+"})
+        else:
+            return AST({"feature": children[1], "value": children[0]})
 
     def visit_feature_val(self, node, children):
         # "stop=true", "voiced=false"
@@ -218,10 +221,6 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
             return AST({"feature": children[0], "value": "-"})
         else:
             raise ValueError("invalid value")
-
-    def visit_only_feature_key(self, node, children):
-        # default to positive
-        return AST({"feature": node.value, "value": "+"})
 
     def visit_feature_list(self, node, children):
         # TODO: write properly, currently without custom
@@ -304,6 +303,7 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
             ret.update(seq)
 
         return AST(ret)
+
 
 # TODO: rename root_rule to symbol or something similar
 class Parser:

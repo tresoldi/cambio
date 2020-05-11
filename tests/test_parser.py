@@ -99,6 +99,7 @@ class TestParser(unittest.TestCase):
                 "rule": "C[+voiced]",
                 "ast": "{'sound_class': 'C', 'modifier': {'positive': ['voiced'], 'negative': [], 'custom': []}}",
             },
+            {"rule": "H_X", "ast": "{'sound_class': 'H_X'}"},
         ]
 
         parser = alteruphono.Parser(root_rule="sound_class")
@@ -148,8 +149,9 @@ class TestParser(unittest.TestCase):
 
     def test_parse_op_feature(self):
         tests = [
-            {"rule": "-voiced", "ast": "{'feature': 'voiced', 'value': '-'}"},
+            {"rule": "voiced", "ast": "{'feature': 'voiced', 'value': '+'}"},
             {"rule": "+voiced", "ast": "{'feature': 'voiced', 'value': '+'}"},
+            {"rule": "-voiced", "ast": "{'feature': 'voiced', 'value': '-'}"},
         ]
 
         parser = alteruphono.Parser(root_rule="op_feature")
@@ -166,15 +168,6 @@ class TestParser(unittest.TestCase):
         ]
 
         parser = alteruphono.Parser(root_rule="feature_val")
-        for test in tests:
-            # print(test, "---", '"%s"' % str(parser(test['rule'])))
-            assert str(parser(test["rule"])) == test["ast"]
-
-    # TODO: change grammar for returning "{'feature': 'voiced', 'value': '+'}"
-    def test_parse_only_feature_key(self):
-        tests = [{"rule": "voiced", "ast": "voiced"}]
-
-        parser = alteruphono.Parser(root_rule="only_feature_key")
         for test in tests:
             # print(test, "---", '"%s"' % str(parser(test['rule'])))
             assert str(parser(test["rule"])) == test["ast"]

@@ -8,10 +8,9 @@
 //   - add exclusion (with "!" or "^", general operator)
 //   - add reconstruction flag (only "*" for the time being)
 //   - allow values besides "true" and "false" for feature descriptions
-//   - the current list of `grapheme` excludes is not allowing for potentially
+//   - the current list of `grapheme` is not allowing for potentially
 //     desirable graphemes (such as "@", used in X-SAMPA)
-//   - decide whether to allow underscores in sound classes (probably no)
-//   - decide whether to mix `only_feature_key` and `op_feature`
+//   - allow comments after rule
 
 // The main symbol `rule` is defined as a "sound change rule" including
 // the three basic elements: an `ante` sequence (mandatory), a `post`
@@ -90,18 +89,14 @@ feature_key <-
     r'[a-z][a-z0-9_-]+'
     ;
 op_feature <-
-    r'\+|\-|!' feature_key
+    (r'\+|\-|!')? feature_key
     ;
 feature_val <-
     feature_key r'=' r'true|false'
     ;
-only_feature_key <-
-    feature_key
-    ;
 feature <-
-    op_feature /
     feature_val /
-    only_feature_key
+    op_feature
     ;
 feature_list <-
     feature ("," feature)*
@@ -114,7 +109,7 @@ modifier <-
 // the first character obligatorily a letter. Sound classes can carry
 // their own modifiers.
 sound_class <-
-    r'[A-Z][A-Z0-9]*' (modifier)?
+    r'[A-Z][A-Z0-9_]*' (modifier)?
     ;
 
 // Defines a back-reference. By specification, list indexes are 1-based.
