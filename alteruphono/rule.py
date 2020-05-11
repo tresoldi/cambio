@@ -14,3 +14,6 @@ class Rule:
 
     def __hash__(self):
         return hash(self.source)
+
+def make_rule(rule_text, parser):
+    return Rule(rule_text, parser(rule_text))

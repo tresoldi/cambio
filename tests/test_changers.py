@@ -13,11 +13,9 @@ import unittest
 
 # Import the library being test and auxiliary libraries
 import alteruphono
+from alteruphono.rule import make_rule
 from alteruphono.sequence import Sequence
-from alteruphono.ast import *
-
-# TODO: could read the phonetic data a single time?
-
+from alteruphono.ast import AST
 
 class TestChangers(unittest.TestCase):
     """
@@ -34,19 +32,16 @@ class TestChangers(unittest.TestCase):
                 "b a p a t a",
             ): "# b a ɸ a s a #",
             ("p|t a @1|k > p a t", "t a k"): "# p a t #",
-#            ("p|d a > @1{b,d} e", "d a p a"): "# d e b e #",
         }
 
         # test with Model object
         parser = alteruphono.parser.Parser()
         model = alteruphono.Model()
         for test, ref in reference.items():
-            rule = alteruphono.Rule(test[0], parser(test[0]))
+            rule = make_rule(test[0], parser)
+            post_seq = model.forward(test[1], rule)
 
-            ante_seq = test[1].split()
-            post_seq = model.forward(ante_seq, rule)
-
-            assert str(post_seq) == ref
+            assert post_seq == ref
 
     def test_forward_resources(self):
         sound_changes = alteruphono.utils.read_sound_changes()
@@ -54,11 +49,10 @@ class TestChangers(unittest.TestCase):
         parser = alteruphono.parser.Parser()
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
-            rule = alteruphono.Rule(change["RULE"], parser(change['RULE']))
+            rule = make_rule(change['RULE'], parser)
 
-            test_ante = change["TEST_ANTE"].split()
             test_post = Sequence(change["TEST_POST"])
-            post_seq = model.forward(test_ante, rule)
+            post_seq = model.forward(change["TEST_ANTE"], rule)
 
             assert post_seq == test_post
 
@@ -76,12 +70,10 @@ class TestChangers(unittest.TestCase):
         parser = alteruphono.parser.Parser()
         model = alteruphono.Model()
         for test, ref in reference.items():
-            rule = alteruphono.Rule(test[0], parser(test[0]))
-
-            post_seq = test[1].split()
+            rule = make_rule(test[0], parser)
 
             ante_seqs = tuple(
-                [str(seq) for seq in model.backward(post_seq, rule)]
+                [str(seq) for seq in model.backward(test[1], rule)]
             )
 
             assert tuple(ante_seqs) == ref
@@ -93,13 +85,12 @@ class TestChangers(unittest.TestCase):
         seq_parser = alteruphono.parser.Parser(root_rule="sequence")
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
-            rule = alteruphono.Rule(change["RULE"], parser(change['RULE']))
+            rule = make_rule(change['RULE'], parser)
 
             test_ante = Sequence(change["TEST_ANTE"])
-            test_post = change["TEST_POST"].split()
 
             ante_seqs = tuple(
-                [str(seq) for seq in model.backward(test_post, rule)]
+                [str(seq) for seq in model.backward(change["TEST_POST"], rule)]
             )
 
             # TODO: inspect all options returned, including

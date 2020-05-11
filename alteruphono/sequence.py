@@ -10,23 +10,27 @@ operations with sound sequences, taking care of details such as boundaries,
 spaces, etc.
 """
 
+# Import Python standard libraries
+import re
+import unicodedata
+
 # Import package
 import alteruphono.utils
 
 # TODO: drop this object and only use a controlled tuple? add an __hash__?
 #       or store internally as a tuple?
+# TODO: should have a sorting method
+# TODO: optional normalizatio
 class Sequence:
-    def __init__(self, sequence, sep=" "):
+    def __init__(self, sequence):
         # Split `sequence` string and convert to lists tuple ones
         if isinstance(sequence, str):
-            sequence = sequence.split(sep)
-        elif isinstance(sequence, tuple):
-            sequence = list(sequence)
-
-        # Make sure all entries are normalized
-        # TODO: make a single call when passing string, also no need for
-        #       space accounting in list
-        sequence = [alteruphono.utils.clear_text(token) for token in sequence]
+            sequence = re.sub(r"\s+", " ", sequence).strip()
+            sequence = unicodedata.normalize("NFC", sequence)
+            sequence = sequence.split(" ")
+        elif isinstance(sequence, (tuple, list)):
+            sequence = [unicodedata.normalize("NFC", token) for
+            token in sequence]
 
         # Add boundaries if necessary
         if sequence[0] != "#":
@@ -36,7 +40,6 @@ class Sequence:
 
         # Store sequence and separator (used to return as str)
         self._sequence = tuple(sequence)
-        self._sep = sep
 
     def __getitem__(self, idx):
         return self._sequence[idx]
@@ -62,10 +65,13 @@ class Sequence:
         return repr(self._sequence)
 
     def __str__(self):
-        return self._sep.join(self._sequence)
+        return " ".join(self._sequence)
 
-    # NOTE: not considering separator
+    # TODO: should take part of the work of `check_match`?
     def __eq__(self, other):
+        if not isinstance(other, Sequence):
+            return self == Sequence(other)
+
         return self._sequence == other._sequence
 
     def __hash__(self):
