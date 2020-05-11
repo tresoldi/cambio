@@ -1,5 +1,6 @@
 # alteruphono
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1c6218b0741d453c96c72e9504acd757)](https://app.codacy.com/manual/tresoldi/alteruphono?utm_source=github.com&utm_medium=referral&utm_content=tresoldi/alteruphono&utm_campaign=Badge_Grade_Dashboard)
 [![Build Status](https://travis-ci.org/tresoldi/alteruphono.svg?branch=master)](https://travis-ci.org/tresoldi/alteruphono)
 [![codecov](https://codecov.io/gh/tresoldi/alteruphono/branch/master/graph/badge.svg)](https://codecov.io/gh/tresoldi/alteruphono)
 
