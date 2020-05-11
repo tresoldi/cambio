@@ -2,3 +2,4 @@ include README.md
 include AUTHORS
 include LICENSE
 include resources/*.tsv
+include alteruphono/parser/sound_change.ebnf
