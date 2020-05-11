@@ -77,8 +77,7 @@ def read_sounds(featsys, filename):
             if "tone" in features:
                 continue
 
-            descriptors = {featsys[feat]: feat for feat in features}
-            sounds[grapheme] = descriptors
+            sounds[grapheme] = tuple(sorted(features))
 
     return sounds
 
@@ -247,7 +246,7 @@ class Model:
         # add the new one)
         descriptors = []
         rem_features = [self.features[desc] for desc in modifier.positive]
-        for desc in self.sounds[grapheme].values():
+        for desc in self.sounds[grapheme]:
             if desc not in modifier.negative:
                 if self.features[desc] not in rem_features:
                     descriptors.append(desc)
@@ -289,12 +288,10 @@ class Model:
                 descriptors.append("sibilant")
 
         # TODO: should cache this?
+        # TODO: should do an inverse map? and then keep updating?
         ret = None
         desc = tuple(sorted(descriptors))
-        for sound, feat_dict in self.sounds.items():
-            # Collect all features and confirm if all are there
-            # TODO: better to sort when loading the SOUNDS
-            features = tuple(sorted(feat_dict.values()))
+        for sound, features in self.sounds.items():
             if desc == features:
                 ret = sound
 
