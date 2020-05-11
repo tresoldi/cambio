@@ -134,12 +134,19 @@ class Model:
     # forward and backward calls as a whole: other functions might
     # implement their own caches
     # TODO: incorporate self.modifier_cache and self.desc2graph
-    _cache = {"forward": {}, "backward": {}, "match": {}, "modifier": {}}
+    _cache = {
+        "forward": {},
+        "backward": {},
+        "match": {},
+        "modifier": {},
+        "desc2graph": {},
+    }
     _cache_stats = {
         "forward": [0, 0],  # hits, misses
         "backward": [0, 0],  # hits, misses
         "match": [0, 0],  # hits, misses
         "modifier": [0, 0],  # hits, misses
+        "desc2graph": [0, 0],  # hits, misses
     }
 
     def __init__(self, model_path=None):
@@ -160,9 +167,6 @@ class Model:
         self.sound_classes = read_sound_classes(
             self.sounds, classes_file.as_posix()
         )
-
-        # caches
-        self.desc2graph = {}
 
     def cache_query(self, collection, key):
         if key in self._cache[collection]:
@@ -233,51 +237,39 @@ class Model:
         # TODO: consider redoing the logic, as we don't need to extract values
         #       given that those are already properly organized in the data
         # TODO: build an ipa description no matter what...
+        # TODO: cache also when not in self.sounds
         if grapheme not in self.sounds:
             return f"{grapheme}{modifier}"
-        descriptors = list(self.sounds[grapheme].values())
 
-        # Remove any requested features
-        descriptors = [
-            value for value in descriptors if value not in modifier.negative
-        ]
-
-        # Remove any descriptor from a feature type we are changing, and add
-        # all positive descriptors. If we are adding a vowel height, for
-        # example, will first remove all vowel heights and only then add
-        # the one we desire.
-        for feature in modifier.positive:
-            descriptors = [
-                value
-                for value in descriptors
-                if self.features[value] != self.features[feature]
-            ]
+        # Build list of descriptors, removing requested features (in
+        # modifier.negative) and all descriptors from features we are
+        # changing (for example, remove all vowel heights and only later
+        # add the new one)
+        descriptors = []
+        rem_features = [self.features[desc] for desc in modifier.positive]
+        for desc in self.sounds[grapheme].values():
+            if desc not in modifier.negative:
+                if self.features[desc] not in rem_features:
+                    descriptors.append(desc)
         descriptors += modifier.positive
 
         # Obtain the grapheme based on the description
         # TODO: decide if we should just memoize instead of caching this way
-        descriptors = tuple(sorted(descriptors))
-        grapheme = self.desc2graph.get(descriptors, None)
-        if not grapheme:
-            grapheme = self.descriptors2grapheme(descriptors)
-
-            # TODO: should always return, can we guarantee?
-            if grapheme:
-                self.desc2graph[descriptors] = grapheme
-            else:
-                # TODO: decide on descriptor order
-                grapheme = "[%s]" % ",".join(descriptors)
+        # TODO: call to pyclts?
+        ret = self.descriptors2grapheme(descriptors)
 
         # cache
-        # TODO: rename `grapheme` to `ret` in the logic above
-        self.cache_add("modifier", cache_key, grapheme)
+        self.cache_add("modifier", cache_key, ret)
 
-        return grapheme
+        return ret
 
     # TODO: hardcode exceptions
     def descriptors2grapheme(self, descriptors):
-        # make sure we can manipulate these descriptors
-        descriptors = list(descriptors)
+        # Check if the combination has already been computed and cached
+        cache_key = tuple(sorted(descriptors))
+        cache_val = self.cache_query("desc2graph", cache_key)
+        if cache_val:
+            return cache_val
 
         # Run manual fixes related to pyclts
         if "palatal" in descriptors and "fricative" in descriptors:
@@ -318,6 +310,13 @@ class Model:
             new_gr = self.descriptors2grapheme(new_desc)
             if new_gr:
                 ret = "%sː" % new_gr
+
+        if not ret:
+            # TODO: with plus signs?
+            ret = "[%s]" % ",".join(descriptors)
+
+        # cache
+        self.cache_add("desc2graph", cache_key, ret)
 
         return ret
 
