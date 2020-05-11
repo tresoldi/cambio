@@ -14,64 +14,188 @@ import unittest
 # Import the library being test and auxiliary libraries
 import alteruphono
 
+# TODO: add failing parses
+
 
 class TestParser(unittest.TestCase):
     """
     Class for `alteruphono` tests related to parsers.
     """
 
-    def test_dummy(self):
-        assert 1 == 1
-
-
-a = """
-
-    def test_parse(self):
-        reference = {
-            "p > b": {"ante": [TokenIPA("p")], "post": [TokenIPA("b")]},
-            "p|t r > @1[+voiced] / V _": {
-                "ante": [
-                    TokenSoundClass("V"),
-                    TokenAlternative([TokenIPA("p"), TokenIPA("t")]),
-                    TokenIPA("r"),
-                ],
-                "post": [TokenBackRef(1), TokenBackRef(2, "[+voiced]")],
+    def test_parse_rule(self):
+        tests = [
+            {
+                "rule": "p > b / _ V",
+                "ast": "{'ante': [{'grapheme': 'p'}, {'sound_class': 'V'}], 'post': [{'grapheme': 'b'}, {'backref': 2}]}",
             },
-        }
+            {
+                "rule": "p > b",
+                "ast": "{'ante': [{'grapheme': 'p'}], 'post': [{'grapheme': 'b'}]}",
+            },
+        ]
 
-        for rule, ref in reference.items():
-            ret = alteruphono.Rule(rule)
+        parser = alteruphono.Parser(root_rule="rule")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
 
-            assert len(ref["ante"]) == len(ret.ante)
-            for ref_ante_tok, ret_ante_tok in zip(ref["ante"], ret.ante):
-                assert ref_ante_tok == ret_ante_tok
+    def test_parse_sequence(self):
+        tests = [
+            {"rule": "a", "ast": "[{'grapheme': 'a'}]"},
+            {
+                "rule": "a b ɚ",
+                "ast": "[{'grapheme': 'a'}, {'grapheme': 'b'}, {'grapheme': 'ɚ'}]",
+            },
+            {
+                "rule": "a V p|b @1 @2[+stop] :null:",
+                "ast": "[{'grapheme': 'a'}, {'sound_class': 'V'}, [{'grapheme': 'p'}, {'grapheme': 'b'}], {'backref': 1}, {'backref': 2, 'modifier': {'positive': ['stop'], 'negative': [], 'custom': []}}, {'empty': ':null:'}]",
+            },
+        ]
 
-            assert len(ref["post"]) == len(ret.post)
-            for ref_post_tok, ret_post_tok in zip(ref["post"], ret.post):
-                assert ref_post_tok == ret_post_tok
+        parser = alteruphono.Parser(root_rule="sequence")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
 
-    def test_parse_features(self):
-        # define tests and references
-        reference = {
-            "feat1": Features(positive=["feat1"], negative=[]),
-            "[feat1]": Features(positive=["feat1"], negative=[]),
-            "[+feat1]": Features(positive=["feat1"], negative=[]),
-            "[-feat1]": Features(positive=[], negative=["feat1"]),
-            "[feat1,+feat2,-feat3]": Features(
-                positive=["feat1", "feat2"], negative=["feat3"]
-            ),
-            "[feat1,-feat2,feat3=value,+feat4]": Features(
-                positive=["feat1", "feat4"],
-                negative=["feat2"],
-                custom={"feat3": "value"},
-            ),
-        }
+    def test_parse_segment(self):
+        tests = [
+            {"rule": "ɚ", "ast": "{'grapheme': 'ɚ'}"},
+            {"rule": "p|b", "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}]"},
+            {"rule": "#", "ast": "{'boundary': '#'}"},
+            {"rule": "@3", "ast": "{'backref': 3}"},
+            {"rule": "VCLSSTP", "ast": "{'sound_class': 'VCLSSTP'}"},
+            {"rule": "0", "ast": "{'empty': '0'}"},
+        ]
 
-        for feat_str, ref in reference.items():
-            ret = alteruphono.old_parser.parse_features(feat_str)
+        parser = alteruphono.Parser(root_rule="segment")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
 
-            assert ret == ref
-"""
+    def test_parse_choice(self):
+        tests = [
+            {"rule": "p|b", "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}]"},
+            {
+                "rule": "p|b|0",
+                "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}, {'empty': '0'}]",
+            },
+            {
+                "rule": "p|0|#|@1",
+                "ast": "[{'grapheme': 'p'}, {'empty': '0'}, {'boundary': '#'}, {'backref': 1}]",
+            },
+        ]
+
+        parser = alteruphono.Parser(root_rule="choice")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    def test_parse_sound_class(self):
+        tests = [
+            {"rule": "C", "ast": "{'sound_class': 'C'}"},
+            {"rule": "CS", "ast": "{'sound_class': 'CS'}"},
+            {"rule": "H1", "ast": "{'sound_class': 'H1'}"},
+            {
+                "rule": "C[+voiced]",
+                "ast": "{'sound_class': 'C', 'modifier': {'positive': ['voiced'], 'negative': [], 'custom': []}}",
+            },
+        ]
+
+        parser = alteruphono.Parser(root_rule="sound_class")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    def test_parse_backref(self):
+        tests = [
+            {"rule": "@1", "ast": "{'backref': 1}"},
+            {
+                "rule": "@3[-nasal]",
+                "ast": "{'backref': 3, 'modifier': {'positive': [], 'negative': ['nasal'], 'custom': []}}",
+            },
+        ]
+
+        parser = alteruphono.Parser(root_rule="backref")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    def test_parse_grapheme(self):
+        tests = [
+            {"rule": "tʃ", "ast": "{'grapheme': 'tʃ'}"},
+            {"rule": "kʰʷ", "ast": "{'grapheme': 'kʰʷ'}"},
+            {
+                "rule": "tʃ[+voiced]",
+                "ast": "{'grapheme': 'tʃ', 'modifier': {'positive': ['voiced'], 'negative': [], 'custom': []}}",
+            },
+        ]
+
+        parser = alteruphono.Parser(root_rule="grapheme")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    def test_parse_feature_key(self):
+        tests = [
+            {"rule": "voiced", "ast": "voiced"},
+            {"rule": "tier03", "ast": "tier03"},
+        ]
+
+        parser = alteruphono.Parser(root_rule="feature_key")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    def test_parse_op_feature(self):
+        tests = [
+            {"rule": "-voiced", "ast": "{'feature': 'voiced', 'value': '-'}"},
+            {"rule": "+voiced", "ast": "{'feature': 'voiced', 'value': '+'}"},
+        ]
+
+        parser = alteruphono.Parser(root_rule="op_feature")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    def test_parse_feature_val(self):
+        tests = [
+            {
+                "rule": "voiced=true",
+                "ast": "{'feature': 'voiced', 'value': '+'}",
+            }
+        ]
+
+        parser = alteruphono.Parser(root_rule="feature_val")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    # TODO: change grammar for returning "{'feature': 'voiced', 'value': '+'}"
+    def test_parse_only_feature_key(self):
+        tests = [{"rule": "voiced", "ast": "voiced"}]
+
+        parser = alteruphono.Parser(root_rule="only_feature_key")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
+    def test_parse_modifier(self):
+        tests = [
+            {
+                "rule": "[+voiced]",
+                "ast": "{'positive': ['voiced'], 'negative': [], 'custom': []}",
+            },
+            {
+                "rule": "[feat1,-feat2,feat=true]",
+                "ast": "{'positive': ['feat', 'feat1'], 'negative': ['feat2'], 'custom': []}",
+            },
+        ]
+
+        parser = alteruphono.Parser(root_rule="modifier")
+        for test in tests:
+            # print(test, "---", '"%s"' % str(parser(test['rule'])))
+            assert str(parser(test["rule"])) == test["ast"]
+
 
 if __name__ == "__main__":
     # Explicitly creating and running a test suite allows to profile

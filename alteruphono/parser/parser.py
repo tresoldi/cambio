@@ -305,7 +305,7 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
 
         return AST(ret)
 
-
+# TODO: rename root_rule to symbol or something similar
 class Parser:
     # Holds the real parser, loaded dinamically on first call
     _parser = None
