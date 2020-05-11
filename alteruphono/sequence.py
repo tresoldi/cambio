@@ -29,8 +29,9 @@ class Sequence:
             sequence = unicodedata.normalize("NFC", sequence)
             sequence = sequence.split(" ")
         elif isinstance(sequence, (tuple, list)):
-            sequence = [unicodedata.normalize("NFC", token) for
-            token in sequence]
+            sequence = [
+                unicodedata.normalize("NFC", token) for token in sequence
+            ]
 
         # Add boundaries if necessary
         if sequence[0] != "#":

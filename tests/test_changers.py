@@ -16,6 +16,7 @@ import alteruphono
 from alteruphono.rule import make_rule
 from alteruphono.sequence import Sequence
 
+
 class TestChangers(unittest.TestCase):
     """
     Class for `alteruphono` tests related to changers.
@@ -34,7 +35,7 @@ class TestChangers(unittest.TestCase):
         }
 
         # test with Model object
-        parser = alteruphono.parser.Parser()
+        parser = alteruphono.Parser()
         model = alteruphono.Model()
         for test, ref in reference.items():
             rule = make_rule(test[0], parser)
@@ -45,10 +46,10 @@ class TestChangers(unittest.TestCase):
     def test_forward_resources(self):
         sound_changes = alteruphono.utils.read_sound_changes()
 
-        parser = alteruphono.parser.Parser()
+        parser = alteruphono.Parser()
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
-            rule = make_rule(change['RULE'], parser)
+            rule = make_rule(change["RULE"], parser)
 
             test_post = Sequence(change["TEST_POST"])
             post_seq = model.forward(change["TEST_ANTE"], rule)
@@ -66,7 +67,7 @@ class TestChangers(unittest.TestCase):
         }
 
         # test with Model object
-        parser = alteruphono.parser.Parser()
+        parser = alteruphono.Parser()
         model = alteruphono.Model()
         for test, ref in reference.items():
             rule = make_rule(test[0], parser)
@@ -80,11 +81,11 @@ class TestChangers(unittest.TestCase):
     def test_backward_resources(self):
         sound_changes = alteruphono.utils.read_sound_changes()
 
-        parser = alteruphono.parser.Parser()
+        parser = alteruphono.Parser()
         seq_parser = alteruphono.parser.Parser(root_rule="sequence")
         model = alteruphono.Model()
         for change_id, change in sorted(sound_changes.items()):
-            rule = make_rule(change['RULE'], parser)
+            rule = make_rule(change["RULE"], parser)
 
             test_ante = Sequence(change["TEST_ANTE"])
 
@@ -96,8 +97,7 @@ class TestChangers(unittest.TestCase):
             # ('# a k u n #', '# a k u p|t|k θ #'
             ante_asts = [seq_parser(seq) for seq in ante_seqs]
             matches = [
-            model.check_match(test_ante, ante_ast)
-            for ante_ast in ante_asts
+                model.check_match(test_ante, ante_ast) for ante_ast in ante_asts
             ]
 
             assert any(matches)

@@ -158,6 +158,7 @@ def parse_features(modifier):
         }
     )
 
+
 class Model:
     # Define our custom caches; we are not using Python's functools because
     # we need a finer management of the cache. Note that this only holds
@@ -200,7 +201,7 @@ class Model:
             self._cache_stats[collection][0] += 1
             self._cache[collection][key][0] += 1
 
-#            print("> CACHE", collection, key, self._cache[collection][key])
+            #            print("> CACHE", collection, key, self._cache[collection][key])
 
             return self._cache[collection][key][1]
 
@@ -521,7 +522,7 @@ class Model:
                 return [_add_modifier(alt, entry2) for alt in entry1]
 
             # TODO: do we need a copy?
-            return entry1.copy({"modifier":entry2.modifier})
+            return entry1.copy({"modifier": entry2.modifier})
 
         # Compute the `post_ast`, applying modifiers and skipping nulls
         post_ast = [token for token in rule.post if "empty" not in token]

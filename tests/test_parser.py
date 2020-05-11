@@ -23,6 +23,7 @@ class TestParser(unittest.TestCase):
     def test_dummy(self):
         assert 1 == 1
 
+
 a = """
 
     def test_parse(self):
