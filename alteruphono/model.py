@@ -110,6 +110,10 @@ def read_sound_classes(sounds, filename):
 
 
 class Model:
+    """
+    Sound change model.
+    """
+
     # Define our custom caches; we are not using Python's functools because
     # we need a finer management of the cache. Note that this only holds
     # forward and backward calls as a whole: other functions might
@@ -148,7 +152,7 @@ class Model:
             self.sounds, classes_file.as_posix()
         )
 
-    def cache_query(self, collection, key):
+    def _cache_query(self, collection, key):
         if key in self._cache[collection]:
             # Update individual and global hits
             self._cache_stats[collection][0] += 1
@@ -164,14 +168,13 @@ class Model:
         return None
 
     # TODO: clean cache when necessary
-    def cache_add(self, collection, key, value):
+    def _cache_add(self, collection, key, value):
         #        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
         #        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
         #            alteruphono.utils.rec_getsizeof(self._cache_bw))
 
         self._cache[collection][key] = [0, value]
 
-    # TODO: deal with custom features
     def apply_modifier(self, grapheme, modifier, inverse=False):
         """
         Apply a modifier to a grapheme.
@@ -183,14 +186,9 @@ class Model:
 
         # Check if the combination has already been computed and cached
         cache_key = (grapheme, str(modifier), inverse)
-        cache_val = self.cache_query("modifier", cache_key)
+        cache_val = self._cache_query("modifier", cache_key)
         if cache_val:
             return cache_val
-
-        # TODO: reimplement cache
-        # cache_key = tuple([grapheme, modifier, inverse])
-        # if cache_key in self.modifier_cache:
-        #    return self.modifier_cache[cache_key]
 
         # Invert features if requested
         # TODO: for the time being, just hard-coding them; should be
@@ -209,7 +207,7 @@ class Model:
                 )
 
             # cache
-            self.cache_add("modifier", cache_key, ret)
+            self._cache_add("modifier", cache_key, ret)
 
             return ret
 
@@ -218,37 +216,39 @@ class Model:
         # TODO: consider redoing the logic, as we don't need to extract values
         #       given that those are already properly organized in the data
         # TODO: build an ipa description no matter what...
-        # TODO: cache also when not in self.sounds
         if grapheme not in self.sounds:
-            return f"{grapheme}{modifier}"
+            ret = f"{grapheme}{modifier}"
+        else:
+            # Build list of descriptors, removing requested features (in
+            # modifier.negative) and all descriptors from features we are
+            # changing (for example, remove all vowel heights and only later
+            # add the new one)
+            descriptors = []
+            rem_features = [self.features[desc] for desc in modifier.positive]
+            for desc in self.sounds[grapheme]:
+                if desc not in modifier.negative:
+                    if self.features[desc] not in rem_features:
+                        descriptors.append(desc)
+            descriptors += modifier.positive
 
-        # Build list of descriptors, removing requested features (in
-        # modifier.negative) and all descriptors from features we are
-        # changing (for example, remove all vowel heights and only later
-        # add the new one)
-        descriptors = []
-        rem_features = [self.features[desc] for desc in modifier.positive]
-        for desc in self.sounds[grapheme]:
-            if desc not in modifier.negative:
-                if self.features[desc] not in rem_features:
-                    descriptors.append(desc)
-        descriptors += modifier.positive
-
-        # Obtain the grapheme based on the description
-        # TODO: decide if we should just memoize instead of caching this way
-        # TODO: call to pyclts?
-        ret = self.descriptors2grapheme(descriptors)
+            # Obtain the grapheme based on the description
+            ret = self.descriptors2grapheme(descriptors)
 
         # cache
-        self.cache_add("modifier", cache_key, ret)
+        self._cache_add("modifier", cache_key, ret)
 
         return ret
 
     # TODO: hardcode exceptions
+    # TODO: call to pyclts?
     def descriptors2grapheme(self, descriptors):
+        """
+        Translate a list of descriptors to a graphemic representation.
+        """
+
         # Check if the combination has already been computed and cached
         cache_key = tuple(sorted(descriptors))
-        cache_val = self.cache_query("desc2graph", cache_key)
+        cache_val = self._cache_query("desc2graph", cache_key)
         if cache_val:
             return cache_val
 
@@ -269,8 +269,7 @@ class Model:
             if "sibilant" not in descriptors:
                 descriptors.append("sibilant")
 
-        # TODO: should cache this?
-        # TODO: should do an inverse map? and then keep updating?
+        # TODO: do an inverse map, and then keep updating
         ret = None
         desc = tuple(sorted(descriptors))
         for sound, features in self.sounds.items():
@@ -291,15 +290,13 @@ class Model:
                 ret = "%sː" % new_gr
 
         if not ret:
-            # TODO: with plus signs?
             ret = "[%s]" % ",".join(descriptors)
 
         # cache
-        self.cache_add("desc2graph", cache_key, ret)
+        self._cache_add("desc2graph", cache_key, ret)
 
         return ret
 
-    # TODO: return False as soon as possible
     def check_match(self, sequence, pattern):
         """
         Check if a sequence matches a given pattern.
@@ -320,7 +317,7 @@ class Model:
             " ".join(sequence),
             " ".join([str(token) for token in pattern]),
         )
-        cache_val = self.cache_query("match", cache_key)
+        cache_val = self._cache_query("match", cache_key)
         if cache_val:
             return cache_val
 
@@ -330,19 +327,19 @@ class Model:
             if isinstance(ref, list):
                 # Check the sub-match for each alternative; if the
                 # alternative is a grapheme, carry any modifier
-                # TODO: return as soon as possible
-
                 alt_matches = [self.check_match([token], [alt]) for alt in ref]
-
                 if not any(alt_matches):
                     ret = False
+                    break
             elif "grapheme" in ref:
                 ipa = self.apply_modifier(ref.grapheme, ref.modifier)
                 if token != ipa:
                     ret = False
+                    break
             elif "boundary" in ref:
                 if token != "#":
                     ret = False
+                    break
             elif "sound_class" in ref:
                 # Apply the modifier to all the items in the sound class,
                 # so we can check if the `token` is actually there.
@@ -356,13 +353,13 @@ class Model:
 
                 if token not in modified:
                     ret = False
+                    break
 
         # cache
-        self.cache_add("match", cache_key, ret)
+        self._cache_add("match", cache_key, ret)
 
         return ret
 
-    # TODO: rename `rule` to `pattern`
     def _forward_translate(self, sequence, rule):
         """
         Translate an intermediary `ante` to `post` sequence.
@@ -376,7 +373,7 @@ class Model:
                 post_seq.append(entry.grapheme)
             elif "backref" in entry:
                 # Refer to `correspondence`, if specified
-                # TODO: recheck correspondence
+                # TODO: recheck correspondence after adding sets
                 if "correspondence" in entry:
                     # get the alternative index in `ante`
                     # NOTE: `post_alts` has [1:-1] for the curly brackets
@@ -407,7 +404,7 @@ class Model:
 
         # Return the cached value, if it exists
         cache_key = (ante_seq, rule)
-        cache_val = self.cache_query("forward", cache_key)
+        cache_val = self._cache_query("forward", cache_key)
         if cache_val:
             return cache_val
 
@@ -436,7 +433,7 @@ class Model:
 
         # add to cache
         post_seq = Sequence(post_seq)
-        self.cache_add("forward", cache_key, post_seq)
+        self._cache_add("forward", cache_key, post_seq)
 
         return post_seq
 
@@ -496,7 +493,7 @@ class Model:
 
         # Return the cached value, if it exists
         cache_key = (post_seq, rule)
-        cache_val = self.cache_query("backward", cache_key)
+        cache_val = self._cache_query("backward", cache_key)
         if cache_val:
             return cache_val
 
@@ -547,6 +544,6 @@ class Model:
         ]
 
         # add to cache
-        self.cache_add("forward", cache_key, ante_seqs)
+        self._cache_add("forward", cache_key, ante_seqs)
 
         return ante_seqs

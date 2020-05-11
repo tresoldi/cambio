@@ -31,6 +31,7 @@ library is not recommended for production usage.*
 - Allow different boundary symbols, including "^" and "$"
 - Add support for clusters/diphthongs
 - Add tone and other suprasegmental
+- Add custom features
 
 ## Installation
 
