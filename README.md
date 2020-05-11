@@ -13,6 +13,15 @@ library is not recommended for production usage.*
 
 ## Future improvements
 - Memoize `parser.__call__()` calls
+- Consider that, if a rule has alternatives, sound_classes, or other
+  profilific rules in `context`, it might be necessary to
+  perform a more complex merging and add back-references in
+  `post` to what is matched in `ante`, which could potentially
+  even mean different ASTs for forward and backward. This
+  needs further and detailed investigation, or explicit
+  exclusion of such rules (the user could always have the
+  profilic rules in `ante` and `post`, manually doing what
+  would be done here).
 
 ## Installation
 

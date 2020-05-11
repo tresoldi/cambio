@@ -297,7 +297,6 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         return AST(ret)
 
 
-# TODO: rename root_rule to symbol or something similar
 class Parser:
     # Holds the real parser, loaded dinamically on first call
     _parser = None
@@ -347,15 +346,6 @@ class Parser:
         return ast
 
 
-# TODO: if the rule has alternatives, sound_classes, or other
-#       profilific rules in `context`, it might be necessary to
-#       perform a more complex merging and add back-references in
-#       `post` to what is matched in `ante`, which could potentially
-#       even mean different ASTs for forward and backward. This
-#       needs further and detailed investigation, or explicit
-#       exclusion of such rules (the user could always have the
-#       profilic rules in `ante` and `post`, manually doing what
-#       would be done here).
 def _merge_context(ast, context, offset_ref=None):
     """
     Merge an `ante` or `post` AST with a `context`.
@@ -428,6 +418,6 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         raise ValueError("Should provide the rule and only the rule.")
 
-    p = Parser(debug=True)
-    v = p(sys.argv[1])
-    print(v)
+    parser = Parser(debug=True)
+    value = parser(sys.argv[1])
+    print(value)
