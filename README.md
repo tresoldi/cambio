@@ -29,6 +29,8 @@ library is not recommended for production usage.*
   would be done here).
 - Use logging where appropriate
 - Allow different boundary symbols, including "^" and "$"
+- Add support for clusters/diphthongs
+- Add tone and other suprasegmental
 
 ## Installation
 

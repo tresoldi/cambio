@@ -8,17 +8,14 @@ distributed with the package.
 """
 
 # Import Python standard libraries
-from copy import copy
 import csv
 import itertools
 from pathlib import Path
-import sys
 
 # Import package
 import alteruphono
 import alteruphono.utils
 from alteruphono.sequence import Sequence
-from alteruphono.rule import Rule
 
 
 def read_sound_features(filename):
@@ -46,23 +43,9 @@ def read_sound_features(filename):
     return features
 
 
-def read_sounds(featsys, filename):
+def read_sounds(filename):
     """
     Read sound definitions.
-
-    Parameters
-    ----------
-    featsys : dict
-        The feature system to be used.
-
-    filename : string
-        Path to the TSV file holding the sound definition.
-
-    Returns
-    -------
-    sounds : dict
-        A dictionary with graphemes (such as "a") as keys and
-        feature definitions as values.
     """
 
     sounds = {}
@@ -71,7 +54,7 @@ def read_sounds(featsys, filename):
             grapheme = alteruphono.utils.clear_text(row["GRAPHEME"])
             features = row["NAME"].split()
 
-            # TODO: currently skipping over clusters and tones
+            # NOTE: currently skipping over clusters and tones
             if "from" in features:
                 continue
             if "tone" in features:
@@ -105,7 +88,6 @@ def read_sound_classes(sounds, filename):
             # GRAPHEMES can hold either a list of graphemes separated by
             # a vertical bar or a set of features that will be compiled
             # into graphemes with `sounds`
-            # TODO: rename GRAPHEMES column
             if row["GRAPHEMES"]:
                 graphemes = tuple(
                     [
@@ -132,7 +114,6 @@ class Model:
     # we need a finer management of the cache. Note that this only holds
     # forward and backward calls as a whole: other functions might
     # implement their own caches
-    # TODO: incorporate self.modifier_cache and self.desc2graph
     _cache = {
         "forward": {},
         "backward": {},
@@ -160,7 +141,7 @@ class Model:
         self.features = read_sound_features(feature_file.as_posix())
 
         sounds_file = model_path / "sounds.tsv"
-        self.sounds = read_sounds(self.features, sounds_file.as_posix())
+        self.sounds = read_sounds(sounds_file.as_posix())
 
         classes_file = model_path / "classes.tsv"
         self.sound_classes = read_sound_classes(
@@ -182,6 +163,7 @@ class Model:
 
         return None
 
+    # TODO: clean cache when necessary
     def cache_add(self, collection, key, value):
         #        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
         #        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
@@ -424,7 +406,7 @@ class Model:
             ante_seq = Sequence(ante_seq)
 
         # Return the cached value, if it exists
-        cache_key = (ante_seq._sequence, rule.source)
+        cache_key = (ante_seq, rule)
         cache_val = self.cache_query("forward", cache_key)
         if cache_val:
             return cache_val
@@ -453,10 +435,10 @@ class Model:
                 break
 
         # add to cache
-        # TODO: deal with Sequence
-        self.cache_add("forward", cache_key, Sequence(post_seq))
+        post_seq = Sequence(post_seq)
+        self.cache_add("forward", cache_key, post_seq)
 
-        return Sequence(post_seq)
+        return post_seq
 
     def _backward_translate(self, sequence, rule):
         # Collect all information we have on what was matched,
@@ -476,7 +458,7 @@ class Model:
         for idx, ante_entry in enumerate(rule.ante):
             if isinstance(ante_entry, list):
                 # build alternative string, for cases when deleted
-                # TODO: modifiers etc
+                # TODO: account for modifiers, choices, sets. etc
                 alts = []
                 for alt in ante_entry:
                     if "grapheme" in alt:
@@ -513,7 +495,7 @@ class Model:
             post_seq = Sequence(post_seq)
 
         # Return the cached value, if it exists
-        cache_key = (post_seq._sequence, rule.source)
+        cache_key = (post_seq, rule)
         cache_val = self.cache_query("backward", cache_key)
         if cache_val:
             return cache_val
@@ -522,12 +504,10 @@ class Model:
         # the modifiers from the post sequence; in a way, it "fakes" the
         # rule being applied, so that something like "d > @1[+voiceless]"
         # is transformed in the equivalent "t > @1".
-        # TODO: remove copy, build new object
         def _add_modifier(entry1, entry2):
             if isinstance(entry1, list):
                 return [_add_modifier(alt, entry2) for alt in entry1]
 
-            # TODO: do we need a copy?
             return entry1.copy({"modifier": entry2.modifier})
 
         # Compute the `post_ast`, applying modifiers and skipping nulls
@@ -567,7 +547,6 @@ class Model:
         ]
 
         # add to cache
-        # TODO: tuples from the beginning, for cache?
         self.cache_add("forward", cache_key, ante_seqs)
 
         return ante_seqs
