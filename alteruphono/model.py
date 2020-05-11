@@ -18,6 +18,7 @@ import sys
 from alteruphono.ast import AST
 import alteruphono.utils
 from alteruphono.sequence import Sequence
+from alteruphono.rule import Rule
 
 
 def read_sound_features(filename):
@@ -157,15 +158,6 @@ def parse_features(modifier):
         }
     )
 
-
-# TODO: make just a dictionary? a data class? a named tuple?
-class Rule:
-    def __init__(self, rule_text, ast):
-        self.source = rule_text
-        self.ante = ast.ante
-        self.post = ast.post
-
-
 class Model:
     # Define our custom caches; we are not using Python's functools because
     # we need a finer management of the cache. Note that this only holds
@@ -218,6 +210,10 @@ class Model:
         return None
 
     def cache_add(self, collection, key, value):
+        #        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
+        #        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
+        #            alteruphono.utils.rec_getsizeof(self._cache_bw))
+
         self._cache[collection][key] = [0, value]
 
     # TODO: deal with custom features
@@ -416,21 +412,12 @@ class Model:
         Apply forward transformation to a sequence given a rule.
         """
 
-        # Make sure the rule is a valid one
-        if not isinstance(rule, Rule):
-            raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
-
         # Transform `ante_seq` in a Sequence, if necessary
         if not isinstance(ante_seq, alteruphono.sequence.Sequence):
             ante_seq = Sequence(ante_seq)
 
-        # TODO: should probably just count number of keys, for speed,
-        # as a recursive one can take too long and in our cases should
-        # be linear anyway
-        #        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
-        #        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
-        #            alteruphono.utils.rec_getsizeof(self._cache_bw))
-        cache_key = (str(ante_seq), rule.source)
+        # Return the cached value, if it exists
+        cache_key = (ante_seq._sequence, rule.source)
         cache_val = self.cache_query("forward", cache_key)
         if cache_val:
             return cache_val
@@ -514,21 +501,12 @@ class Model:
         Apply backward transformation to a sequence given a rule.
         """
 
-        # Make sure the rule is a valid one
-        if not isinstance(rule, Rule):
-            raise alteruphono.utils.AlteruPhonoError("Non-valid rule passed.")
-
         # Transform `post_seq` in a Sequence, if necessary
         if not isinstance(post_seq, alteruphono.sequence.Sequence):
             post_seq = Sequence(post_seq)
 
-        # TODO: should probably just count number of keys, for speed,
-        # as a recursive one can take too long and in our cases should
-        # be linear anyway
-        #        print(sys.getsizeof(self._cache_fw), sys.getsizeof(self._cache_bw))
-        #        print(alteruphono.utils.rec_getsizeof(self._cache_fw),
-        #            alteruphono.utils.rec_getsizeof(self._cache_bw))
-        cache_key = (str(post_seq), rule.source)
+        # Return the cached value, if it exists
+        cache_key = (post_seq._sequence, rule.source)
         cache_val = self.cache_query("backward", cache_key)
         if cache_val:
             return cache_val
@@ -543,11 +521,7 @@ class Model:
                 return [_add_modifier(alt, entry2) for alt in entry1]
 
             # TODO: do we need a copy?
-            v = dict(entry1)
-            if "modifier" in entry2:
-                v["modifier"] = entry2.modifier
-
-            return AST(v)
+            return entry1.copy({"modifier":entry2.modifier})
 
         # Compute the `post_ast`, applying modifiers and skipping nulls
         post_ast = [token for token in rule.post if "empty" not in token]

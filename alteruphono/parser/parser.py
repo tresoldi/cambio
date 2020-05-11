@@ -15,6 +15,7 @@ from alteruphono.ast import AST
 # TODO: should memoize? -- almost surely yes
 # TODO: should normalization be applied here?
 # TODO: do the `feature_parse` into positive/negative/custom already here
+# TODO: parser should return a Rule, or at least allow so
 
 # Define a visitor for semantic analysis of the parse tree. The semantic
 # operations are mostly obvious, just casting the returned dictionaries
@@ -144,6 +145,7 @@ class Parser:
 
         # Perform merging if the rule is the default (and if there is
         # a context).
+        # TODO: does it need to be an AST?
         if self.root_rule == "rule":
             if "context" in ast:
                 return AST(
