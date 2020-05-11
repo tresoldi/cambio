@@ -28,6 +28,7 @@ library is not recommended for production usage.*
   profilic rules in `ante` and `post`, manually doing what
   would be done here).
 - Use logging where appropriate
+- Allow different boundary symbols, including "^" and "$"
 
 ## Installation
 
