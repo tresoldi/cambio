@@ -1,5 +1,5 @@
 """
-Sequence class.
+Module holding the `Sequence` class.
 
 This module defines a basic sequence class that allows to generalize
 operations with sound sequences, taking care of details such as boundaries,
