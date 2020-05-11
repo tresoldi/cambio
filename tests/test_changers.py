@@ -15,7 +15,6 @@ import unittest
 import alteruphono
 from alteruphono.rule import make_rule
 from alteruphono.sequence import Sequence
-from alteruphono.ast import AST
 
 class TestChangers(unittest.TestCase):
     """

@@ -10,8 +10,7 @@ import arpeggio
 from arpeggio.peg import ParserPEG
 
 # Import package
-from alteruphono.ast import AST
-from alteruphono.rule import Rule
+from .ast import AST
 
 # TODO: should memoize? -- almost surely yes
 # TODO: should normalization be applied here?

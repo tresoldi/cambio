@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 
 # Import package
-from alteruphono.ast import AST
+import alteruphono
 import alteruphono.utils
 from alteruphono.sequence import Sequence
 from alteruphono.rule import Rule
@@ -150,7 +150,7 @@ def parse_features(modifier):
             negative.append(feature.feature)
 
     # TODO: while sort? to cache/hash?
-    return AST(
+    return alteruphono.AST(
         {
             "positive": sorted(positive),
             "negative": sorted(negative),

@@ -12,6 +12,7 @@ __email__ = "tresoldi@shh.mpg.de"
 # Build the namespace
 from alteruphono import utils
 from alteruphono.parser import parser
+from alteruphono.parser.ast import AST
 from alteruphono.model import Model, Rule
 from alteruphono.sequence import Sequence
 
