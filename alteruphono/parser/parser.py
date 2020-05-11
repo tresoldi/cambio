@@ -224,7 +224,24 @@ class SC_Visitor(arpeggio.PTNodeVisitor):
         return AST({"feature": node.value, "value": "+"})
 
     def visit_feature_list(self, node, children):
-        return list(children)
+        # TODO: write properly, currently without custom
+        # TODO: rename AST to something more general, out attrib class
+        # TODO: rename feature.feature to feature.name or something similar
+        # TODO: should be mutable?
+        positive, negative = [], []
+        for feature in children:
+            if feature.value == "+":
+                positive.append(feature.feature)
+            elif feature.value == "-":
+                negative.append(feature.feature)
+
+        return AST(
+            {
+                "positive": sorted(positive),
+                "negative": sorted(negative),
+                "custom": [],
+            }
+        )
 
     def visit_modifier(self, node, children):
         # don't collect square brackets

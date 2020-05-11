@@ -127,38 +127,6 @@ def read_sound_classes(sounds, filename):
 
     return sound_classes
 
-
-# TODO: rename to collect features or something in these lines
-def parse_features(modifier):
-    """
-    Returns
-    -------
-    features : Features
-        A `Features` object, with attributes `.positive` (a list of strings),
-        `negative` (a list of strings), and `custom` (a dictionary with
-        strings as keys and strings as values).
-    """
-
-    # TODO: write properly, currently without custom
-    # TODO: rename AST to something more general, out attrib class
-    # TODO: rename feature.feature to feature.name or something similar
-    positive, negative = [], []
-    for feature in modifier:
-        if feature.value == "+":
-            positive.append(feature.feature)
-        elif feature.value == "-":
-            negative.append(feature.feature)
-
-    # TODO: while sort? to cache/hash?
-    return alteruphono.AST(
-        {
-            "positive": sorted(positive),
-            "negative": sorted(negative),
-            "custom": [],
-        }
-    )
-
-
 class Model:
     # Define our custom caches; we are not using Python's functools because
     # we need a finer management of the cache. Note that this only holds
@@ -233,19 +201,11 @@ class Model:
         # if cache_key in self.modifier_cache:
         #    return self.modifier_cache[cache_key]
 
-        # Parse the provided modifier
-        features = parse_features(modifier)
-
         # Invert features if requested
         # TODO: for the time being, just hard-coding them; should be
         #       implemented with some search (that can be *very* expansive...)
         if inverse:
-            modifier_key = tuple(
-                sorted(
-                    [(feat["feature"], feat["value"]) for feat in modifier],
-                    key=lambda f: f[0],
-                )
-            )
+            modifier_key = str(modifier)
 
             ret = alteruphono.utils.HARD_CODED_INVERSE_MODIFIER.get(
                 (grapheme, modifier_key), None
@@ -258,7 +218,7 @@ class Model:
                 )
 
             # cache
-            self.modifier_cache[(grapheme, modifier_key, inverse)] = ret
+#            self.modifier_cache[(grapheme, modifier inverse)] = ret
 
             return ret
 
@@ -273,20 +233,20 @@ class Model:
 
         # Remove any requested features
         descriptors = [
-            value for value in descriptors if value not in features.negative
+            value for value in descriptors if value not in modifier.negative
         ]
 
         # Remove any descriptor from a feature type we are changing, and add
         # all positive descriptors. If we are adding a vowel height, for
         # example, will first remove all vowel heights and only then add
         # the one we desire.
-        for feature in features.positive:
+        for feature in modifier.positive:
             descriptors = [
                 value
                 for value in descriptors
                 if self.features[value] != self.features[feature]
             ]
-        descriptors += features.positive
+        descriptors += modifier.positive
 
         # Obtain the grapheme based on the description
         # TODO: decide if we should just memoize instead of caching this way

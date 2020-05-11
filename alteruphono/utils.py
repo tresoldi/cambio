@@ -11,33 +11,34 @@ import sys
 import unicodedata
 
 # Import from other modules
-from alteruphono.model import parse_features
+#from alteruphono.model import parse_features
 
 # Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
 # TODO: should be computed and not coded, see comments in model.py
 # TODO: compile the feature description to a Features object
+
 HARD_CODED_INVERSE_MODIFIER = {
-    ("ɸ", (("fricative", "+"),)): "p",
-    ("t", (("voiceless", "+"),)): "d",
-    ("f", (("voiceless", "+"),)): "v",
-    ("ɶ", (("rounded", "+"),)): "a",
-    ("ĩ", (("nasalized", "+"),)): "i",
-    ("t", (("alveolar", "+"),)): "k",
-    ("c", (("palatal", "+"),)): "k",
-    ("g", (("voiced", "+"),)): "k",
-    ("k", (("velar", "+"),)): "p",
-    ("ɲ", (("palatal", "+"),)): "n",
-    ("d", (("voiced", "+"),)): "t",
-    ("b", (("voiced", "+"),)): "p",
-    ("b̪", (("stop", "+"),)): "v",
-    ("g", (("stop", "+"),)): "ɣ",
-    ("x", (("voiceless", "+"),)): "ɣ",
-    ("d̪", (("stop", "+"),)): "ð",
-    ("b", (("stop", "+"),)): "β",
-    ("t̠", (("post-alveolar", "+"),)): "k",
-    ("k", (("voiceless", "+"),)): "g",
+    ("ɸ", "{'positive': ['fricative'], 'negative': [], 'custom': []}"): "p",
+    ("t", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "d",
+    ("f", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "v",
+    ("ɶ", "{'positive': ['rounded'], 'negative': [], 'custom': []}"): "a",
+    ("ĩ", "{'positive': ['nasalized'], 'negative': [], 'custom': []}"): "i",
+    ("t", "{'positive': ['alveolar'], 'negative': [], 'custom': []}"): "k",
+    ("c", "{'positive': ['palatal'], 'negative': [], 'custom': []}"): "k",
+    ("g", "{'positive': ['voiced'], 'negative': [], 'custom': []}"): "k",
+    ("k", "{'positive': ['velar'], 'negative': [], 'custom': []}"): "p",
+    ("ɲ", "{'positive': ['palatal'], 'negative': [], 'custom': []}"): "n",
+    ("d", "{'positive': ['voiced'], 'negative': [], 'custom': []}"): "t",
+    ("b", "{'positive': ['voiced'], 'negative': [], 'custom': []}"): "p",
+    ("b̪", "{'positive': ['stop'], 'negative': [], 'custom': []}"): "v",
+    ("g", "{'positive': ['stop'], 'negative': [], 'custom': []}"): "ɣ",
+    ("x", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "ɣ",
+    ("d̪", "{'positive': ['stop'], 'negative': [], 'custom': []}"): "ð",
+    ("b", "{'positive': ['stop'], 'negative': [], 'custom': []}"): "β",
+    ("t̠", "{'positive': ['post-alveolar'], 'negative': [], 'custom': []}"): "k",
+    ("k", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "g",
 }
 
 # Custom package errors, for fuzzing, testing, etc.
@@ -161,7 +162,7 @@ def features2graphemes(feature_str, sounds):
     """
 
     # Parse the feature string
-    features = parse_features(feature_str)
+#    features = parse_features(feature_str)
 
     # Iterate over all sounds in the transcription system
     graphemes = []
