@@ -310,7 +310,7 @@ class Model:
         #       facing the users, who may provide sequences mismatched in
         #       length.
         if len(sequence) != len(pattern):
-            return False
+            return [False] * len(sequence)
 
         # Build cache key
         cache_key = (
@@ -322,24 +322,51 @@ class Model:
             return cache_val
 
         ret = True
+        ret_list = []
         for token, ref in zip(sequence, pattern):
+            ret = True
             # check choice (list) first
             if isinstance(ref, list):
                 # Check the sub-match for each alternative; if the
                 # alternative is a grapheme, carry any modifier
-                alt_matches = [self.check_match([token], [alt]) for alt in ref]
+                alt_matches = [
+                    all(self.check_match([token], [alt])) for alt in ref
+                ]
                 if not any(alt_matches):
                     ret = False
-                    break
+                    # break
+            elif "set" in ref:
+                # Check if it is a set correspondence, which effectively
+                # works as a choice here (but we need to keep track of)
+                # which set alternative was matched
+                alt_matches = [
+                    all(self.check_match([token], [alt])) for alt in ref.set
+                ]
+
+                # NOTE: as in this case we need to know which alternative in
+                # set had a match, instead of returning a boolean we will
+                # return the index of such alternative. To make the logic
+                # more transparent, we shift the index of one unit, so
+                # that no match will be returned as zero.
+                # NOTE: this will return the index of the first matched
+                # element, if there are more than one, following the PEG
+                # principles
+                # TODO: improve this logic
+                if not any(alt_matches):
+                    ret = False
+                    # break
+                else:
+                    alt_matches = [False] + alt_matches
+                    ret = alt_matches.index(True)
             elif "grapheme" in ref:
                 ipa = self.apply_modifier(ref.grapheme, ref.modifier)
                 if token != ipa:
                     ret = False
-                    break
+                    # break
             elif "boundary" in ref:
                 if token != "#":
                     ret = False
-                    break
+                    # break
             elif "sound_class" in ref:
                 # Apply the modifier to all the items in the sound class,
                 # so we can check if the `token` is actually there.
@@ -353,24 +380,40 @@ class Model:
 
                 if token not in modified:
                     ret = False
-                    break
+                    # break
+
+            # Append to the return list, so we carry extra information like
+            # element matched in a set (most of the time, this will be
+            # just booleans)
+            ret_list.append(ret)
 
         # cache
-        self._cache_add("match", cache_key, ret)
+        self._cache_add("match", cache_key, tuple(ret_list))
 
-        return ret
+        return ret_list
 
-    def _forward_translate(self, sequence, rule):
+    def _forward_translate(self, sequence, rule, match_list):
         """
         Translate an intermediary `ante` to `post` sequence.
         """
 
         post_seq = []
 
+        # Build a list of indexes from `match_list`, which will be used
+        # in sequence in case of sets
+        indexes = [v for v in match_list if v is not True]
+
+        # iterate over all entries
         for entry in rule.post:
             # Note that this will, as intended, skip over `null`s
             if "grapheme" in entry:
                 post_seq.append(entry.grapheme)
+            elif "set" in entry:
+                # NOTE: the -1 in the `match` index is to offset the one
+                # applied in `.check_match()`, that returns zero for false
+                # TODO: what if it is a backref, sound-class, etc.?
+                idx = indexes.pop(0) - 1
+                post_seq.append(entry["set"][idx]["grapheme"])
             elif "backref" in entry:
                 # Refer to `correspondence`, if specified
                 # TODO: recheck correspondence after adding sets
@@ -421,8 +464,8 @@ class Model:
         while True:
             sub_seq = ante_seq[idx : idx + len(rule.ante)]
             match = self.check_match(sub_seq, rule.ante)
-            if match:
-                post_seq += self._forward_translate(sub_seq, rule)
+            if all(match):
+                post_seq += self._forward_translate(sub_seq, rule, match)
                 idx += len(rule.ante)
             else:
                 post_seq.append(ante_seq[idx])
@@ -437,7 +480,7 @@ class Model:
 
         return post_seq
 
-    def _backward_translate(self, sequence, rule):
+    def _backward_translate(self, sequence, rule, match_list):
         # Collect all information we have on what was matched,
         # in terms of back-references and classes/features,
         # from what we have in the reflex
@@ -452,7 +495,7 @@ class Model:
         # NOTE: `ante_seq` is here the modified one for reconstruction,
         #       not the one in the rule
         ante_seq = []
-        for idx, ante_entry in enumerate(rule.ante):
+        for idx, (ante_entry, match) in enumerate(zip(rule.ante, match_list)):
             if isinstance(ante_entry, list):
                 # build alternative string, for cases when deleted
                 # TODO: account for modifiers, choices, sets. etc
@@ -470,6 +513,9 @@ class Model:
                 ante_seq.append(ante_entry.grapheme)
             elif "sound_class" in ante_entry:
                 ante_seq.append(value.get(idx, ante_entry.sound_class))
+            elif "set" in ante_entry:
+                # TODO: deal with non-graphemes
+                ante_seq.append(ante_entry.set[match - 1]["grapheme"])
 
         # Depending on the type of rule that was applied, the `ante_seq` list
         # might at this point have elements expressing more than one
@@ -523,11 +569,16 @@ class Model:
         idx = 0
         ante_seqs = []
         while True:
+            # TODO: this comprehension for `sub_seq` is testing subsequences
+            # shorter than post_ast, should we fix it? check comprehension
+            # at the end of loop (and check performed here)
             sub_seq = post_seq[idx : idx + len(post_ast)]
             match = self.check_match(sub_seq, post_ast)
+            if len(match) == 0:
+                break
 
-            if match:
-                ante_seqs.append(self._backward_translate(sub_seq, rule))
+            if all(match):
+                ante_seqs.append(self._backward_translate(sub_seq, rule, match))
                 idx += len(post_ast)
             else:
                 ante_seqs.append([post_seq[idx]])

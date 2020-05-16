@@ -32,6 +32,7 @@ library is not recommended for production usage.*
 - Add support for clusters/diphthongs
 - Add tone and other suprasegmental
 - Add custom features
+- research about kleene closures
 
 ## Installation
 

@@ -275,6 +275,12 @@ class SoundChangeVisitor(arpeggio.PTNodeVisitor):
 
         return AST({"focus": node.value})
 
+    def visit_set(self, node, children):
+        """Define visitor for the `set` rule."""
+        # pylint: disable=unused-argument,no-self-use
+
+        return AST({"set": list(children)})
+
     def visit_choice(self, node, children):
         """Define visitor for the `choice` rule."""
         # pylint: disable=unused-argument,no-self-use

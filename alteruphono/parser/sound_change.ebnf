@@ -54,6 +54,7 @@ sequence_element <-
 // first element of the choice as a singleton.
 segment <-
     choice /
+    set /
     boundary /
     empty /
     backref /
@@ -61,9 +62,12 @@ segment <-
     grapheme
     ;
 
-// Define a choice and the singletons that can be part of it.
+// Define choices and sets and the singletons that can be part of it.
 choice <-
     singleton ("|" singleton)+
+    ;
+set <-
+    "{" singleton ("," singleton)+ "}"
     ;
 singleton <-
     boundary /
@@ -123,7 +127,7 @@ backref <-
 // few excluded in the regex more to avoid confusion than requirement.
 // graphemes can carry their own modifiers.
 grapheme <-
-    r'[^ \[\]|/>@-]+' (modifier)?
+    r'[^ \[\]\{\}|,/>@-]+' (modifier)?
     ;
 
 // Define additional capture symbols (terminals).

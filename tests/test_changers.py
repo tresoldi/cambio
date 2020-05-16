@@ -100,6 +100,8 @@ class TestChangers(unittest.TestCase):
                 model.check_match(test_ante, ante_ast) for ante_ast in ante_asts
             ]
 
+            print(ante_seqs)
+
             assert any(matches)
 
 
