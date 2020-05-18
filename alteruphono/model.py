@@ -224,12 +224,14 @@ class Model:
             # changing (for example, remove all vowel heights and only later
             # add the new one)
             descriptors = []
-            rem_features = [self.features[desc] for desc in modifier.positive]
+            rem_features = [
+                self.features[desc] for desc in modifier["positive"]
+            ]
             for desc in self.sounds[grapheme]:
-                if desc not in modifier.negative:
+                if desc not in modifier["negative"]:
                     if self.features[desc] not in rem_features:
                         descriptors.append(desc)
-            descriptors += modifier.positive
+            descriptors += modifier["positive"]
 
             # Obtain the grapheme based on the description
             ret = self.descriptors2grapheme(descriptors)
@@ -345,7 +347,7 @@ class Model:
                 # works as a choice here (but we need to keep track of)
                 # which set alternative was matched
                 alt_matches = [
-                    all(self.check_match([token], [alt])) for alt in ref.set
+                    all(self.check_match([token], [alt])) for alt in ref["set"]
                 ]
 
                 # NOTE: as in this case we need to know which alternative in
@@ -363,7 +365,7 @@ class Model:
                     alt_matches = [False] + alt_matches
                     ret = alt_matches.index(True)
             elif "grapheme" in ref:
-                ipa = self.apply_modifier(ref.grapheme, ref.modifier)
+                ipa = self.apply_modifier(ref["grapheme"], ref["modifier"])
                 if token != ipa:
                     ret = False
             elif "boundary" in ref:
@@ -373,8 +375,8 @@ class Model:
                 # Apply the modifier to all the items in the sound class,
                 # so we can check if the `token` is actually there.
                 modified = [
-                    self.apply_modifier(grapheme, ref.modifier)
-                    for grapheme in self.sound_classes[ref.sound_class][
+                    self.apply_modifier(grapheme, ref["modifier"])
+                    for grapheme in self.sound_classes[ref["sound_class"]][
                         "graphemes"
                     ]
                 ]
@@ -413,7 +415,7 @@ class Model:
         for entry in rule.post:
             # Note that this will, as intended, skip over `null`s
             if "grapheme" in entry:
-                post_seq.append(entry.grapheme)
+                post_seq.append(entry["grapheme"])
             elif "set" in entry:
                 # NOTE: the -1 in the `match` index is to offset the one
                 # applied in `.check_match()`, that returns zero for false
@@ -427,18 +429,23 @@ class Model:
                     # get the alternative index in `ante`
                     # NOTE: `post_alts` has [1:-1] for the curly brackets
                     ante_alts = [
-                        alt.ipa for alt in rule.ante[entry.backref].alternative
+                        alt.ipa
+                        for alt in rule.ante[entry["backref"]].alternative
                     ]
                     post_alts = (
-                        rule.post[entry.backref].correspondence[1:-1].split(",")
+                        rule.post[entry["backref"]]
+                        .correspondence[1:-1]
+                        .split(",")
                     )
 
-                    idx = ante_alts.index(sequence[entry.backref])
+                    idx = ante_alts.index(sequence[entry["backref"]])
 
                     post_seq.append(post_alts[idx])
                 else:
-                    token = sequence[entry.backref]
-                    post_seq.append(self.apply_modifier(token, entry.modifier))
+                    token = sequence[entry["backref"]]
+                    post_seq.append(
+                        self.apply_modifier(token, entry["modifier"])
+                    )
 
         return post_seq
 
@@ -494,8 +501,8 @@ class Model:
         no_nulls = [token for token in rule.post if "empty" not in token]
         for post_entry, token in zip(no_nulls, sequence):
             if "backref" in post_entry:
-                value[post_entry.backref] = self.apply_modifier(
-                    token, post_entry.modifier, inverse=True
+                value[post_entry["backref"]] = self.apply_modifier(
+                    token, post_entry["modifier"], inverse=True
                 )
 
         # NOTE: `ante_seq` is here the modified one for reconstruction,
@@ -508,20 +515,20 @@ class Model:
                 alts = []
                 for alt in ante_entry:
                     if "grapheme" in alt:
-                        alts.append(alt.grapheme)
+                        alts.append(alt["grapheme"])
                     elif "sound_class" in alt:
-                        alts.append(alt.sound_class)
+                        alts.append(alt["sound_class"])
                     else:
                         alts.append("#")
                 alt_string = "|".join(alts)
                 ante_seq.append(value.get(idx, alt_string))
             elif "grapheme" in ante_entry:
-                ante_seq.append(ante_entry.grapheme)
+                ante_seq.append(ante_entry["grapheme"])
             elif "sound_class" in ante_entry:
-                ante_seq.append(value.get(idx, ante_entry.sound_class))
+                ante_seq.append(value.get(idx, ante_entry["sound_class"]))
             elif "set" in ante_entry:
                 # TODO: deal with non-graphemes
-                ante_seq.append(ante_entry.set[match - 1]["grapheme"])
+                ante_seq.append(ante_entry["set"][match - 1]["grapheme"])
 
         # Depending on the type of rule that was applied, the `ante_seq` list
         # might at this point have elements expressing more than one
@@ -557,14 +564,14 @@ class Model:
             if isinstance(entry1, list):
                 return [_add_modifier(alt, entry2) for alt in entry1]
 
-            return entry1.copy({"modifier": entry2.modifier})
+            return entry1.copy({"modifier": entry2["modifier"]})
 
         # Compute the `post_ast`, applying modifiers and skipping nulls
         post_ast = [token for token in rule.post if "empty" not in token]
         post_ast = [
             token
             if "backref" not in token
-            else _add_modifier(rule.ante[token.backref], token)
+            else _add_modifier(rule.ante[token["backref"]], token)
             for token in post_ast
         ]
 

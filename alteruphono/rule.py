@@ -14,8 +14,8 @@ class Rule:
 
     def __init__(self, source, ast):
         self.source = source
-        self.ante = ast.ante
-        self.post = ast.post
+        self.ante = ast["ante"]
+        self.post = ast["post"]
 
     def __repr__(self):
         return repr(self.source)

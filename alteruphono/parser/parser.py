@@ -3,197 +3,61 @@ Sound Change parser.
 """
 
 # Import Python standard libraries
-from collections.abc import Mapping, Iterable
+from collections.abc import Mapping
 from pathlib import Path
 
 # Import 3rd-party libraries
 import arpeggio
 from arpeggio.peg import ParserPEG
 
-
-def json_value(obj, seen=None):
-    """
-    Return a JSON representation of a value.
-
-    The function accounts for recursive elements.
-    """
-
-    def _isiter(item):
-        return isinstance(item, Iterable) and not isinstance(item, str)
-
-    if isinstance(obj, Mapping) or _isiter(obj):
-        # prevent traversal of recursive structures
-        if seen is None:
-            seen = set()
-        elif id(obj) in seen:
-            return "__RECURSIVE__"
-        seen.add(id(obj))
-
-    if hasattr(obj, "__json__") and not isinstance(obj, type):
-        return obj.__json__()
-
-    # TODO: check original code, would never get here
-    if isinstance(obj, Mapping):
-        result = {}
-        for key, val in obj.items():
-            try:
-                result[key] = json_value(val, seen)
-            except TypeError:
-                raise ValueError("Unhashable key?", type(key), str(key))
-        return result
-    elif _isiter(obj):
-        return [json_value(e, seen) for e in obj]
-    else:
-        return obj
-
-
-# TODO: implement a __hash__ method
-class AST(dict):
+# TODO: freeze after initialization and cache representations
+class AST(Mapping):
     """
     `AST` class for abstract syntax tree manipulation.
-
-    ASTs are here implemented as a custom dictionary that works as a frozen
-    one (fields/attributes cannot be changed after initialization, but there
-    is a .copy() method that accepts an `update` dictionary) and which can
-    be accessed both as dictionary fields (e.g., `ast['grapheme']`) and as
-    attributes (e.g., `ast.grapheme`).
-
-    It is a convenient solution for prototyping and experimenting, besides the
-    easiness it provides for manipulation during simulations. It might in the
-    future be replaced by some standard Python solution, probability data
-    classes.
-
-    The implementation extends the one used by the 竜 TatSu library as of
-    2020.05.09, and it is licensed under the BSD-3 clause license of
-    竜 TatSu.
     """
 
-    _frozen = False
-
     def __init__(self, *args, **kwargs):
-        # Initialize with new data
-        super().__init__()
-        self.update(*args, **kwargs)
-
-        # Given that the structure is immutable and the serialization is
-        # really expansive in terms of computing cycles, compute it once and
-        # store it
-        self._cache_json = json_value(self)
-        self._cache_repr = repr(self._cache_json)
-        self._cache_str = str(self._cache_json)
-
-        # Froze the structure
-        self._frozen = True
-
-    @property
-    def frozen(self):
-        """Property informing whether the AST is frozen."""
-        return self._frozen
+        self._d = dict(*args, **kwargs)
+        self._hash = None
 
     def copy(self, update=None):
+        d = self._d.copy()
         if update:
-            tmp = dict(self)
-            tmp.update(update)
-            return AST(tmp)
+            d.update(update)
 
-        return self.__copy__()
+        return AST(d)
 
-    def asjson(self):
-        """Return the AST as a JSON."""
-        return self._cache_json
+    def __contains__(self, key):
+        # TODO: replace all `in` occurrences to call `__getitem__`?
+        return key in self._d
 
-    def _set(self, key, item_value, force_list=False):
-        key = self._safekey(key)
-        previous = self.get(key)
+    def __iter__(self):
+        return iter(self._d)
 
-        if previous is None and force_list:
-            item_value = [item_value]
-        elif previous is None:
-            pass
-        elif isinstance(previous, list):
-            item_value = previous + [item_value]
-        else:
-            item_value = [previous, item_value]
-
-        super().__setitem__(key, item_value)
-
-    def _setlist(self, key, item_value):
-        return self._set(key, item_value, force_list=True)
-
-    def __copy__(self):
-        return AST(self)
+    def __len__(self):
+        return len(self._d)
 
     def __getitem__(self, key):
-        if key in self:
-            return super().__getitem__(key)
+        return self._d.get(key, None)
 
-        key = self._safekey(key)
-        if key in self:
-            return super().__getitem__(key)
-
-    def __setitem__(self, key, item_value):
-        self._set(key, item_value)
-
-    def __delitem__(self, key):
-        key = self._safekey(key)
-        super().__delitem__(key)
-
-    def __setattr__(self, name, item_value):
-        if self._frozen and name not in vars(self):
-            raise AttributeError(
-                f"{type(self).__name__} attributes are fixed. "
-                f' Cannot set attribute "{name}".'
-            )
-        super().__setattr__(name, item_value)
-
-    def __getattr__(self, name):
-        key = self._safekey(name)
-        if key in self:
-            return self[key]
-        if name in self:
-            return self[name]
-
-        try:
-            return super().__getattribute__(name)
-        except AttributeError:
-            return None
-
-    def __hasattribute__(self, name):
-        try:
-            super().__getattribute__(name)
-        except (TypeError, AttributeError):
-            return False
-        else:
-            return True
-
-    def __reduce__(self):
-        return (AST, (), None, None, iter(self.items()))
-
-    def _safekey(self, key):
-        while self.__hasattribute__(key):
-            key += "_"
-        return key
-
-    def _define(self, keys, list_keys=None):
-        for key in keys:
-            key = self._safekey(key)
-            if key not in self:
-                super().__setitem__(key, None)
-
-        for key in list_keys or []:
-            key = self._safekey(key)
-            if key not in self:
-                super().__setitem__(key, [])
-
-    def __json__(self):
-        return {name: json_value(value) for name, value in self.items()}
-
-    # TODO: could we have a single one?
     def __repr__(self):
-        return self._cache_repr
+        return repr(self._d)
 
     def __str__(self):
-        return self._cache_str
+        return str(self._d)
+
+    def __hash__(self):
+        # It would have been simpler and maybe more obvious to
+        # use hash(tuple(sorted(self._d.iteritems()))) from this discussion
+        # so far, but this solution is O(n). I don't know what kind of
+        # n we are going to run into, but sometimes it's hard to resist the
+        # urge to optimize when it will gain improved algorithmic performance.
+        if self._hash is None:
+            hash_ = 0
+            for pair in self.iteritems():
+                hash_ ^= hash(pair)
+            self._hash = hash_
+        return self._hash
 
 
 # Define a visitor for semantic analysis of the parse tree. The semantic
@@ -249,10 +113,10 @@ class SoundChangeVisitor(arpeggio.PTNodeVisitor):
         # TODO: write properly, currently without custom
         positive, negative = [], []
         for feature in children:
-            if feature.value == "+":
-                positive.append(feature.feature)
-            elif feature.value == "-":
-                negative.append(feature.feature)
+            if feature["value"] == "+":
+                positive.append(feature["feature"])
+            elif feature["value"] == "-":
+                negative.append(feature["feature"])
 
         return AST(
             {
@@ -433,9 +297,11 @@ class Parser:
             if "context" in ast:
                 return AST(
                     {
-                        "ante": _merge_context(ast.ante, ast.context),
+                        "ante": _merge_context(ast["ante"], ast["context"]),
                         "post": _merge_context(
-                            ast.post, ast.context, offset_ref=len(ast.ante)
+                            ast["post"],
+                            ast["context"],
+                            offset_ref=len(ast["ante"]),
                         ),
                     }
                 )
@@ -477,7 +343,7 @@ def _merge_context(ast, context, offset_ref=None):
         # `p @2 / a _` --> `a p @3`
         if "backref" in token:
             merged_ast.append(
-                token.copy({"backref": token.backref + offset_left})
+                token.copy({"backref": token["backref"] + offset_left})
             )
         else:
             merged_ast.append(token)
