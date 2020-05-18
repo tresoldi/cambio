@@ -67,7 +67,7 @@ segment <-
 //       fact, the potential bug when the first item of the choice is
 //       the /!/ click.
 choice <-
-    "!" singleton ("|" singleton)+ /
+    r"!" singleton ("|" singleton)+ /
     singleton ("|" singleton)+
     ;
 set <-

@@ -15,6 +15,7 @@ import unittest
 import alteruphono
 
 # TODO: add failing parses
+# TODO: add negation tests
 
 
 class TestParser(unittest.TestCase):
@@ -48,7 +49,7 @@ class TestParser(unittest.TestCase):
             },
             {
                 "rule": "a V p|b @1 @2[+stop] :null:",
-                "ast": "[{'grapheme': 'a'}, {'sound_class': 'V', 'negation': False}, [{'grapheme': 'p'}, {'grapheme': 'b'}], {'backref': 0}, {'backref': 1, 'modifier': {'positive': ['stop'], 'negative': [], 'custom': []}}, {'empty': ':null:'}]",
+                "ast": "[{'grapheme': 'a'}, {'sound_class': 'V', 'negation': False}, {'choice': [{'grapheme': 'p'}, {'grapheme': 'b'}]}, {'backref': 0}, {'backref': 1, 'modifier': {'positive': ['stop'], 'negative': [], 'custom': []}}, {'empty': ':null:'}]",
             },
         ]
 
@@ -60,7 +61,10 @@ class TestParser(unittest.TestCase):
     def test_parse_segment(self):
         tests = [
             {"rule": "ɚ", "ast": "{'grapheme': 'ɚ'}"},
-            {"rule": "p|b", "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}]"},
+            {
+                "rule": "p|b",
+                "ast": "{'choice': [{'grapheme': 'p'}, {'grapheme': 'b'}]}",
+            },
             {"rule": "#", "ast": "{'boundary': '#'}"},
             {"rule": "@3", "ast": "{'backref': 2}"},
             {
@@ -77,14 +81,17 @@ class TestParser(unittest.TestCase):
 
     def test_parse_choice(self):
         tests = [
-            {"rule": "p|b", "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}]"},
+            {
+                "rule": "p|b",
+                "ast": "{'choice': [{'grapheme': 'p'}, {'grapheme': 'b'}]}",
+            },
             {
                 "rule": "p|b|0",
-                "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}, {'empty': '0'}]",
+                "ast": "{'choice': [{'grapheme': 'p'}, {'grapheme': 'b'}, {'empty': '0'}]}",
             },
             {
                 "rule": "p|0|#|@1",
-                "ast": "[{'grapheme': 'p'}, {'empty': '0'}, {'boundary': '#'}, {'backref': 0}]",
+                "ast": "{'choice': [{'grapheme': 'p'}, {'empty': '0'}, {'boundary': '#'}, {'backref': 0}]}",
             },
         ]
 

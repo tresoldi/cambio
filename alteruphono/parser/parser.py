@@ -285,7 +285,10 @@ class SoundChangeVisitor(arpeggio.PTNodeVisitor):
         """Define visitor for the `choice` rule."""
         # pylint: disable=unused-argument,no-self-use
 
-        return list(children)
+        if children[0] == "!":
+            return AST({"choice": list(children[1:]), "negation": True})
+
+        return AST({"choice": list(children)})
 
     def visit_boundary(self, node, children):
         """Define visitor for the `boundary` rule."""

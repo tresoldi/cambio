@@ -325,15 +325,21 @@ class Model:
         ret_list = []
         for token, ref in zip(sequence, pattern):
             ret = True
-            # check choice (list) first
-            if isinstance(ref, list):
+            if "choice" in ref:
                 # Check the sub-match for each alternative; if the
                 # alternative is a grapheme, carry any modifier
                 alt_matches = [
-                    all(self.check_match([token], [alt])) for alt in ref
+                    all(self.check_match([token], [alt]))
+                    for alt in ref["choice"]
                 ]
-                if not any(alt_matches):
-                    ret = False
+
+                # check depending on negation
+                if ref.get("negation", False):
+                    if any(alt_matches):
+                        ret = False
+                else:
+                    if not any(alt_matches):
+                        ret = False
             elif "set" in ref:
                 # Check if it is a set correspondence, which effectively
                 # works as a choice here (but we need to keep track of)
