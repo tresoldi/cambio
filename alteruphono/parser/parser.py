@@ -317,11 +317,25 @@ class SoundChangeVisitor(arpeggio.PTNodeVisitor):
         """Define visitor for the `sound_class` rule."""
         # pylint: disable=unused-argument,no-self-use
 
+        # check for negation
+        negation = False
+        if children[0] == "!":
+            negation = True
+            children.pop(0)
+
         # return the sound class along with any modifier
         if len(children) == 2:
-            return AST({"sound_class": children[0], "modifier": children[1]})
+            ret = AST(
+                {
+                    "sound_class": children[0],
+                    "modifier": children[1],
+                    "negation": negation,
+                }
+            )
+        else:
+            ret = AST({"sound_class": children[0], "negation": negation})
 
-        return AST({"sound_class": children[0]})
+        return ret
 
     def visit_grapheme(self, node, children):
         """Define visitor for the `grapheme` rule."""
@@ -500,6 +514,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         raise ValueError("Should provide the rule and only the rule.")
 
-    parser = Parser(debug=True)
+    debug = False
+    parser = Parser(debug=debug)
     value = parser(sys.argv[1])
     print(value)

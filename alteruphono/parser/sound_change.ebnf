@@ -63,7 +63,11 @@ segment <-
     ;
 
 // Define choices and sets and the singletons that can be part of it.
+// TODO: allow optional parentheses, such as "(p|b)" and "!(p|b)"; note, in
+//       fact, the potential bug when the first item of the choice is
+//       the /!/ click.
 choice <-
+    "!" singleton ("|" singleton)+ /
     singleton ("|" singleton)+
     ;
 set <-
@@ -113,6 +117,7 @@ modifier <-
 // the first character obligatorily a letter. Sound classes can carry
 // their own modifiers.
 sound_class <-
+    r"!" r'[A-Z][A-Z0-9_]*' (modifier)? /
     r'[A-Z][A-Z0-9_]*' (modifier)?
     ;
 

@@ -26,7 +26,7 @@ class TestParser(unittest.TestCase):
         tests = [
             {
                 "rule": "p > b / _ V",
-                "ast": "{'ante': [{'grapheme': 'p'}, {'sound_class': 'V'}], 'post': [{'grapheme': 'b'}, {'backref': 1}]}",
+                "ast": "{'ante': [{'grapheme': 'p'}, {'sound_class': 'V', 'negation': False}], 'post': [{'grapheme': 'b'}, {'backref': 1}]}",
             },
             {
                 "rule": "p > b",
@@ -48,7 +48,7 @@ class TestParser(unittest.TestCase):
             },
             {
                 "rule": "a V p|b @1 @2[+stop] :null:",
-                "ast": "[{'grapheme': 'a'}, {'sound_class': 'V'}, [{'grapheme': 'p'}, {'grapheme': 'b'}], {'backref': 0}, {'backref': 1, 'modifier': {'positive': ['stop'], 'negative': [], 'custom': []}}, {'empty': ':null:'}]",
+                "ast": "[{'grapheme': 'a'}, {'sound_class': 'V', 'negation': False}, [{'grapheme': 'p'}, {'grapheme': 'b'}], {'backref': 0}, {'backref': 1, 'modifier': {'positive': ['stop'], 'negative': [], 'custom': []}}, {'empty': ':null:'}]",
             },
         ]
 
@@ -63,7 +63,10 @@ class TestParser(unittest.TestCase):
             {"rule": "p|b", "ast": "[{'grapheme': 'p'}, {'grapheme': 'b'}]"},
             {"rule": "#", "ast": "{'boundary': '#'}"},
             {"rule": "@3", "ast": "{'backref': 2}"},
-            {"rule": "VCLSSTP", "ast": "{'sound_class': 'VCLSSTP'}"},
+            {
+                "rule": "VCLSSTP",
+                "ast": "{'sound_class': 'VCLSSTP', 'negation': False}",
+            },
             {"rule": "0", "ast": "{'empty': '0'}"},
         ]
 
@@ -92,14 +95,14 @@ class TestParser(unittest.TestCase):
 
     def test_parse_sound_class(self):
         tests = [
-            {"rule": "C", "ast": "{'sound_class': 'C'}"},
-            {"rule": "CS", "ast": "{'sound_class': 'CS'}"},
-            {"rule": "H1", "ast": "{'sound_class': 'H1'}"},
+            {"rule": "C", "ast": "{'sound_class': 'C', 'negation': False}"},
+            {"rule": "CS", "ast": "{'sound_class': 'CS', 'negation': False}"},
+            {"rule": "H1", "ast": "{'sound_class': 'H1', 'negation': False}"},
             {
                 "rule": "C[+voiced]",
-                "ast": "{'sound_class': 'C', 'modifier': {'positive': ['voiced'], 'negative': [], 'custom': []}}",
+                "ast": "{'sound_class': 'C', 'modifier': {'positive': ['voiced'], 'negative': [], 'custom': []}, 'negation': False}",
             },
-            {"rule": "H_X", "ast": "{'sound_class': 'H_X'}"},
+            {"rule": "H_X", "ast": "{'sound_class': 'H_X', 'negation': False}"},
         ]
 
         parser = alteruphono.Parser(root_rule="sound_class")

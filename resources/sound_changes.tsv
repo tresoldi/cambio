@@ -801,3 +801,5 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 799	ẽ -> ĩ / t|h _ #	1	β l i r tʃ i h ẽ	β l i r tʃ i h ĩ
 800	{p,b} -> {t,v}	1	p a b i	t a v i
 801	V {s,z} -> @1 {t,d} @1 / # p|b r _ t|d	1	p r e s t o	p r e t e t o
+802	a -> e / _ !V	1	p a p a i	p e p a i
+803	!p|b i -> @1 u	1	p i t i b i	p i t u b i
