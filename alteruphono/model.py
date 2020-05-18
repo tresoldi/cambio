@@ -334,7 +334,6 @@ class Model:
                 ]
                 if not any(alt_matches):
                     ret = False
-                    # break
             elif "set" in ref:
                 # Check if it is a set correspondence, which effectively
                 # works as a choice here (but we need to keep track of)
@@ -354,7 +353,6 @@ class Model:
                 # TODO: improve this logic
                 if not any(alt_matches):
                     ret = False
-                    # break
                 else:
                     alt_matches = [False] + alt_matches
                     ret = alt_matches.index(True)
@@ -362,11 +360,9 @@ class Model:
                 ipa = self.apply_modifier(ref.grapheme, ref.modifier)
                 if token != ipa:
                     ret = False
-                    # break
             elif "boundary" in ref:
                 if token != "#":
                     ret = False
-                    # break
             elif "sound_class" in ref:
                 # Apply the modifier to all the items in the sound class,
                 # so we can check if the `token` is actually there.
@@ -378,9 +374,13 @@ class Model:
                 ]
                 modified = list({grapheme for grapheme in modified if grapheme})
 
-                if token not in modified:
-                    ret = False
-                    # break
+                # Use negation ("!") if specified
+                if ref.get("negation", False):
+                    if token in modified:
+                        ret = False
+                else:
+                    if token not in modified:
+                        ret = False
 
             # Append to the return list, so we carry extra information like
             # element matched in a set (most of the time, this will be
