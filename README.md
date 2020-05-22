@@ -70,9 +70,9 @@ A stand-alone command-line tool can be used to call these wrapper
 functions:
 
 ```bash
-$ alteruphono forward "# p a t e #" "p > t / _ V"
+$ alteruphono forward '# p a t e #' 'p > t / _ V'
 # t a t e #
-$ alteruphono backward "# p a t e #" "p > t / _ V"
+$ alteruphono backward '# p a t e #' 'p > t / _ V'
 ['# p a t e #', '# p a p e #']
 ```
 

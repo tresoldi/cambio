@@ -17,8 +17,13 @@ class AST(Mapping):
     """
 
     def __init__(self, *args, **kwargs):
+        # Store dictionary
         self._d = dict(*args, **kwargs)
+
+        # Caches for hash, str, and repr, computed on first call
         self._hash = None
+        self._str = None
+        self._repr = None
 
     def copy(self, update=None):
         d = self._d.copy()
@@ -41,22 +46,26 @@ class AST(Mapping):
         return self._d.get(key, None)
 
     def __repr__(self):
-        return repr(self._d)
+        # compute repr if necessary
+        if self._repr is None:
+            self._repr = repr(self._d)
+
+        return self._repr
 
     def __str__(self):
-        return str(self._d)
+        # compute str if necessary
+        if self._str is None:
+            self._str = repr(self._d)
+
+        return self._str
 
     def __hash__(self):
-        # It would have been simpler and maybe more obvious to
-        # use hash(tuple(sorted(self._d.iteritems()))) from this discussion
-        # so far, but this solution is O(n). I don't know what kind of
-        # n we are going to run into, but sometimes it's hard to resist the
-        # urge to optimize when it will gain improved algorithmic performance.
+        # compute hash if necessary
         if self._hash is None:
-            hash_ = 0
-            for pair in self.iteritems():
-                hash_ ^= hash(pair)
-            self._hash = hash_
+            self._hash = 0
+            for pair in iter(self._d):
+                self._hash ^= hash(pair)
+
         return self._hash
 
 
@@ -292,7 +301,6 @@ class Parser:
 
         # Perform merging if the rule is the default (and if there is
         # a context).
-        # TODO: does it need to be an AST?
         if self.root_rule == "rule":
             if "context" in ast:
                 return AST(

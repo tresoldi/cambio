@@ -4,13 +4,12 @@
 
 // TODOs:
 //   - allow segment from descriptor (i.e., from modifier)
-//   - implement set correspondence
-//   - add exclusion (with "!" or "^", general operator)
 //   - add reconstruction flag (only "*" for the time being)
 //   - allow values besides "true" and "false" for feature descriptions
 //   - the current list of `grapheme` is not allowing for potentially
 //     desirable graphemes (such as "@", used in X-SAMPA)
 //   - allow comments after rule
+//   - add "~" as a complement notation?
 
 // The main symbol `rule` is defined as a "sound change rule" including
 // the three basic elements: an `ante` sequence (mandatory), a `post`
@@ -148,7 +147,7 @@ empty <-
 
 // Define terminals for structure, not captured.
 arrow <-
-    r'->|>'
+    r'->|→|>'
     ;
 slash <-
     r'/'

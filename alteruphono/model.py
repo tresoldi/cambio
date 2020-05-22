@@ -13,7 +13,6 @@ import itertools
 from pathlib import Path
 
 # Import package
-import alteruphono
 import alteruphono.utils
 from alteruphono.sequence import Sequence
 
@@ -115,9 +114,7 @@ class Model:
     """
 
     # Define our custom caches; we are not using Python's functools because
-    # we need a finer management of the cache. Note that this only holds
-    # forward and backward calls as a whole: other functions might
-    # implement their own caches
+    # we need a finer management of the cache.
     _cache = {
         "forward": {},
         "backward": {},
@@ -220,7 +217,7 @@ class Model:
             ret = f"{grapheme}{modifier}"
         else:
             # Build list of descriptors, removing requested features (in
-            # modifier.negative) and all descriptors from features we are
+            # modifier['negative']) and all descriptors from features we are
             # changing (for example, remove all vowel heights and only later
             # add the new one)
             descriptors = []
@@ -416,6 +413,9 @@ class Model:
             # Note that this will, as intended, skip over `null`s
             if "grapheme" in entry:
                 post_seq.append(entry["grapheme"])
+            elif "sound_class" in entry:
+                # TODO: deal with negation
+                post_seq.append(entry['sound_class'])
             elif "set" in entry:
                 # NOTE: the -1 in the `match` index is to offset the one
                 # applied in `.check_match()`, that returns zero for false

@@ -10,9 +10,6 @@ import re
 import sys
 import unicodedata
 
-# Import from other modules
-# from alteruphono.model import parse_features
-
 # Set the resource directory; this requires `zip_safe=False` in setup.py
 RESOURCE_DIR = Path(__file__).parent.parent / "resources"
 
@@ -44,13 +41,8 @@ HARD_CODED_INVERSE_MODIFIER = {
     ("k", "{'positive': ['voiceless'], 'negative': [], 'custom': []}"): "g",
 }
 
-# Custom package errors, for fuzzing, testing, etc.
-class AlteruPhonoError(Exception):
-    pass
-
-
 # originally from this recipe http://code.activestate.com/recipes/577504/
-def rec_getsizeof(o, handlers={}, verbose=False):
+def rec_getsizeof(o, handlers=None, verbose=False):
     """ Returns the approximate memory footprint an object and all of its contents.
 
     Automatically finds the contents of the following builtin containers and
@@ -61,6 +53,7 @@ def rec_getsizeof(o, handlers={}, verbose=False):
                     OtherContainerClass: OtherContainerClass.get_elements}
 
     """
+
     dict_handler = lambda d: chain.from_iterable(d.items())
     all_handlers = {
         tuple: iter,
@@ -69,7 +62,8 @@ def rec_getsizeof(o, handlers={}, verbose=False):
         set: iter,
         frozenset: iter,
     }
-    all_handlers.update(handlers)  # user handlers take precedence
+    if handlers:
+        all_handlers.update(handlers)  # user handlers take precedence
     seen = set()  # track which object id's have already been seen
     default_size = sys.getsizeof(0)  # estimate sizeof object without __sizeof__
 
@@ -117,9 +111,6 @@ def features2graphemes(feature_str, sounds):
         A sorted list of all the graphemes matching the requested feature
         constraints.
     """
-
-    # Parse the feature string
-    #    features = parse_features(feature_str)
 
     # Iterate over all sounds in the transcription system
     graphemes = []
