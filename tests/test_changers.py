@@ -72,9 +72,7 @@ class TestChangers(unittest.TestCase):
         for test, ref in reference.items():
             rule = make_rule(test[0], parser)
 
-            ante_seqs = tuple(
-                [str(seq) for seq in model.backward(test[1], rule)]
-            )
+            ante_seqs = tuple([str(seq) for seq in model.backward(test[1], rule)])
 
             assert tuple(ante_seqs) == ref
 
@@ -96,9 +94,7 @@ class TestChangers(unittest.TestCase):
             # TODO: inspect all options returned, including
             # ('# a k u n #', '# a k u p|t|k θ #'
             ante_asts = [seq_parser(seq) for seq in ante_seqs]
-            matches = [
-                model.check_match(test_ante, ante_ast) for ante_ast in ante_asts
-            ]
+            matches = [model.check_match(test_ante, ante_ast) for ante_ast in ante_asts]
 
             assert any(matches)
 

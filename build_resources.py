@@ -28,9 +28,7 @@ RESOURCE_DIR = Path(__file__).parent / "resources"
 FEATURE_FILE = (
     "https://raw.githubusercontent.com/cldf-clts/clts/master/data/features.tsv"
 )
-SOUNDS_FILE = (
-    "https://raw.githubusercontent.com/cldf-clts/clts/master/data/sounds.tsv"
-)
+SOUNDS_FILE = "https://raw.githubusercontent.com/cldf-clts/clts/master/data/sounds.tsv"
 
 
 def tokenize(line):

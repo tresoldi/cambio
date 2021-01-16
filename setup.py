@@ -31,7 +31,7 @@ setup(
     long_description_content_type="text/markdown",
     long_description=README_FILE,
     name="alteruphono",
-    packages=find_packages()+["resources"],
+    packages=find_packages() + ["resources"],
     test_suite="tests",
     tests_require=[],
     url="https://github.com/tresoldi/alteruphono",

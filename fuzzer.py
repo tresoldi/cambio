@@ -50,9 +50,7 @@ def perturbate_element(elem, chars=None, distribution=DISTRIBUTION):
     elem = "".join(
         [
             char
-            for char, rnd in zip(
-                elem, [random.random() for x in range(len(elem))]
-            )
+            for char, rnd in zip(elem, [random.random() for x in range(len(elem))])
             if random.choice(distribution) < distribution[-1]
         ]
     )
@@ -128,9 +126,7 @@ def main():
 
         # Get a random starting rule, making a copy for reference
         test["ORIGINAL_RULE"] = random.choice(rules)
-        test["FUZZ_RULE"] = perturbate_element(
-            test["ORIGINAL_RULE"], rule_chars
-        )
+        test["FUZZ_RULE"] = perturbate_element(test["ORIGINAL_RULE"], rule_chars)
 
         # Parse
         try:
@@ -145,17 +141,13 @@ def main():
         # Attempt to apply to a "real" sequence
         test["ORIGINAL_SEQ"] = str(random.choice(seqs))
         try:
-            alteruphono.forward(
-                alteruphono.Sequence(test["ORIGINAL_SEQ"]), rule_obj
-            )
+            alteruphono.forward(alteruphono.Sequence(test["ORIGINAL_SEQ"]), rule_obj)
         except Exception as e:
             if not isinstance(e, alteruphono.utils.AlteruPhonoError):
                 test["SUCCESS"] = False
             test["FORWARD_PLAIN_EXCEPTION"] = str(e)
         try:
-            alteruphono.backward(
-                alteruphono.Sequence(test["ORIGINAL_SEQ"]), rule_obj
-            )
+            alteruphono.backward(alteruphono.Sequence(test["ORIGINAL_SEQ"]), rule_obj)
         except Exception as e:
             if not isinstance(e, alteruphono.utils.AlteruPhonoError):
                 test["SUCCESS"] = False
@@ -167,17 +159,13 @@ def main():
             str(test["ORIGINAL_SEQ"])[2:-2], seq_chars
         )
         try:
-            alteruphono.forward(
-                alteruphono.Sequence(test["FUZZ_SEQ"]), rule_obj
-            )
+            alteruphono.forward(alteruphono.Sequence(test["FUZZ_SEQ"]), rule_obj)
         except Exception as e:
             if not isinstance(e, alteruphono.utils.AlteruPhonoError):
                 test["SUCCESS"] = False
             test["FORWARD_FUZZ_EXCEPTION"] = str(e)
         try:
-            alteruphono.backward(
-                alteruphono.Sequence(test["FUZZ_SEQ"]), rule_obj
-            )
+            alteruphono.backward(alteruphono.Sequence(test["FUZZ_SEQ"]), rule_obj)
         except Exception as e:
             if not isinstance(e, alteruphono.utils.AlteruPhonoError):
                 test["SUCCESS"] = False

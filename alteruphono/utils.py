@@ -43,7 +43,7 @@ HARD_CODED_INVERSE_MODIFIER = {
 
 # originally from this recipe http://code.activestate.com/recipes/577504/
 def rec_getsizeof(o, handlers=None, verbose=False):
-    """ Returns the approximate memory footprint an object and all of its contents.
+    """Returns the approximate memory footprint an object and all of its contents.
 
     Automatically finds the contents of the following builtin containers and
     their subclasses:  tuple, list, deque, dict, set and frozenset.
@@ -74,7 +74,7 @@ def rec_getsizeof(o, handlers=None, verbose=False):
         s = sys.getsizeof(o, default_size)
 
         if verbose:
-            print(s, type(o), repr(o), file=stderr)
+            print(s, type(o), repr(o))
 
         for typ, handler in all_handlers.items():
             if isinstance(o, typ):
@@ -112,6 +112,9 @@ def features2graphemes(feature_str, sounds):
         constraints.
     """
 
+    # Parse the feature string
+    features = parse_features(feature_str)
+
     # Iterate over all sounds in the transcription system
     graphemes = []
     for grapheme, sound_features in sounds.items():
@@ -125,9 +128,7 @@ def features2graphemes(feature_str, sounds):
             continue
 
         # Check if none of the negative features are there, skipping if not
-        neg_match = all(
-            feat not in sound_features for feat in features.negative
-        )
+        neg_match = all(feat not in sound_features for feat in features.negative)
         if not neg_match:
             continue
 

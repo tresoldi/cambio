@@ -145,9 +145,7 @@ class Model:
         self.sounds = read_sounds(sounds_file.as_posix())
 
         classes_file = model_path / "classes.tsv"
-        self.sound_classes = read_sound_classes(
-            self.sounds, classes_file.as_posix()
-        )
+        self.sound_classes = read_sound_classes(self.sounds, classes_file.as_posix())
 
     def _cache_query(self, collection, key):
         if key in self._cache[collection]:
@@ -221,9 +219,7 @@ class Model:
             # changing (for example, remove all vowel heights and only later
             # add the new one)
             descriptors = []
-            rem_features = [
-                self.features[desc] for desc in modifier["positive"]
-            ]
+            rem_features = [self.features[desc] for desc in modifier["positive"]]
             for desc in self.sounds[grapheme]:
                 if desc not in modifier["negative"]:
                     if self.features[desc] not in rem_features:
@@ -328,8 +324,7 @@ class Model:
                 # Check the sub-match for each alternative; if the
                 # alternative is a grapheme, carry any modifier
                 alt_matches = [
-                    all(self.check_match([token], [alt]))
-                    for alt in ref["choice"]
+                    all(self.check_match([token], [alt])) for alt in ref["choice"]
                 ]
 
                 # check depending on negation
@@ -373,9 +368,7 @@ class Model:
                 # so we can check if the `token` is actually there.
                 modified = [
                     self.apply_modifier(grapheme, ref["modifier"])
-                    for grapheme in self.sound_classes[ref["sound_class"]][
-                        "graphemes"
-                    ]
+                    for grapheme in self.sound_classes[ref["sound_class"]]["graphemes"]
                 ]
                 modified = list({grapheme for grapheme in modified if grapheme})
 
@@ -415,7 +408,7 @@ class Model:
                 post_seq.append(entry["grapheme"])
             elif "sound_class" in entry:
                 # TODO: deal with negation
-                post_seq.append(entry['sound_class'])
+                post_seq.append(entry["sound_class"])
             elif "set" in entry:
                 # NOTE: the -1 in the `match` index is to offset the one
                 # applied in `.check_match()`, that returns zero for false
@@ -429,13 +422,10 @@ class Model:
                     # get the alternative index in `ante`
                     # NOTE: `post_alts` has [1:-1] for the curly brackets
                     ante_alts = [
-                        alt.ipa
-                        for alt in rule.ante[entry["backref"]].alternative
+                        alt.ipa for alt in rule.ante[entry["backref"]].alternative
                     ]
                     post_alts = (
-                        rule.post[entry["backref"]]
-                        .correspondence[1:-1]
-                        .split(",")
+                        rule.post[entry["backref"]].correspondence[1:-1].split(",")
                     )
 
                     idx = ante_alts.index(sequence[entry["backref"]])
@@ -443,9 +433,7 @@ class Model:
                     post_seq.append(post_alts[idx])
                 else:
                     token = sequence[entry["backref"]]
-                    post_seq.append(
-                        self.apply_modifier(token, entry["modifier"])
-                    )
+                    post_seq.append(self.apply_modifier(token, entry["modifier"]))
 
         return post_seq
 
@@ -603,8 +591,7 @@ class Model:
         # Computes the product of possibilities and convert everything to
         # a sequence (see comments in ._backward_translate)
         ante_seqs = [
-            Sequence(" ".join(candidate))
-            for candidate in itertools.product(*ante_seqs)
+            Sequence(" ".join(candidate)) for candidate in itertools.product(*ante_seqs)
         ]
 
         # add to cache

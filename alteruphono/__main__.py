@@ -22,9 +22,7 @@ def parse_arguments():
     """
 
     # Define the parser
-    parser = argparse.ArgumentParser(
-        description="AlteruPhono command-line utility."
-    )
+    parser = argparse.ArgumentParser(description="AlteruPhono command-line utility.")
     parser.add_argument(
         "command",
         choices=["forward", "backward"],
@@ -35,9 +33,7 @@ def parse_arguments():
         type=str,
         help='Sequence of sounds to operate upon (e.g., `"# p a t #"`).',
     )
-    parser.add_argument(
-        "rule", type=str, help='Rule to apply (e.g., `"p > b / _ V"`)'
-    )
+    parser.add_argument("rule", type=str, help='Rule to apply (e.g., `"p > b / _ V"`)')
 
     # parse arguments and return
     args = parser.parse_args()
@@ -57,9 +53,7 @@ def main():
     if args.command == "forward":
         ret = alteruphono.forward(args.sequence, args.rule)
     elif args.command == "backward":
-        ret = [
-            str(seq) for seq in alteruphono.backward(args.sequence, args.rule)
-        ]
+        ret = [str(seq) for seq in alteruphono.backward(args.sequence, args.rule)]
 
     print(ret)
 
