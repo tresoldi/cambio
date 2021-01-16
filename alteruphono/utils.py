@@ -113,7 +113,16 @@ def features2graphemes(feature_str, sounds):
     """
 
     # Parse the feature string
-    features = parse_features(feature_str)
+    features = {"positive": [], "negative": []}
+    feature_str = feature_str.replace(",", " ")
+    feature_str = re.sub("\s+", " ", feature_str.strip())
+    for f in feature_str.split():
+        if f[0] == "-":
+            features["negative"].append(f[1:])
+        elif f[0] == "+":
+            features["positive"].append(f[1:])
+        else:
+            features["positive"].append(f)
 
     # Iterate over all sounds in the transcription system
     graphemes = []
@@ -123,12 +132,12 @@ def features2graphemes(feature_str, sounds):
 
         # Check if all positive features are there; we can skip
         # immediately if they don't match
-        pos_match = all(feat in sound_features for feat in features.positive)
+        pos_match = all(feat in sound_features for feat in features["positive"])
         if not pos_match:
             continue
 
         # Check if none of the negative features are there, skipping if not
-        neg_match = all(feat not in sound_features for feat in features.negative)
+        neg_match = all(feat not in sound_features for feat in features["negative"])
         if not neg_match:
             continue
 
