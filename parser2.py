@@ -25,6 +25,15 @@ class Token:
     def __repr__(self):
         return f"{self.type}:{str(self)}"
 
+    def __hash__(self):
+        raise ValueError("Not implemented")
+
+    def __eq__(self, other):
+        raise ValueError("Not implemented")
+
+    def __ne__(self, other):
+        raise ValueError("Not implemented")
+
 
 class Boundary(Token):
     def __init__(self):
@@ -32,6 +41,10 @@ class Boundary(Token):
 
     def __str__(self):
         return "#"
+
+    def __hash__(self):
+        # TODO: all boundaries are equal here, but we should differentiate ^ and $
+        return 1
 
 
 class Focus(Token):
@@ -65,6 +78,15 @@ class BackRef(Token):
     def __add__(self, value):
         return BackRef(self.index + value, self.modifier)
 
+    def __hash__(self):
+        return hash(tuple(self.index, self.modifier))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __ne__(self, other):
+        return hash(self) != hash(other)
+
 
 class Choice(Token):
     def __init__(self, choices):
@@ -73,6 +95,15 @@ class Choice(Token):
 
     def __str__(self):
         return "|".join([str(choice) for choice in self.choices])
+
+    def __hash__(self):
+        return hash(tuple(self.choices))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __nq__(self, other):
+        return hash(self) != hash(other)
 
 
 class Set(Token):
@@ -83,14 +114,33 @@ class Set(Token):
     def __str__(self):
         return "{" + "|".join([str(choice) for choice in self.choices]) + "}"
 
+    def __hash__(self):
+        return hash(tuple(self.choices))
 
-class Grapheme(Token):
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __ne__(self, other):
+        return hash(self) != hash(other)
+
+
+# named segment token to distinguish from the maniphono Segment
+class SegmentToken(Token):
     def __init__(self, grapheme):
-        self.grapheme = grapheme
-        self.type = "grapheme"
+        self.grapheme = maniphono.parse_segment(grapheme)
+        self.type = "segment"
 
     def __str__(self):
-        return self.grapheme
+        return str(self.grapheme)
+
+    def __hash__(self):
+        return hash(self.grapheme)
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __ne__(self, other):
+        return hash(self) == hash(other)
 
 
 def preprocess(rule):
@@ -108,7 +158,18 @@ def preprocess(rule):
 
 
 def parse_modifier(mod_str):
-    return mod_str.split(",")
+    modifiers = {"-": [], "+": []}
+
+    # TODO: use splitter from maniphono
+    for mod in mod_str.split(","):
+        if mod[0] == "-":
+            modifiers["-"].append(mod[1:])
+        elif mod[0] == "+":
+            modifiers["+"].append(mod[1:])
+        else:
+            modifiers["+"].append(mod)
+
+    return modifiers
 
 
 # an atom can be
@@ -118,8 +179,13 @@ def parse_atom(atom_str):
     # Internal function for parsing an atom
     atom_str = atom_str.strip()
 
-    if "|" in atom_str:
-        # If we have a choice, we parse it just like a sequece
+    if atom_str[0] == "{" and atom_str[-1] == "}":
+        # a set
+        # TODO: what if it is a set with modifiers?
+        choices = [parse_atom(choice) for choice in atom_str[1:-1].split("|")]
+        return Set(choices)
+    elif "|" in atom_str:
+        # If we have a choice, we parse it just like a sequence
         choices = [parse_atom(choice) for choice in atom_str.split("|")]
         return Choice(choices)
     elif atom_str == "#":
@@ -142,14 +208,9 @@ def parse_atom(atom_str):
         # which indexes from zero)
         index = int(match.group("index")) - 1
         return BackRef(index)
-    elif atom_str[0] == "{" and atom_str[-1] == "}":
-        # a set
-        # TODO: what if it is a set with modifiers?
-        choices = [parse_atom(choice) for choice in atom_str[1:-1].split(",")]
-        return Set(choices)
     else:
         # assume it is a grapheme
-        return Grapheme(atom_str)
+        return SegmentToken(atom_str)
 
     return ""
 
