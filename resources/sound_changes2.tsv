@@ -1,0 +1,805 @@
+ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
+0	V s > @1 z @1 / # p|b r _ t|d	1	p r e s t o	p r e z e t o
+1	C N > @1 / _ #	1	a g r o g ŋ	a g r o g
+2	C > :null: / _ #	1	a d j aː d	a d j aː
+3	C > :null: / r _	1	i k ʔ e r j a	i k ʔ e r a
+4	s C > :null: / _ #	1	g e g s i s k	g e g s i
+5	s|k C > @1 / _ #	1	a k a n k m i k s	a k a n k m i k
+6	K > ʔ / _ s	2	a k a n k m i k s	a k a n k m i ʔ s
+7	L > d / # _	1	l a b j o p l ɔ l	d a b j o p l ɔ l
+8	N S > h @2	3	a b ts a r i m b s u	a b ts a r i h b s u
+9	N > m / _ #	2	a k θ u n	a k θ u m
+10	N > n / _ #	5	a p m b i r o m	a p m b i r o n
+11	N V > n @2	1	a k a n k m i k s	a k a n k n i k s
+12	N d|l > n @2	1	i m l i m k o	i n l i m k o
+13	N v|k|s > n @2	1	i m l i m k o	i m l i n k o
+14	S N S > @1 ə @3	5	a p m b i r o m	a p ə b i r o m
+15	N p|t|# > @2	1	a k θ u n	a k θ u
+16	N > ŋ / _ # 	3	a k θ u n	a k θ u ŋ
+17	N V > ŋ k @2	1	a k a n k m i k s	a k a n k ŋ k i k s
+18	N SVL > ʔ @2	1	a k a n k m i k s	a k a ʔ k m i k s
+19	P > p / l _	2	i l b i r m a	i l p i r m a
+20	P > p / r _	1	i l b i r m a	i l b i r p a
+21	P > p / s _	1	s b u r h i	s p u r h i
+22	R h > h / _ V	1	h a z h ã	h a h ã
+23	S > @1[+fricative] / _ S	1	a s p t i s	a s ɸ t i s
+24	S > @1[+voiceless] / _ #	1	a d j aː d	a d j aː t
+25	S f > fː	1	p f o p t a	fː o p t a
+26	F > :null: / # S _	4	p f o p t a	p o p t a
+27	N SV > @1	1	a b ts a r i m b s u	a b ts a r i m s u
+28	SV N > @2	1	d n i c t r i a	n i c t r i a
+29	V > @1[+rounded] / w _	3	d w a j d ŋ e d	d w ɶ j d ŋ e d
+30	a > aː / V C _	1	a k a n k m i k s	a k aː n k m i k s
+31	a > aː / _ C #	1	a r i a m	a r i aː m
+32	a > aː / _ i	1	a i a tʃ i h e	aː i a tʃ i h e
+33	a > aː / _ i|u	1	a i a tʃ i h e	aː i a tʃ i h e
+34	a > aː / _ w|j	1	b a w o g aː j	b aː w o g aː j
+35	a > e / _ #	1	a k e l e j a p a	a k e l e j a p e
+36	a > e / _ i	1	a i a tʃ i h e	e i a tʃ i h e
+37	a > e / _ j #	1	p i b a j	p i b e j
+38	a > e / _ m	1	a m u f a u	e m u f a u
+39	a > e / _ p 	1	a k e l e j a p a	a k e l e j e p a
+40	a > i / _ C i	2	a b ts a r i m b s u	a b ts i r i m b s u
+41	a > i / i C _	1	i ʎ a ʁ i ʃ o ʃ	i ʎ i ʁ i ʃ o ʃ
+42	i a > iː	1	a i a tʃ i h e	a iː tʃ i h e
+43	a > o / P _	2	a k e l e j a p a	a k e l e j a p o
+44	a > o / _ m #	1	a r i a m	a r i o m
+45	a > o / _ r	1	a b ts a r i m b s u	a b ts o r i m b s u
+46	a > o / _ w	2	b a w o g aː j	b o w o g aː j
+47	a > o / w|m|ŋ _	1	d w a j d ŋ e d	d w o j d ŋ e d
+48	a > u / _ C u	1	a m u f a u	u m u f a u
+49	a > :null: / # _ m	2	a m u f a u	m u f a u
+50	a > :null: / _ V	1	a i a tʃ i h e	i a tʃ i h e
+51	a > :null: / _ i	1	a i a tʃ i h e	i a tʃ i h e
+52	a > :null: / _ u	2	a m u f a u	a m u f u
+53	a C e > æ @2	3	a k e l e j a p a	æ k l e j a p a
+54	a > ɔ / _ ŋ|k	1	a k a n k m i k s	ɔ k a n k m i k s
+55	a > ə / _ C a	2	a k a n k m i k s	ə k a n k m i k s
+56	a > ə / _ C e	1	a k e l e j a p a	ə k e l e j a p a
+57	a > ɛ / t|n _ #	1	c u a c t a	c u a c t ɛ
+58	a > ɜ / _ w o	1	b a w o g aː j	b ɜ w o g aː j
+59	aː j > a i	1	b a w o g aː j	b a w o g a i
+60	b > m / # _	1	b a w o g aː j	m a w o g aː j
+61	b > m / # _ V n	1	b o n b j a r i b l i	m o n b j a r i b l i
+62	b > m / # _ a	2	b a w o g aː j	m a w o g aː j
+63	b > m / V _ V	1	p i b a j	p i m a j
+64	b > m / _ V N	1	b e ŋ j e k e y	m e ŋ j e k e y
+65	b > m / _ j	1	b o n b j a r i b l i	b o n m j a r i b l i
+66	b > p / # _	2	b a w o g aː j	p a w o g aː j
+67	b > pʰ / _ l|r	1	b o n b j a r i b l i	b o n b j a r i pʰ l i
+68	b > u / V _ l|r	1	b o n b j a r i b l i	b o n b j a r i u l i
+69	b > u / _ C	1	a b ts a r i m b s u	a u ts a r i m u s u
+70	b > v / V _	2	a b ts a r i m b s u	a v ts a r i m b s u
+71	b > v / V _ V	1	p i b a j	p i v a j
+72	b > v / V _ V|r	1	p i b a j	p i v a j
+73	b > w / V _ V	3	p i b a j	p i w a j
+74	w > b / a _ u	1	b i a w u b	b i a b u b
+75	b > :null: / # _ B	1	b o n b j a r i b l i	o n b j a r i b l i
+76	b > :null: / # _ u|i	1	b i a w u b	i a w u b
+77	b > :null: / V _ V	1	p i b a j	p i a j
+78	b > :null: / _ #	1	b i a w u b	b i a w u
+79	b > :null: / _ s t|k	1	u b s t i m b l a	u s t i m b l a
+80	b > :null: / _ ts	1	a b ts a r i m b s u	a ts a r i m b s u
+81	b > :null: / m _ l	1	u b s t i m b l a	u b s t i m l a
+82	b > :null: / m _ s	1	a b ts a r i m b s u	a b ts a r i m s u
+83	b > :null: / u _ #	1	b i a w u b	b i a w u
+84	b > β / V _ V	3	p i b a j	p i β a j
+85	c > p / _ s|t	1	c u a c t a	c u a p t a
+86	c > s / # _ a|u	1	c u a c t a	s u a c t a
+87	c > s / _ a|o|u|e	1	c u a c t a	s u a c t a
+88	c > tʃ / i _	1	d n i c t r i a	d n i tʃ t r i a
+89	d > g / _ n	1	d n i c t r i a	g n i c t r i a
+90	d > k / _ w	1	d w a j d ŋ e d	k w a j d ŋ e d
+91	ŋ > k / d _	1	d w a j d ŋ e d	d w a j d k e d
+92	d > l / # _	2	d i a z e i l e n	l i a z e i l e n
+93	d > l / _ #	1	a d j aː d	a d j aː l
+94	d > n / _ VN	2	d j u d ẽ l	d j u n ẽ l
+95	d > ɾ / V _ V	3	d j u d ẽ l	d j u ɾ ẽ l
+96	d > ɾ / V _ V|#	1	a d j aː d	a d j aː ɾ
+97	d > ɾ / _ #	1	a d j aː d	a d j aː ɾ
+98	d > ɾ / _ ŋ	1	d w a j d ŋ e d	d w a j ɾ ŋ e d
+99	d > r s / V _ V	1	d j u d ẽ l	d j u r s ẽ l
+100	d > s / # _ i|j	1	d i a z e i l e n	s i a z e i l e n
+101	d > t / # _	5	d i a z e i l e n	t i a z e i l e n
+102	d > t / _ #	5	a d j aː d	a d j aː t
+103	d > t / _ l|r|ɾ	1	d r e d s i n d	t r e d s i n d
+104	d > t / n _ #	1	d r e d s i n d	d r e d s i n t
+105	d > t / #|N _	1	d i a z e i l e n	t i a z e i l e n
+106	d > :null: / C _	1	d r e d s i n d	d r e d s i n
+107	d > :null: / V _ V	2	d j u d ẽ l	d j u ẽ l
+108	d > :null: / V _ s	1	d r e d s i n d	d r e s i n d
+109	d > :null: / V _ i|j	1	a d j aː d	a j aː d
+110	d > :null: / VL _ #	1	a d j aː d	a d j aː
+111	d > :null: / _ #	3	a d j aː d	a d j aː
+112	d > :null: / _ N	1	d n i c t r i a	n i c t r i a
+113	d > :null: / _ j	1	a d j aː d	a j aː d
+114	d > :null: / _ n	1	d n i c t r i a	n i c t r i a
+115	d > :null: / _ r|ɾ	1	d r e d s i n d	r e d s i n d
+116	dz > z	1	e dz j a dʒ i	e z j a dʒ i
+117	d > :null: / _ l|r	2	d r e d s i n d	r e d s i n d
+118	dʒ > dʱ	1	e d z j a dʒ i	e d z j a dʱ i
+119	d > :null: / l _ #	1	dz i ẽ l d	dz i ẽ l
+120	d > :null: / n _	1	d r e d s i n d	d r e d s i n
+121	d > :null: / n _ #	1	d r e d s i n d	d r e d s i n
+122	d > ð / V _ V	1	d j u d ẽ l	d j u ð ẽ l
+123	d > ɾ / V _ V	1	d j u d ẽ l	d j u ɾ ẽ l
+124	d > ʔ / _ #	1	a d j aː d	a d j aː ʔ
+125	dz > d / _ i	1	dz i ẽ l d	d i ẽ l d
+126	d > tʃ / _ i|u	1	d i a z e i l e n	tʃ i a z e i l e n
+127	d i > dz / _ V	1	d i a z e i l e n	dz a z e i l e n
+128	d j > z / V _ V	1	a d j aː d	a z aː d
+129	e > a / _ #	1	a i a tʃ i h e	a i a tʃ i h a
+130	e > a / _ i	1	d i a z e i l e n	d i a z a i l e n
+131	e > a / _ n	1	d i a z e i l e n	d i a z e i l a n
+132	e > a / _ s	1	e s p e ʔ	a s p e ʔ
+133	e > a / _ r|l	1	a k e l e j a p a	a k a l e j a p a
+134	e ʔ > a	1	e s p e ʔ	e s p a
+135	a > e / V|C _ r	1	i k ʔ a r j a	i k ʔ e r j a
+136	ɣ|j > i / e _	1	a k e l e j a p a	a k e l e i a p a
+137	e > i / # N _ C	1	m e k e r	m i k e r
+138	e > i / # _	2	e a s e	i a s e
+139	e > i / # b _	1	b e ŋ j e k e y	b i ŋ j e k e y
+140	e > i / C _ V	1	b e ŋ j e k e y	b e ŋ j e k i y
+141	e > i / _ #	4	a i a tʃ i h e	a i a tʃ i h i
+142	e > i / _ C u	3	a k e l u j a p a	a k i l u j a p a
+143	e > i / _ g	1	g e g s i s k	g i g s i s k
+144	e > i / _ k|m	1	b e ŋ j e k e y	b e ŋ j i k e y
+145	e > i / _ m|ŋ	1	b e ŋ j e k e y	b i ŋ j e k e y
+146	e > i / _ n k	1	b e n k j e k e	b i n k j e k e
+147	e > i / _ s|#	1	a i a tʃ i h e	a i a tʃ i h i
+148	e > i / _ s|t #	1	p e r e ʔ e t	p e r e ʔ i t
+149	e > i / _ K	1	b e ŋ j e k e y	b i ŋ j i k e y
+150	e > i / j _	2	b e ŋ j e k e y	b e ŋ j i k e y
+151	e > i / k _ y	1	b e ŋ j e k e y	b e ŋ j e k i y
+152	e > i / l _	1	a k e l e j a p a	a k e l i j a p a
+153	e > i / p _ r	1	p e r e ʔ e t	p i r e ʔ e t
+154	e > i / r _ ʔ	1	p e r e ʔ e t	p e r i ʔ e t
+155	e > i / #|k _	1	a k e l e j a p a	a k i l e j a p a
+156	e > j / # _ V	1	e a s e	j a s e
+157	e > j / # _ a	1	e a s e	j a s e
+158	e > j / a|o|u _	1	o e w e ŋ	o j w e ŋ
+159	e > o / K _	1	a k e l e j a p a	a k o l e j a p a
+160	e > o / _ w	1	o e w e ŋ	o o w e ŋ
+161	e > o / _ w V	1	o e w e ŋ	o o w e ŋ
+162	e > o / w _	1	o e w e ŋ	o e w o ŋ
+163	e > o / w _ ŋ	1	o e w e ŋ	o e w o ŋ
+164	e > :null: / i|e _ #	1	e v e m i e	e v e m i
+165	e > :null: / l|n|r|s|k _ #	1	e a s e	e a s
+166	e > æ / _ P	3	e v e m i e	e v æ m i e
+167	e > ɛ / _ v	1	e v e m i e	ɛ v e m i e
+168	e > ɨ / _ #	1	a i a tʃ i h e	a i a tʃ i h ɨ
+169	e > ɨ / k|j _	1	a k e l e j a p a	a k ɨ l e j a p a
+170	e N > y / _ #	1	d i a z e i l e n	d i a z e i l y
+171	e N > ĩ	1	b e ŋ j e k e y	b ĩ j e k e y
+172	i|ɪ > :null: / # e _	1	e ɪ l eː k	e l eː k
+173	eː > e i / j _	1	j eː a f n o	j e i a f n o
+174	eː > iː / _ C	1	e ɪ l eː k	e ɪ l iː k
+175	eː > i / _ V	2	j eː a f n o	j i a f n o
+176	f > m / _ n	2	j eː a f n o	j eː a m n o
+177	f > p / # _	7	f t a j f	p t a j f
+178	f > p / _ t	1	f t a j f	p t a j f
+179	f > v / # _	1	f t a j f	v t a j f
+180	f > v / V _ V	3	a m u f a u	a m u v a u
+181	f > v / _ p|t|k	1	f t a j f	v t a j f
+182	f > w / _ V	1	a m u f a u	a m u w a u
+183	f > ʋ / # _	1	f t a j f	ʋ t a j f
+184	g > h / V _ V	1	b a w o g aː j	b a w o h aː j
+185	g > :null: / _ h	1	m a g h i	m a h i
+186	g > j / E _	1	a g r o ŋ g	a j r o ŋ g
+187	g > j / V _ r	1	a g r o ŋ g	a j r o ŋ g
+188	g > k / # _	1	g e g s i s k	k e g s i s k
+189	g > k / ŋ _ #	1	a g r o ŋ g	a g r o ŋ k
+190	g > m / _ n	1	m a g n o g	m a m n o g
+191	g > w / V _	1	a g r o ŋ g	a w r o ŋ g
+192	g > x / _ #	1	a g r o ŋ g	a g r o ŋ x
+193	g > ɣ / V _ #	1	m a g n o g	m a g n o ɣ
+194	g > ʒ / # _ i|e	1	g e g s i s k	ʒ e g s i s k
+195	h > g / _ B	1	h w a h u	h w a g u
+196	h > j / _ E	2	a i a tʃ i h e	a i a tʃ i j e
+197	h > k / # _ v|w	1	h w a h u	k w a h u
+198	h > k / E _ E	1	a i a tʃ i h e	a i a tʃ i k e
+199	h > q / _ #	2	i h e m a h	i h e m a q
+200	h > q / _ E	1	a i a tʃ i h e	a i a tʃ i q e
+201	h > w / # _	5	h a z h ã	w a z h ã
+202	h > w / _ o|u	1	h w a h u	h w a w u
+203	h > x / _ i	1	m a g h i	m a g x i
+204	h > x / _ p|k	1	m i h p i	m i x p i
+205	h > :null: / # _	4	h a z h ã	a z h ã
+206	h > :null: / V _	3	a h s r i r	a s r i r
+207	h > :null: / V _ C	3	a h s r i r	a s r i r
+208	h > :null: / V _ V	4	a i a tʃ i h e	a i a tʃ i e
+209	h > :null: / V _ ts V	1	r a h ts i v m l e	r a ts i v m l e
+210	h > :null: / VL _ #	2	k a m n ɔː h	k a m n ɔː
+211	h > :null: / _ #	7	i h e m a h	i h e m a
+212	h > :null: / _ V|w|j	1	a i a tʃ i h e	a i a tʃ i e
+213	h > :null: / _ k|t|ts|s	1	a h s r i r	a s r i r
+214	h > :null: / _ l|n|r	1	v i h r w a	v i r w a
+215	h > :null: / _ n|s|ʔ	1	a h s r i r	a s r i r
+216	h > :null: / _ s|x	1	a h s r i r	a s r i r
+217	h > :null: / _ s k|t	1	v i h s k w a	v i s k w a
+218	h > ħ / _ V s|z	1	h a z h ã	ħ a z h ã
+219	h > ʔ / # _	1	h a z h ã	ʔ a z h ã
+220	h > ʔ / V _ V	1	a i a tʃ i h e	a i a tʃ i ʔ e
+221	h > ʔ / _ #	1	i h e m a h	i h e m a ʔ
+222	h > ʔ / _ s|ʃ	1	a h s r i r	a ʔ s r i r
+223	h > ʔ / _ ã	1	h a z h ã	h a z ʔ ã
+224	h > ʔ / a _ i|u	1	h w a h u	h w a ʔ u
+225	h e > ə / _ #	1	a i a tʃ i h e	a i a tʃ i ə
+226	i > a / _ C a	1	i ʎ a ʁ i ʃ o ʃ	a ʎ a ʁ i ʃ o ʃ
+227	i > a / _ t	1	s k i t r a t n i	s k a t r a t n i
+228	o > i / _ C e	1	a ts a r o m e	a ts a r i m e
+229	e > i / _ C	1	a k e l e t a p a	a k i l i t a p a
+230	i > e / _ k #	1	w i t i k	w i t e k
+231	i > e / _ m	2	a b ts a r i m b s u	a b ts a r e m b s u
+232	i > e / _ s	1	a s p t i s	a s p t e s
+233	i > e / tʃ _	1	a i a tʃ i h e	a i a tʃ e h e
+234	i > eː / _ #	1	a t k a t ʔ i	a t k a t ʔ eː
+235	i > i ə / _ m 	1	a b ts a r i m b s u	a b ts a r i ə m b s u
+236	i > i ə / _ ŋ #	1	l a m b r i ŋ	l a m b r i ə ŋ
+237	i > i ɛ / _ s	1	a s p t i s	a s p t i ɛ s
+238	i > j / V _ #	1	i k u l o i	i k u l o j
+239	i > j / V _ V	1	a i a tʃ i h e	a j a tʃ i h e
+240	i > j / _ V	1	a i a tʃ i h e	a j a tʃ i h e
+241	i > o / _ m	1	a b ts a r i m b s u	a b ts a r o m b s u
+242	i > o / u|w _	1	i b n a i w i	i b n a i w o
+243	i > u / _ C u	1	i j u x i	u j u x i
+244	i > u / _ j u	1	i j u x i	u j u x i
+245	i > u / u C _	1	i j u x i	i j u x u
+246	i > :null: / _ #	2	a t k a t ʔ i	a t k a t ʔ
+247	i > :null: / a _	3	a i a tʃ i h e	a a tʃ i h e
+248	i > :null: / ts _ #	1	j u t j a ts i	j u t j a ts
+249	i > ĩ / ʔ _ #	1	a t k a t ʔ i	a t k a t ʔ ĩ
+250	i > ɐ / _ m	1	a b ts a r i m b s u	a b ts a r ɐ m b s u
+251	i > ə / _ #	1	a t k a t ʔ i	a t k a t ʔ ə
+252	i > ə / o C _	1	i u l o x i ʔ i	i u l o x ə ʔ i
+253	i > ɪ / _ C C	1	a b ts a r i m b s u	a b ts a r ɪ m b s u
+254	j > :null: / i _ #	1	j e j o v i j	j e j o v i
+255	i > j / # _ u	1	i u l o x i ʔ i	j u l o x i ʔ i
+256	i w > o / _ #	2	l a i l i w	l a i l o
+257	i w > u j / _ #	1	l a i l i w	l a i l u j
+258	iː > i / k|s _ k|s #	1	j a j ã s iː k	j a j ã s i k
+259	j > d / # _	3	j a j ã s iː k	d a j ã s iː k
+260	j > d / _ #	1	b a w o g aː j	b a w o g aː d
+261	j > g / # _	1	j a j ã s iː k	g a j ã s iː k
+262	j > g / _ #	2	b a w o g aː j	b a w o g aː g
+263	j > i / C _	3	a d j aː d	a d i aː d
+264	j > :null: / C _ V #	1	i k ʔ e r j a	i k ʔ e r a
+265	j > r / V _ V	1	a k e l e j a p a	a k e l e r a p a
+266	j > s / # _	1	j a j ã s iː k	s a j ã s iː k
+267	t j > ts 	1	j u t j a ts i	j u ts a ts i
+268	j > t / _ #	1	b a w o g aː j	b a w o g aː t
+269	j > w / _ o	6	j e j o v i j	j e w o v i j
+270	j > :null: / # _	1	j a j ã s iː k	a j ã s iː k
+271	j > :null: / # _ V	1	j a j ã s iː k	a j ã s iː k
+272	j > :null: / # _ e	1	j e j o v i j	e j o v i j
+273	j > :null: / # _ u	1	j u t j a ts i	u t j a ts i
+274	j > :null: / E _	1	a k e l e j a p a	a k e l e a p a
+275	j > :null: / V _ V	1	a k e l e j a p a	a k e l e a p a
+276	j > :null: / V _ u	1	i j u x i	i u x i
+277	j > :null: / V _ V|#	1	a k e l e j a p a	a k e l e a p a
+278	j > ð / V _	1	a k e l e j a p a	a k e l e ð a p a
+279	j > ð / V _ V	1	a k e l e j a p a	a k e l e ð a p a
+280	j > ɣ / _ E	4	a d j aː d	a d ɣ aː d
+281	j > ɲ / _ VN	3	j a j ã s iː k	j a ɲ ã s iː k
+282	j > ʒ / #|ʔ|V _	1	a k e l e j a p a	a k e l e ʒ a p a
+283	j > ʝ / # _ V	1	j a j ã s iː k	ʝ a j ã s iː k
+284	j > ʝ / V _ V	1	a k e l e j a p a	a k e l e ʝ a p a
+285	j > dz / # _	1	j a j ã s iː k	dz a j ã s iː k
+286	j > dʒ / # _	3	j a j ã s iː k	dʒ a j ã s iː k
+287	j > dʒ / V _ V	3	a k e l e j a p a	a k e l e dʒ a p a
+288	j > dʒ / _ E	1	a d j aː d	a d dʒ aː d
+289	j > tʃ / V _ V	4	a k e l e j a p a	a k e l e tʃ a p a
+290	j > tʃ / _ V	1	a d j aː d	a d tʃ aː d
+291	j a > aː / C _	4	b o n b j a r i b l i	b o n b aː r i b l i
+292	j a > e / r _ #	1	i k ʔ e r j a	i k ʔ e r e
+293	j a > iː / C _ C	1	b o n b j a r i b l i	b o n b iː r i b l i
+294	a > e / # j _	1	j a j ã s iː k	j e j ã s iː k
+295	j e > i / C _	1	b e ŋ j e k e y	b e ŋ i k e y
+296	j e > o / # _	1	j e j o v i j	o j o v i j
+297	j e > o / V _	1	k l o j e k j a	k l o o k j a
+298	k > c / V _ V	1	a k a n k m i k s	a c a n k m i k s
+299	k > c / _ #	1	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ c
+300	k > g / _ #	2	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ g
+301	k > g / _ V r	1	a z a x k y r	a z a x g y r
+302	k > g / _ L|j	4	k l o j e k j a	g l o j e g j a
+303	k > g / _ w|j	2	k l o j e k j a	k l o j e g j a
+304	k > g / _ ʔ	1	i k ʔ e r j a	i g ʔ e r j a
+305	k > g / a _ a	1	a k a n k m i k s	a g a n k m i k s
+306	k > g / n _	3	a k a n k m i k s	a k a n g m i k s
+307	k > h / _ #	1	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ h
+308	k > h / _ m	1	a k a n k m i k s	a k a n h m i k s
+309	k > h / _ t|ts|s|ʃ	1	a k a n k m i k s	a k a n k m i h s
+310	k > j / _ s #	3	a k a n k m i k s	a k a n k m i j s
+311	k > j / e|a|o _	1	a k a n k m i k s	a j a n k m i k s
+312	k > kʷ / # _ i	1	k i k t a k s u	kʷ i k t a k s u
+313	k > kʷ / _ a	1	a k a n k m i k s	a kʷ a n k m i k s
+314	k > p / _ s|ʂ	1	a k a n k m i k s	a k a n k m i p s
+315	k > s̪ / _ i|ɨ|u	1	i k u l o i	i s̪ u l o i
+316	k > s̪ / i|ɨ|u _	1	a k a n k m i k s	a k a n k m i s̪ s
+317	k > t / _ l	1	k l o j e k j a	t l o j e k j a
+318	k > w / V _	1	a k a n k m i k s	a w a n k m i w s
+319	k > x / V _ t	1	k i k t a k s u	k i x t a k s u
+320	k > x / _ p|t	1	k i k t a k s u	k i x t a k s u
+321	k > x / a _	1	a k a n k m i k s	a x a n k m i k s
+322	k > :null: / V _ V	4	a k a n k m i k s	a a n k m i k s
+323	k > :null: / _ #	4	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ
+324	N > :null: / k _ #	1	a k a n k m	a k a n k
+325	k > ç / _ #	1	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ ç
+326	k > ʂ / _ i	1	k i k t a k s u	ʂ i k t a k s u
+327	k > ʂ / i _	1	a k a n k m i k s	a k a n k m i ʂ s
+328	k > ʔ / _ #	1	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ ʔ
+329	k > ts / _ E	1	a k a n k m i k s	a ts a n k m i k s
+330	k > ts / _ i	2	k i k t a k s u	ts i k t a k s u
+331	k > tʃ / _ E	3	a k a n k m i k s	a tʃ a n k m i k s
+332	k > tʃ / _ i	2	k i k t a k s u	tʃ i k t a k s u
+333	k s > ʃ / V _ V	1	k i k t a k s u	k i k t a ʃ u
+334	k s > ts / _ V	1	k i k t a k s u	k i k t a ts u
+335	k w > q / _ a	1	k w a h o w t	q a h o w t
+336	kʰ > h / _ a	1	kʰ a kʲ ã l o	h a kʲ ã l o
+337	kʰ > x / # _	1	kʰ a kʲ ã l o	x a kʲ ã l o
+338	kʲ > k / _ a|ã	1	kʰ a kʲ ã l o	kʰ a k ã l o
+339	kʷ > k / # _	4	kʷ l i n l a l i	k l i n l a l i
+340	kʷ > k / C _ V	1	l i l k aː r kʷ a	l i l k aː r k a
+341	l > d / # _ V C	2	l a b j o p l ɔ l	d a b j o p l ɔ l
+342	l > d / _ C|#	1	d j u d ẽ l	d j u d ẽ d
+343	l > d / n _	1	kʷ l i n l a l i	kʷ l i n d a l i
+344	l > h / _ k	4	l i l k aː r kʷ a	l i h k aː r kʷ a
+345	l > j / # C _	1	k l o j e k j a	k j o j e k j a
+346	l > j / # _ i C	1	l i l k aː r kʷ a	j i l k aː r kʷ a
+347	l > j / a _ i	1	kʷ l i n l a l i	kʷ l i n l a j i
+348	l > j / p _	10	l a b j o p l ɔ l	l a b j o p j ɔ l
+349	l > j / k|g _	1	k l o j e k j a	k j o j e k j a
+350	l > n / # _	2	l a b j o p l ɔ l	n a b j o p l ɔ l
+351	l > n / # _ V C	1	l a b j o p l ɔ l	n a b j o p l ɔ l
+352	l > n / # _ V N	2	l a m b r i ŋ	n a m b r i ŋ
+353	l > n / # _ V b	2	l a b j o p l ɔ l	n a b j o p l ɔ l
+354	l > n / V _ #	1	d j u d ẽ l	d j u d ẽ n
+355	l > n / _ #	1	d j u d ẽ l	d j u d ẽ n
+356	l > ɾ / C _	1	b o n b j a r i b l i	b o n b j a r i b ɾ i
+357	l > ɾ / V _ V	1	a k e l e j a p a	a k e ɾ e j a p a
+358	l > r / _ #	1	d j u d ẽ l	d j u d ẽ r
+359	l > r / b _	1	b o n b j a r i b l i	b o n b j a r i b r i
+360	l > s / _ k	1	l i l k aː r kʷ a	l i s k aː r kʷ a
+361	l > w / ɔ|ɑ _	1	l a b j o p l ɔ l	l a b j o p l ɔ w
+362	l > w / V _ C V	1	i l b i r m a	i w b i r m a
+363	l > w / V _ s	1	m i ŋ a l s	m i ŋ a w s
+364	l > :null: / _ m|s|k	1	l i l k aː r kʷ a	l i k aː r kʷ a
+365	l > lˠ / V _ V	6	a k e l e j a p a	a k e lˠ e j a p a
+366	l > ɬ / _ t|d	1	dz i ẽ l d	dz i ẽ ɬ d
+367	l > ɭ / V _ #	1	d j u d ẽ l	d j u d ẽ ɭ
+368	l > ɾ / V _ V	4	a k e l e j a p a	a k e ɾ e j a p a
+369	l > ʎ / # _	4	l a b j o p l ɔ l	ʎ a b j o p l ɔ l
+370	l > ʎ / _ i|j	5	b o n b j a r i b l i	b o n b j a r i b ʎ i
+371	l > tʃ / _ o|E	1	a k e l e j a p a	a k e tʃ e j a p a
+372	m > f / _ n|ŋ	1	k a m n ɔː h	k a f n ɔː h
+373	m > h / _ p	1	m ã v i m p u	m ã v i h p u
+374	m > n / V _	1	a b ts a r i m b s u	a b ts a r i n b s u
+375	m > n / V _ #	1	a p m b i r o m	a p m b i r o n
+376	m > n / _ #	2	a p m b i r o m	a p m b i r o n
+377	m > n / _ f	2	n aː h i m f	n aː h i n f
+378	m > n / _ i	1	a k a n k m i k s	a k a n k n i k s
+379	m > w / # _ V	3	m a g h i	w a g h i
+380	m > w / B _ #	1	a p m b i r o m	a p m b i r o w
+381	m > w / V _ #	1	a p m b i r o m	a p m b i r o w
+382	m > w / _ B	1	a m u f a u	a w u f a u
+383	m > w / _ ã	1	m ã v i m p u	w ã v i m p u
+384	m p > pː / V _ V	1	m ã v i m p u	m ã v i pː u
+385	n > l / # _	1	n aː h i m f	l aː h i m f
+386	n > m / # _	2	n aː h i m f	m aː h i m f
+387	n > m / u _ V	1	i n ɾ u n o	i n ɾ u m o
+388	n ɾ > r	1	i n ɾ u n o	i r u n o
+389	n > r / g|p _	1	m a g n o g	m a g r o g
+390	n > t / # _	1	n aː h i m f	t aː h i m f
+391	n > :null: / _ r|ɾ	1	i n ɾ u n o	i ɾ u n o
+392	n > :null: / _ s	10	a n t i n s	a n t i s
+393	n s > z	10	a n t i n s	a n t i z
+394	n > :null: / _ s #	1	a n t i n s	a n t i s
+395	n > :null: / _ t	1	a n t i n s	a t i n s
+396	n > :null: / _ t i	1	a n t i n s	a t i n s
+397	n > :null: / _ f|v|s	1	a n t i n s	a n t i s
+398	n > :null: / _ s|ts	1	a n t i n s	a n t i s
+399	n > ð / _ ã|ẽ|õ	1	ð ẽ n ã n	ð ẽ ð ã n
+400	ð > n / _ ã|ẽ|õ	7	ð ẽ n ã n	n ẽ n ã n
+401	n > ŋ / _ #	3	a k θ u n	a k θ u ŋ
+402	n > ŋ / _ j|w	1	n w a n ũ i n a	ŋ w a n ũ i n a
+403	n > ŋ / _ k|g	3	a k a n k m i k s	a k a ŋ k m i k s
+404	n > ŋ / _ ũ	1	n w a n ũ i n a	n w a ŋ ũ i n a
+405	n > ɲ / _ E 	1	d n i c t r i a	d ɲ i c t r i a
+406	n > ɲ / i _ o|a	1	n w a n ũ i n a	n w a n ũ i ɲ a
+407	n > ɲ / i|ɪ _ V	1	k i n aː k t	k i ɲ aː k t
+408	n > ɲ / ɟ _	1	i n m a ɟ n ɔ	i n m a ɟ ɲ ɔ
+409	n > θ / _ m|ŋ	1	i n m a ɟ n ɔ	i θ m a ɟ n ɔ
+410	n > θ / _ ã|ẽ|õ	1	ð ẽ n ã n	ð ẽ θ ã n
+411	o > a / _ C a	2	o k a v o u	a k a v o u
+412	o > a / _ u	1	o k a v o u	o k a v a u
+413	o > e / _ #	1	i m l i m k o	i m l i m k e
+414	o > e / _ l	1	s o l o s	s e l o s
+415	o > e / _ s	2	s o l o s	s o l e s
+416	o > e / _ ŋ	1	a g r o ŋ g	a g r e ŋ g
+417	o > w / V _	1	o a l a o v r i q	o a l a w v r i q
+418	o > u / _ #	5	i m l i m k o	i m l i m k u
+419	o > u / _ N	2	a g r o ŋ g	a g r u ŋ g
+420	o > u / _ a	1	o a l a o v r i q	u a l a o v r i q
+421	o > :null: / _ C r	1	o a l a o v r i q	o a l a v r i q
+422	o > :null: / _ u	2	o k a v o u	o k a v u
+423	o > :null: / u _	1	u o b o ɾ o ɣ oː	u b o ɾ o ɣ oː
+424	o > ɔ / _ N	1	a g r o ŋ g	a g r ɔ ŋ g
+425	o i > ɔː	1	i k u l o i	i k u l ɔː
+426	o > ə / _ n	1	b o n b j a r i b l i	b ə n b j a r i b l i
+427	o > ʌ / P _ r|ɾ	1	u o b o ɾ o ɣ oː	u o b ʌ ɾ o ɣ oː
+428	o ɣ > ɔ w / _ V	4	u o b o ɾ o ɣ oː	u o b o ɾ ɔ w oː
+429	oː > u / _ #	2	u o b o ɾ o ɣ oː	u o b o ɾ o ɣ u
+430	p > b / V _ V	3	a k e l e j a p a	a k e l e j a b a
+431	p > b / _ l	1	l a b j o p l ɔ l	l a b j o b l ɔ l
+432	p > b / _ r|ɾ	1	p r i p w u p	b r i p w u p
+433	p > b / m _	4	m ã v i m p u	m ã v i m b u
+434	p > f / # _	2	p e r e ʔ e t	f e r e ʔ e t
+435	p > f / V _	2	a k e l e j a p a	a k e l e j a f a
+436	p > f / _ t|k	1	a s p t i s	a s f t i s
+437	p > f / V|# _	1	a k e l e j a p a	a k e l e j a f a
+438	p > h / # _	1	p e r e ʔ e t	h e r e ʔ e t
+439	p > h / _ o|u|w	1	m ã v i m p u	m ã v i m h u
+440	p > k / _ C	1	a p m b i r o m	a k m b i r o m
+441	p > k / _ w	2	p r i p w u p	p r i k w u p
+442	p > k / u _ #	1	p r i p w u p	p r i p w u k
+443	p > v / V _ V	1	a k e l e j a p a	a k e l e j a v a
+444	p > v / V n _	1	o n p s iː ʃ r a	o n v s iː ʃ r a
+445	p > v / _ #	2	p r i p w u p	p r i p w u v
+446	p > w / V _ V	1	a k e l e j a p a	a k e l e j a w a
+447	p > w / _ B	1	m ã v i m p u	m ã v i m w u
+448	p > :null: / _ #	1	p r i p w u p	p r i p w u
+449	p > :null: / _ B	1	m ã v i m p u	m ã v i m u
+450	p > :null: / _ f	1	p f o p t a	f o p t a
+451	p > :null: / _ s	1	o n p s iː ʃ r a	o n s iː ʃ r a
+452	p > :null: / _ u	1	m ã v i m p u	m ã v i m u
+453	p > :null: / s _ t	1	a s p t i s	a s t i s
+454	q > h / _ #	1	o a l a o v r i q	o a l a o v r i h
+455	r > d / # _	2	r a h ts i v m l e	d a h ts i v m l e
+456	r > a d / k _ 	1	k r a s r e x r i	k a d a s r e x r i
+457	r > d / s _	1	a h s r i r	a h s d i r
+458	r > d / x _	1	k r a s r e x r i	k r a s r e x d i
+459	r > h / C _	5	a g r o ŋ g	a g h o ŋ g
+460	r > h / s _	1	a h s r i r	a h s h i r
+461	r > h / ʃ _	1	o n p s iː ʃ r a	o n p s iː ʃ h a
+462	r > j / _ #	1	a h s r i r	a h s r i j
+463	r|ɾ > l / K _	1	a g r o ŋ g	a g l o ŋ g
+464	r|ɾ > l / _ #	1	a h s r i r	a h s r i l
+465	r|ɾ > l / _ V l	1	o r k a ɾ iː l	o r k a l iː l
+466	r|ɾ > n / _ C	1	i k ʔ e r j a	i k ʔ e n j a
+467	r|ɾ N > rː	6	i l b i r m a	i l b i rː a
+468	r > s / _ k	2	o r k a ɾ iː l	o s k a ɾ iː l
+469	r > :null: / _ s	1	u r s o r n i	u s o r n i
+470	r > t / _ n	1	u r s o r n i	u r s o t n i
+471	r > t / _ i|u	1	a b ts a r i m b s u	a b ts a t i m b s u
+472	r > ð / x _	1	k r a s r e x r i	k r a s r e x ð i
+473	r > ɾ / _ #	1	a h s r i r	a h s r i ɾ
+474	r > ts / _ i	1	a b ts a r i m b s u	a b ts a ts i m b s u
+475	s > f / h _ r	1	a h s r i r	a h f r i r
+476	s > h / # _	9	s a s k a	h a s k a
+477	s > h / V _ V	11	e a s e	e a h e
+478	s > h / _ #	1	a k a n k m i k s	a k a n k m i k h
+479	s > h / _ i	1	d r e d s i n d	d r e d h i n d
+480	s > n / # _	1	s a s k a	n a s k a
+481	s > r / # _	1	s a s k a	r a s k a
+482	s > t / # _	1	s a s k a	t a s k a
+483	s > t / _ #	2	a k a n k m i k s	a k a n k m i k t
+484	s > x / _ l	1	s θ i s l a	s θ i x l a
+485	s > x / i _	1	a s p t i s	a s p t i x
+486	s > z / V _ V	20	e a s e	e a z e
+487	s > z / _ CV	1	a h s r i r	a h z r i r
+488	s > z / _ N|l|r	1	a h s r i r	a h z r i r
+489	s > ɟ / # _	2	s a s k a	ɟ a s k a
+490	s > ɾ / _ θ	1	s θ i s l a	ɾ θ i s l a
+491	s > ʂ / _ n	1	s i a s n u s i	s i a ʂ n u s i
+492	s > ʂ / _ t	1	u b s t i m b l a	u b ʂ t i m b l a
+493	s > ʂ / _ t|r	1	a h s r i r	a h ʂ r i r
+494	s > ʃ / V _ V	1	e a s e	e a ʃ e
+495	s > ʃ / _ i	1	d r e d s i n d	d r e d ʃ i n d
+496	s > ʃ / _ i V	1	s i a s n u s i	ʃ i a s n u s i
+497	s > ʃ / _ n	2	s i a s n u s i	s i a ʃ n u s i
+498	s > ʃ / _ i|e	1	d r e d s i n d	d r e d ʃ i n d
+499	s > ʃ / i _	1	a s p t i s	a s p t i ʃ
+500	s > ʃ / i _ #	1	a s p t i s	a s p t i ʃ
+501	s > dʒ / i|u _ V	4	s i a s n u s i	s i a s n u dʒ i
+502	s > tʃ / # _ a	1	s a s k a	tʃ a s k a
+503	s k > kː / _ a	2	s a s k a	s a kː a
+504	s k > ʃ / # _	1	s k i t r a t n i	ʃ i t r a t n i
+505	s k > ʃ / V _ i|e	1	t i t a s k i	t i t a ʃ i
+506	t > c / _ E	1	a n t i n s	a n c i n s
+507	t > d / # _	4	t a n ɛ	d a n ɛ
+508	t > d / V _	1	a t k a t ʔ i	a d k a d ʔ i
+509	t > d / V _ r V	1	s k i t r a t n i	s k i d r a t n i
+510	t > d / r _	1	t u r t l e	t u r d l e
+511	t > h / _ N	1	s k i t r a t n i	s k i t r a h n i
+512	t > j / # _ i	1	t i t a s k i	j i t a s k i
+513	t > k / _ j	2	j u t j a ts i	j u k j a ts i
+514	t > k / _ l	1	t u r t l e	t u r k l e
+515	t > k / _ r	1	d n i c t r i a	d n i c k r i a
+516	t > l / V _ V	2	t i t a s k i	t i l a s k i
+517	t > l / _ V	1	a n t i n s	a n l i n s
+518	t > l / _ u|i	1	a n t i n s	a n l i n s
+519	t > r / _ V	1	a n t i n s	a n r i n s
+520	t > r / t V _	1	t i t a s k i	t i r a s k i
+521	t > s / # _ i	1	t i t a s k i	s i t a s k i
+522	t > s / _ #	1	k i n aː k t	k i n aː k s
+523	t > s / _ V	1	a n t i n s	a n s i n s
+524	t > s / _ i	3	a n t i n s	a n s i n s
+525	t > s / _ u	1	t u r t l e	s u r t l e
+526	t > s / _ k|q	3	a t k a t ʔ i	a s k a t ʔ i
+527	t > s / _ N	1	s k i t r a t n i	s k i t r a s n i
+528	t > s / _ i|u	1	a n t i n s	a n s i n s
+529	t > s / i _	2	s k i t r a t n i	s k i s r a t n i
+530	t > tɬ / _ a|u 	1	c u a c t a	c u a c tɬ a
+531	t > ŋ / a _	1	a t k a t ʔ i	a ŋ k a ŋ ʔ i
+532	t > ɾ / _ a	1	c u a c t a	c u a c ɾ a
+533	t > ʃ / _ E	1	a n t i n s	a n ʃ i n s
+534	t > ʃ / _ i|ĩ	1	a n t i n s	a n ʃ i n s
+535	t > ʃ / _ ʔ	1	a t k a t ʔ i	a t k a ʃ ʔ i
+536	t > ʃ / i _ i	1	w i t i k	w i ʃ i k
+537	t > ʈ / _ r	1	d n i c t r i a	d n i c ʈ r i a
+538	t > ʔ / V _ V	1	t i t a s k i	t i ʔ a s k i
+539	t > ʔ / _ #	1	k i n aː k t	k i n aː k ʔ
+540	t > ts / _ i	8	a n t i n s	a n ts i n s
+541	t > ts / _ i|e	1	a n t i n s	a n ts i n s
+542	t > ts / _ i|ĩ	2	a n t i n s	a n ts i n s
+543	t > ts / _ ʔ	2	a t k a t ʔ i	a t k a ts ʔ i
+544	t > tʃ / _ #	1	k i n aː k t	k i n aː k tʃ
+545	t > tʃ / _ E	1	a n t i n s	a n tʃ i n s
+546	t > tʃ / _ i|ĩ	5	a n t i n s	a n tʃ i n s
+547	t > tʃ / n _	1	a n t i n s	a n tʃ i n s
+548	t > θ / _ p|k	1	a t k a t ʔ i	a θ k a t ʔ i
+549	tʰ > d / _ #	1	tʰ u tʰ r a tʰ	tʰ u tʰ r a d
+550	tʰ > s / # _ u	1	tʰ u tʰ r a tʰ	s u tʰ r a tʰ
+551	tʰ > :null: / _ r	1	tʰ u tʰ r a tʰ	tʰ u r a tʰ
+552	tʰ > ts / _ i	1	tʰ i tʲ u	ts i tʲ u
+553	tʲ > s / _ V	1	tʰ i tʲ u	tʰ i s u
+554	tʲ > s / _ u	1	tʰ i tʲ u	tʰ i s u
+555	tʲ > t / _ a	1	tʲ a θ u k	t a θ u k
+556	u > a / _ k	1	tʲ a θ u k	tʲ a θ a k
+557	u > :null: / a _	2	a m u f a u	a m u f a
+558	u > e / _ θ	1	ŋ æ t u θ u j	ŋ æ t e θ u j
+559	u > e / θ|ɣ _	1	a k θ u n	a k θ e n
+560	u j > i	1	z u j z l o	z i z l o
+561	u > i / _ r|s	1	s b u r h i	s b i r h i
+562	u > o / _ #	1	a b ts a r i m b s u	a b ts a r i m b s o
+563	u > o / _ C a	1	a m u f a u	a m o f a u
+564	u > o / _ K	1	i j u x i	i j o x i
+565	u > o / _ k	1	tʲ a θ u k	tʲ a θ o k
+566	u > o / _ k #	1	tʲ a θ u k	tʲ a θ o k
+567	u > o / _ m #	2	ʕ u b i u m	ʕ u b i o m
+568	u > o / _ p	1	p r i p w u p	p r i p w o p
+569	u > o / _ p|b i	2	ʕ u b i u m	ʕ o b i u m
+570	u > o / _ ʕ|ɣ|x|r	1	i j u x i	i j o x i
+571	u > o / ʕ|ɣ|x|r _	1	ʕ u b i u m	ʕ o b i u m
+572	u > w / _ a	10	c u a c t a	c w a c t a
+573	u > w ə / # _	1	u b s t i m b l a	w ə b s t i m b l a
+574	u > :null: / _ o	2	u o b o ɾ o ɣ oː	o b o ɾ o ɣ oː
+575	u > :null: / a _	1	a m u f a u	a m u f a
+576	j u > i w	4	d j u d ẽ l	d i w d ẽ l
+577	e > :null: / u _ C	1	u v u e v s	u v u v s
+578	u > o / _ j #	1	ŋ æ t u θ u j	ŋ æ t u θ o j
+579	u m > ũ / _ #	1	ʕ u b i u m	ʕ u b i ũ
+580	V N > @1[+nasalized] / _ C	20	a b ts a r i m b s u	a b ts a r ĩ b s u
+581	v > b / # _	10	v i h r w a	b i h r w a
+582	v > b / _ r	2	o a l a o v r i q	o a l a o b r i q
+583	v > f / _ C	1	o a l a o v r i q	o a l a o f r i q
+584	v > f / _ s	1	u v u e v s	u v u e f s
+585	v > m / # _ V	1	v i h r w a	m i h r w a
+586	v > p / # _	1	v i h r w a	p i h r w a
+587	v > p / _ s	3	u v u e v s	u v u e p s
+588	w > v / V _ V	20	b a w o g aː j	b a v o g aː j
+589	v > u / V _ V	1	e v e m i e	e u e m i e
+590	v > w / # _	2	v i h r w a	w i h r w a
+591	u v > w / _ V	1	u v a u v i x v o	w a w i x v o
+592	v > :null: / u _ a	1	u v a u v i x v o	u a u v i x v o
+593	v > :null: / u _ i	2	u v a u v i x v o	u v a u i x v o
+594	v > :null: / x _ o	1	u v a u v i x v o	u v a u v i x o
+595	v > :null: / t|d _	3	u w iː d v j u	u w iː d j u
+596	v > :null: / aː|oː|uː _	1	t w a uː v	t w a uː
+597	w > b / # _	2	w a w r i x s	b a w r i x s
+598	w > b / C _	1	d w a j d ŋ e d	d b a j d ŋ e d
+599	w > b / V _ V 	4	b a w o g aː j	b a b o g aː j
+600	w > b / i _ #	1	l a i l i w	l a i l i b
+601	w > f / # _	1	w a w r i x s	f a w r i x s
+602	w > j / _ i	1	i b n a i w i	i b n a i j i
+603	w > m / # _	1	w a w r i x s	m a w r i x s
+604	w > m / _ u	1	b i a w u b	b i a m u b
+605	w > m / u _	2	u w iː d v j u	u m iː d v j u
+606	w > p / _ t	1	k w a h o w t	k w a h o p t
+607	w > u / t _ V	1	t w a uː v	t u a uː v
+608	w > v / # _	1	w a w r i x s	v a w r i x s
+609	w > v / V _	1	b a w o g aː j	b a v o g aː j
+610	w > v / _ #	1	l a i l i w	l a i l i v
+611	w > :null: / # _	4	w a w r i x s	a w r i x s
+612	w > :null: / # _ i	1	w i t i k	i t i k
+613	w > :null: / # k _ V	1	k w a h o w t	k a h o w t
+614	w > :null: / V _ V	1	b a w o g aː j	b a o g aː j
+615	w > :null: / V _ V|#	1	b a w o g aː j	b a o g aː j
+616	w > :null: / _ o	2	b a w o g aː j	b a o g aː j
+617	w > :null: / _ t	2	k w a h o w t	k w a h o t
+618	w > :null: / _ o|i|õ|ĩ	1	b a w o g aː j	b a o g aː j
+619	w > :null: / _ r|#	1	l a i l i w	l a i l i
+620	w > :null: / _ r	1	w a w r i x s	w a r i x s
+621	w > :null: / i _ #	2	l a i l i w	l a i l i
+622	w > :null: / k _ a	1	k w a h o w t	k a h o w t
+623	w a > o / # _	1	w a w r i x s	o w r i x s
+624	w a > u / # _	1	w a w r i x s	u w r i x s
+625	w e > o / # _	1	w e p w i b y k	o p w i b y k
+626	w i > o / C _	4	w e p w i b y k	w e p o b y k
+627	x > k / _ s	1	w a w r i x s	w a w r i k s
+628	x > s / _ k	1	a z a x k y r	a z a s k y r
+629	x > ç / _ i|u	1	i j u x i	i j u ç i
+630	x > ɕ / E _	1	a z a x k y r	a z a ɕ k y r
+631	y > u / P _ C	1	w e p w i b y k	w e p w i b u k
+632	y > ə / _ r	1	a z a x k y r	a z a x k ə r
+633	z > d / V _	4	a z a x k y r	a d a x k y r
+634	z > d / V j _	1	z u j z l o	z u j d l o
+635	z > h / V _ a	1	a z a x k y r	a h a x k y r
+636	z > j / #|V _ V	1	a z a x k y r	a j a x k y r
+637	z > r / V _ V	1	a z a x k y r	a r a x k y r
+638	z > s / # _	1	z u j z l o	s u j z l o
+639	z > :null: / V _ V	1	a z a x k y r	a a x k y r
+640	z > :null: / _ CV	1	e d z j a dʒ i	e d j a dʒ i
+641	s > z / _ CV	4	a h s r i r	a h z r i r
+642	z > :null: / _ l|r	1	z u j z l o	z u j l o
+643	j z > dʒ / V _	1	z u j z l o	z u dʒ l o
+644	j z > ts / V _	2	z u j z l o	z u ts l o
+645	y > ts / r _ 	1	s v a n k r y	s v a n k r ts
+646	d|ɣ > @1[+voiceless] / _ #	1	a d j aː d	a d j aː t
+647	k|g > @1[+alveolar] / n|r _ r	1	s v a n k r y	s v a n t r y
+648	k|g > @1[+palatal] / _ E	1	a k a n k m i k s	a c a n k m i k s
+649	k|g > @1[+palatal] / _ j|E	1	a k a n k m i k s	a c a n k m i k s
+650	k|g > @1[+alveolar] / _ j|E	3	a k a n k m i k s	a t a n k m i k s
+651	k|g > @1[+alveolar] / _ a	1	a k a n k m i k s	a t a n k m i k s
+652	k|g > @1[+alveolar] / _ i	2	k i k t a k s u	t i k t a k s u
+653	k|x > @1[+palatal] / _ j|E	1	a k a n k m i k s	a c a n k m i k s
+654	k|ts > @1[+voiced] / n _	1	a k a n k m i k s	a k a n g m i k s
+655	m|p > @1[+velar] / _ w	2	p r i p w u p	p r i k w u p
+656	n|l > @1[+palatal] / _ C	1	a k a n k m i k s	a k a ɲ k m i k s
+657	p|k > @1[+voiced] / V _ V	4	a k a n k m i k s	a g a n k m i k s
+658	p|t|k > @1[+voiced] / N _	6	a k a n k m i k s	a k a n g m i k s
+659	p|t|k > @1[+voiced] / V _ r	1	s k i t r a t n i	s k i d r a t n i
+660	p|t > @1[+voiced] / V _ V	1	a k e l e j a p a	a k e l e j a b a
+661	v|g|ɟ > @1[+voiceless] / V _ V	1	b a w o g aː j	b a w o k aː j
+662	v|ɟ > @1[+voiceless] / # _	1	v i h r w a	f i h r w a
+663	v|ʁ > @1[+stop] / s _	4	s v a n k r y	s b̪ a n k r y
+664	ɣ|ʁ > @1[+stop] / # _	1	ɣ j a ɣ r ɪ r	g j a ɣ r ɪ r
+665	ɣ|ʁ > @1[+stop] / _ #	4	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ g
+666	ɣ|ʁ > @1[+voiceless] / _ #	1	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ x
+667	β|ð|ɣ > @1[+stop] / # _	1	ð ẽ n ã n	d̪ ẽ n ã n
+668	β|ɣ > @1[+stop] / r _	1	æ r β æ ɹ i ç m a	æ r b æ ɹ i ç m a
+669	ã > a / C w _	2	ɣ w ã ʁ	ɣ w a ʁ
+670	æ > e / _ ð|r	1	æ r β æ ɹ i ç m a	e r β æ ɹ i ç m a
+671	æ > ɛ / _ ɹ	1	æ r β æ ɹ i ç m a	æ r β ɛ ɹ i ç m a
+672	ç > z g / _ r	1	ŋ u ç r	ŋ u z g r
+673	ç > ʂ / _ m	1	æ r β æ ɹ i ç m a	æ r β æ ɹ i ʂ m a
+674	ç > ʃ / _ N	1	æ r β æ ɹ i ç m a	æ r β æ ɹ i ʃ m a
+675	ŋ > g / # _ u	1	ŋ u ç r	g u ç r
+676	ŋ > k / # _ VN	1	ŋ ã ŋ i ɾ	k ã ŋ i ɾ
+677	ŋ > m / # _ æ|y	1	ŋ æ t u θ u j	m æ t u θ u j
+678	ŋ > n / # _ a|o|e	1	ŋ a ŋ t œ m	n a ŋ t œ m
+679	ŋ > n / V _ V	1	m i ŋ a l s	m i n a l s
+680	ŋ > n / _ i	3	ŋ ã ŋ i ɾ	ŋ ã n i ɾ
+681	ŋ > n / _ t	1	ŋ a ŋ t œ m	ŋ a n t œ m
+682	ŋ > w / C _ V	1	d w a j d ŋ e d	d w a j d w e d
+683	ŋ > w / V _ C	1	a g r o ŋ g	a g r o w g
+684	ŋ > n / _ #	1	l a m b r i ŋ	l a m b r i n
+685	ŋ > ɲ / _ i|e	1	d w a j d ŋ e d	d w a j d ɲ e d
+686	ŋ > ɳ / o|a _	1	a g r o ŋ g	a g r o ɳ g
+687	œ > iː / _ N	1	ŋ a ŋ t œ m	ŋ a ŋ t iː m
+688	œ > ɛː / _ C C	1	œ r t ɔ ɤ ɣ	ɛː r t ɔ ɤ ɣ
+689	ɒ > ɔ / _ C C	1	œ m ɒ s t r ɔ n k	œ m ɔ s t r ɔ n k
+690	ɒ > ɛ / _ C	1	œ m ɒ s t r ɔ n k	œ m ɛ s t r ɔ n k
+691	ɔ > o / _ N C	1	œ m ɒ s t r ɔ n k	œ m ɒ s t r o n k
+692	ɔ > u / _ V	1	œ r t ɔ ɤ ɣ	œ r t u ɤ ɣ
+693	ɔ k > ɤ ɣ / _ #	1	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɤ ɣ
+694	ɤ ɣ > ɔ k / _ #	1	œ r t ɔ ɤ ɣ	œ r t ɔ ɔ k
+695	ã > a / _ l|lˠ	1	ə ã l ɔ k	ə a l ɔ k
+696	ə > a / V _ V	1	a ə ɔ̃ l ɔ k	a a ɔ̃ l ɔ k
+697	a > ə / V _ V	1	o a ə s	o ə ə s
+698	ə > a / _ #	3	ɛ n ə i ə	ɛ n ə i a
+699	ə > a / _ C #	1	o a ə s	o a a s
+700	ə > a / _ i|u	1	ɛ n ə i ə	ɛ n a i ə
+701	ə > a / _ u|i|ɨ	1	ɛ n ə i ə	ɛ n a i ə
+702	ə > j / a _	4	a ə ɔ̃ l ɔ k	a j ɔ̃ l ɔ k
+703	ɛ > i / n _ #	1	t a n ɛ	t a n i
+704	ɛ > ĩ / N _ #	1	ʕ o n ɛ	ʕ o n ĩ
+705	ɛ > ɛ a / _ l C|#	1	ɛ̃ l ɛ l k	ɛ̃ l ɛ a l k
+706	ɛ > ɪ / _ N 	1	ɛ n ə i ə	ɪ n ə i ə
+707	ɛ̃ > ɛ / _ #|l|lˠ	1	ɛ̃ l ɛ l k	ɛ l ɛ l k
+708	ɟ > j / V _ V	1	m ɣ a ɟ a ɾ v	m ɣ a j a ɾ v
+709	ɣ > g / # _	4	ɣ j a ɣ r ɪ r	g j a ɣ r ɪ r
+710	ɣ > g / C _ V	1	m ɣ a ɟ a ɾ v	m g a ɟ a ɾ v
+711	ɣ > g / _ E|j	1	m ɣ a ɟ a ɾ v	m g a ɟ a ɾ v
+712	ɣ > g / _ r|ʀ|θ|ð	1	ɣ j a ɣ r ɪ r	ɣ j a g r ɪ r
+713	ɣ > gː / _ j	1	ɣ j a ɣ r ɪ r	gː j a ɣ r ɪ r
+714	ɣ > w / a|u|i|o _	1	u o b o ɾ o ɣ oː	u o b o ɾ o w oː
+715	ɣ > ə / _ #	1	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ ə
+716	ɨ > ə / P _	1	b ɨ i ɲ i ʀ	b ə i ɲ i ʀ
+717	ɨ > ə / _ i	1	b ɨ i ɲ i ʀ	b ə i ɲ i ʀ
+718	ɪ > ɜ / _ K|r	1	ɣ j a ɣ r ɪ r	ɣ j a ɣ r ɜ r
+719	ɲ > n / _ i	1	b ɨ i ɲ i ʀ	b ɨ i n i ʀ
+720	ɾ > l / _ #	1	ŋ ã ŋ i ɾ	ŋ ã ŋ i l
+721	ɾ > r / _ C	1	m ɣ a ɟ a ɾ v	m ɣ a ɟ a r v
+722	ʀ > h / _ #	1	b ɨ i ɲ i ʀ	b ɨ i ɲ i h
+723	ʁ > j / _ i	1	i ʎ a ʁ i ʃ o ʃ	i ʎ a j i ʃ o ʃ
+724	ʃ > x / B _ #	1	i ʎ a ʁ i ʃ o ʃ	i ʎ a ʁ i ʃ o x
+725	ʃ > x / _ B	1	i ʎ a ʁ i ʃ o ʃ	i ʎ a ʁ i x o ʃ
+726	ʈ > l / V _ V	1	ʒ e ʈ e ʃ	ʒ e l e ʃ
+727	ʈ > tʃ / _ e	1	ʒ e ʈ e ʃ	ʒ e tʃ e ʃ
+728	ʈ > tʃ / e _	1	ʒ e ʈ e ʃ	ʒ e tʃ e ʃ
+729	ʎ > l / i _	1	i ʎ a ʁ i ʃ o ʃ	i l a ʁ i ʃ o ʃ
+730	ʎ > ʒ / _ a|u	2	i ʎ a ʁ i ʃ o ʃ	i ʒ a ʁ i ʃ o ʃ
+731	ʒ > ʃ / # _	1	ʒ e ʈ e ʃ	ʃ e ʈ e ʃ
+732	ʔ > h / _ C	1	ts ẽ ʔ j a v i dʒ u	ts ẽ h j a v i dʒ u
+733	ʔ > h / _ l	2	ʔ l i dʒ i dʒ	h l i dʒ i dʒ
+734	ʔ > :null: / # _	3	ʔ l i dʒ i dʒ	l i dʒ i dʒ
+735	ʔ > :null: / C _	4	a t k a t ʔ i	a t k a t i
+736	ʔ > :null: / V _	1	e s p e ʔ	e s p e
+737	ʔ > :null: / V _ V	1	i u l o x i ʔ i	i u l o x i i
+738	ʔ > :null: / _ #	2	e s p e ʔ	e s p e
+739	ʔ > :null: / _ C	7	ts ẽ ʔ j a v i dʒ u	ts ẽ j a v i dʒ u
+740	ʔ > :null: / _ C C	5	ts i ʔ p ɾ u dʒ a	ts i p ɾ u dʒ a
+741	ʔ > :null: / _ j	1	ts ẽ ʔ j a v i dʒ u	ts ẽ j a v i dʒ u
+742	dz > d / # _	1	dz i ẽ l d	d i ẽ l d
+743	dʒ > d / i _ i	2	ʔ l i dʒ i dʒ	ʔ l i d i dʒ
+744	dʒ > ð / i _	1	ts ẽ ʔ j a v i dʒ u	ts ẽ ʔ j a v i ð u
+745	dʒ > ð / u _ a	1	ts i ʔ p ɾ u dʒ a	ts i ʔ p ɾ u ð a
+746	dʒ > ʁ / i _ u	2	ts ẽ ʔ j a v i dʒ u	ts ẽ ʔ j a v i ʁ u
+747	dʒ > tʃ / _ #	6	ʔ l i dʒ i dʒ	ʔ l i dʒ i tʃ
+748	dʒ > tʃ / i _ i|u	1	ts ẽ ʔ j a v i dʒ u	ts ẽ ʔ j a v i tʃ u
+749	ts > s / # _	1	ts ẽ ʔ j a v i dʒ u	s ẽ ʔ j a v i dʒ u
+750	ts > s / _ h	1	i ts h a ts	i s h a ts
+751	ts > s / _ i	1	j u t j a ts i	j u t j a s i
+752	ts > s / _ h|i|j	2	j u t j a ts i	j u t j a s i
+753	ts > s / _ i|j	2	j u t j a ts i	j u t j a s i
+754	ts > :null: / h _	1	r a h ts i v m l e	r a h i v m l e
+755	ts > sː / V _ V	1	j u t j a ts i	j u t j a sː i
+756	ts > t / _ h	1	i ts h a ts	i t h a ts
+757	ts > z / V _ V	1	j u t j a ts i	j u t j a z i
+758	ts > ʃ / # _ ẽ	1	ts ẽ ʔ j a v i dʒ u	ʃ ẽ ʔ j a v i dʒ u
+759	ts > ʃ / V _	1	a tʃ i ts r a ts	a tʃ i ʃ r a ʃ
+760	ts > ʃ / _ i	1	j u t j a ts i	j u t j a ʃ i
+761	ts > ʃ / _ r	1	a tʃ i ts r a ts	a tʃ i ʃ r a ts
+762	ts > tʃ / _ #	1	a tʃ i ts r a ts	a tʃ i ts r a tʃ
+763	ts > tʃ / _ i	1	j u t j a ts i	j u t j a tʃ i
+764	ts > tʃ / _ h|i|j	1	j u t j a ts i	j u t j a tʃ i
+765	ts > s / _ C	1	a tʃ i ts r a ts	a tʃ i s r a ts
+766	tʃ > i / C _	1	β l i r tʃ ẽ	β l i r i ẽ
+767	tʃ > i / _ C	1	ɤ tʃ q æ	ɤ i q æ
+768	tʃ > s / # _	1	tʃ a w ʃ e	s a w ʃ e
+769	tʃ > s / _ C	1	ɤ tʃ q æ	ɤ s q æ
+770	tʃ > s / _ i	1	a i a tʃ i h e	a i a s i h e
+771	tʃ > s / _ q	1	ɤ tʃ q æ	ɤ s q æ
+772	tʃ > t / # _	2	tʃ a w ʃ e	t a w ʃ e
+773	tʃ > ʃ / _ C	1	ɤ tʃ q æ	ɤ ʃ q æ
+774	tʃ > ʃ / _ w|i	1	a i a tʃ i h e	a i a ʃ i h e
+775	tʃ > dʒ / # _ i	1	tʃ i β a θ l	dʒ i β a θ l
+776	tʃ > ts / _ E	1	a i a tʃ i h e	a i a ts i h e
+777	tʃ > ts / _ q	1	ɤ tʃ q æ	ɤ ts q æ
+778	tʃ > ts / a _	1	a i a tʃ i h e	a i a ts i h e
+779	β > b / V _ V	1	tʃ i β a θ l	tʃ i b a θ l
+780	β > b / _ l	1	β l i r tʃ i h ẽ	b l i r tʃ i h ẽ
+781	β > b / r|l _	1	æ r β æ ɹ i ç m a	æ r b æ ɹ i ç m a
+782	β > u / _ k	1	θ u β k i	θ u u k i
+783	β > u / _ l	1	β l i r tʃ i h ẽ	u l i r tʃ i h ẽ
+784	β > w / V _ C	1	θ u β k i	θ u w k i
+785	θ > f / _ l	1	tʃ i β a θ l	tʃ i β a f l
+786	θ > h / # _ B	1	θ u β k i	h u β k i
+787	θ > h / _ i|ɪ	1	s θ i s l a	s h i s l a
+788	θ > n / # _	2	θ u β k i	n u β k i
+789	θ > s / _ B	1	a k θ u n	a k s u n
+790	θ > s / _ k	6	p i θ k i n χ a	p i s k i n χ a
+791	θ > :null: / p|t|k _	1	a k θ u n	a k u n
+792	θ > ð / V _ V	1	tʲ a θ u k	tʲ a ð u k
+793	θ > ʃ / C _	1	a k θ u n	a k ʃ u n
+794	χ > k / # _	1	χ ẽ ʔ	k ẽ ʔ
+795	χ > q / n _	1	p i θ k i n χ a	p i θ k i n q a
+796	χ > qʰ / # _	2	χ ẽ ʔ	qʰ ẽ ʔ
+797	ẽ > i / h _	1	β l i r tʃ i h ẽ	β l i r tʃ i h i
+798	ẽ > ĩ / _ ʔ #	1	χ ẽ ʔ	χ ĩ ʔ
+799	ẽ > ĩ / t|h _ #	1	β l i r tʃ i h ẽ	β l i r tʃ i h ĩ
+800	{p,b} > {t,v}	1	p a b i	t a v i
+801	V {s,z} > @1 {t,d} @1 / # p|b r _ t|d	1	p r e s t o	p r e t e t o
+802	a > e / _ !V	1	p a p a i	p e p a i
+803	!p|b i > @1 u	1	p i t i b i	p i t u b i
