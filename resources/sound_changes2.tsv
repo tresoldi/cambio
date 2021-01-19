@@ -1,9 +1,9 @@
 ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 0	V s > @1 z @1 / # p|b r _ t|d	1	p r e s t o	p r e z e t o
-1	C N > @1 / _ #	1	a g r o g ŋ	a g r o g
+1	C N > @1 / _ #	1	a ɡ r o ɡ ŋ	a ɡ r o ɡ
 2	C > :null: / _ #	1	a d j aː d	a d j aː
 3	C > :null: / r _	1	i k ʔ e r j a	i k ʔ e r a
-4	s C > :null: / _ #	1	g e g s i s k	g e g s i
+4	s C > :null: / _ #	1	ɡ e ɡ s i s k	ɡ e ɡ s i
 5	s|k C > @1 / _ #	1	a k a n k m i k s	a k a n k m i k
 6	K > ʔ / _ s	2	a k a n k m i k s	a k a n k m i ʔ s
 7	L > d / # _	1	l a b j o p l ɔ l	d a b j o p l ɔ l
@@ -33,7 +33,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 31	a > aː / _ C #	1	a r i a m	a r i aː m
 32	a > aː / _ i	1	a i a tʃ i h e	aː i a tʃ i h e
 33	a > aː / _ i|u	1	a i a tʃ i h e	aː i a tʃ i h e
-34	a > aː / _ w|j	1	b a w o g aː j	b aː w o g aː j
+34	a > aː / _ w|j	1	b a w o ɡ aː j	b aː w o ɡ aː j
 35	a > e / _ #	1	a k e l e j a p a	a k e l e j a p e
 36	a > e / _ i	1	a i a tʃ i h e	e i a tʃ i h e
 37	a > e / _ j #	1	p i b a j	p i b e j
@@ -45,7 +45,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 43	a > o / P _	2	a k e l e j a p a	a k e l e j a p o
 44	a > o / _ m #	1	a r i a m	a r i o m
 45	a > o / _ r	1	a b ts a r i m b s u	a b ts o r i m b s u
-46	a > o / _ w	2	b a w o g aː j	b o w o g aː j
+46	a > o / _ w	2	b a w o ɡ aː j	b o w o ɡ aː j
 47	a > o / w|m|ŋ _	1	d w a j d ŋ e d	d w o j d ŋ e d
 48	a > u / _ C u	1	a m u f a u	u m u f a u
 49	a > :null: / # _ m	2	a m u f a u	m u f a u
@@ -57,15 +57,15 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 55	a > ə / _ C a	2	a k a n k m i k s	ə k a n k m i k s
 56	a > ə / _ C e	1	a k e l e j a p a	ə k e l e j a p a
 57	a > ɛ / t|n _ #	1	c u a c t a	c u a c t ɛ
-58	a > ɜ / _ w o	1	b a w o g aː j	b ɜ w o g aː j
-59	aː j > a i	1	b a w o g aː j	b a w o g a i
-60	b > m / # _	1	b a w o g aː j	m a w o g aː j
+58	a > ɜ / _ w o	1	b a w o ɡ aː j	b ɜ w o ɡ aː j
+59	aː j > a i	1	b a w o ɡ aː j	b a w o ɡ a i
+60	b > m / # _	1	b a w o ɡ aː j	m a w o ɡ aː j
 61	b > m / # _ V n	1	b o n b j a r i b l i	m o n b j a r i b l i
-62	b > m / # _ a	2	b a w o g aː j	m a w o g aː j
+62	b > m / # _ a	2	b a w o ɡ aː j	m a w o ɡ aː j
 63	b > m / V _ V	1	p i b a j	p i m a j
 64	b > m / _ V N	1	b e ŋ j e k e y	m e ŋ j e k e y
 65	b > m / _ j	1	b o n b j a r i b l i	b o n m j a r i b l i
-66	b > p / # _	2	b a w o g aː j	p a w o g aː j
+66	b > p / # _	2	b a w o ɡ aː j	p a w o ɡ aː j
 67	b > pʰ / _ l|r	1	b o n b j a r i b l i	b o n b j a r i pʰ l i
 68	b > u / V _ l|r	1	b o n b j a r i b l i	b o n b j a r i u l i
 69	b > u / _ C	1	a b ts a r i m b s u	a u ts a r i m u s u
@@ -88,7 +88,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 86	c > s / # _ a|u	1	c u a c t a	s u a c t a
 87	c > s / _ a|o|u|e	1	c u a c t a	s u a c t a
 88	c > tʃ / i _	1	d n i c t r i a	d n i tʃ t r i a
-89	d > g / _ n	1	d n i c t r i a	g n i c t r i a
+89	d > ɡ / _ n	1	d n i c t r i a	ɡ n i c t r i a
 90	d > k / _ w	1	d w a j d ŋ e d	k w a j d ŋ e d
 91	ŋ > k / d _	1	d w a j d ŋ e d	d w a j d k e d
 92	d > l / # _	2	d i a z e i l e n	l i a z e i l e n
@@ -142,7 +142,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 140	e > i / C _ V	1	b e ŋ j e k e y	b e ŋ j e k i y
 141	e > i / _ #	4	a i a tʃ i h e	a i a tʃ i h i
 142	e > i / _ C u	3	a k e l u j a p a	a k i l u j a p a
-143	e > i / _ g	1	g e g s i s k	g i g s i s k
+143	e > i / _ ɡ	1	ɡ e ɡ s i s k	ɡ i ɡ s i s k
 144	e > i / _ k|m	1	b e ŋ j e k e y	b e ŋ j i k e y
 145	e > i / _ m|ŋ	1	b e ŋ j e k e y	b i ŋ j e k e y
 146	e > i / _ n k	1	b e n k j e k e	b i n k j e k e
@@ -183,18 +183,18 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 181	f > v / _ p|t|k	1	f t a j f	v t a j f
 182	f > w / _ V	1	a m u f a u	a m u w a u
 183	f > ʋ / # _	1	f t a j f	ʋ t a j f
-184	g > h / V _ V	1	b a w o g aː j	b a w o h aː j
-185	g > :null: / _ h	1	m a g h i	m a h i
-186	g > j / E _	1	a g r o ŋ g	a j r o ŋ g
-187	g > j / V _ r	1	a g r o ŋ g	a j r o ŋ g
-188	g > k / # _	1	g e g s i s k	k e g s i s k
-189	g > k / ŋ _ #	1	a g r o ŋ g	a g r o ŋ k
-190	g > m / _ n	1	m a g n o g	m a m n o g
-191	g > w / V _	1	a g r o ŋ g	a w r o ŋ g
-192	g > x / _ #	1	a g r o ŋ g	a g r o ŋ x
-193	g > ɣ / V _ #	1	m a g n o g	m a g n o ɣ
-194	g > ʒ / # _ i|e	1	g e g s i s k	ʒ e g s i s k
-195	h > g / _ B	1	h w a h u	h w a g u
+184	ɡ > h / V _ V	1	b a w o ɡ aː j	b a w o h aː j
+185	ɡ > :null: / _ h	1	m a ɡ h i	m a h i
+186	ɡ > j / E _	1	a ɡ r o ŋ ɡ	a j r o ŋ ɡ
+187	ɡ > j / V _ r	1	a ɡ r o ŋ ɡ	a j r o ŋ ɡ
+188	ɡ > k / # _	1	ɡ e ɡ s i s k	k e ɡ s i s k
+189	ɡ > k / ŋ _ #	1	a ɡ r o ŋ ɡ	a ɡ r o ŋ k
+190	ɡ > m / _ n	1	m a ɡ n o ɡ	m a m n o ɡ
+191	ɡ > w / V _	1	a ɡ r o ŋ ɡ	a w r o ŋ ɡ
+192	ɡ > x / _ #	1	a ɡ r o ŋ ɡ	a ɡ r o ŋ x
+193	ɡ > ɣ / V _ #	1	m a ɡ n o ɡ	m a ɡ n o ɣ
+194	ɡ > ʒ / # _ i|e	1	ɡ e ɡ s i s k	ʒ e ɡ s i s k
+195	h > ɡ / _ B	1	h w a h u	h w a ɡ u
 196	h > j / _ E	2	a i a tʃ i h e	a i a tʃ i j e
 197	h > k / # _ v|w	1	h w a h u	k w a h u
 198	h > k / E _ E	1	a i a tʃ i h e	a i a tʃ i k e
@@ -202,7 +202,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 200	h > q / _ E	1	a i a tʃ i h e	a i a tʃ i q e
 201	h > w / # _	5	h a z h ã	w a z h ã
 202	h > w / _ o|u	1	h w a h u	h w a w u
-203	h > x / _ i	1	m a g h i	m a g x i
+203	h > x / _ i	1	m a ɡ h i	m a ɡ x i
 204	h > x / _ p|k	1	m i h p i	m i x p i
 205	h > :null: / # _	4	h a z h ã	a z h ã
 206	h > :null: / V _	3	a h s r i r	a s r i r
@@ -259,15 +259,15 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 257	i w > u j / _ #	1	l a i l i w	l a i l u j
 258	iː > i / k|s _ k|s #	1	j a j ã s iː k	j a j ã s i k
 259	j > d / # _	3	j a j ã s iː k	d a j ã s iː k
-260	j > d / _ #	1	b a w o g aː j	b a w o g aː d
-261	j > g / # _	1	j a j ã s iː k	g a j ã s iː k
-262	j > g / _ #	2	b a w o g aː j	b a w o g aː g
+260	j > d / _ #	1	b a w o ɡ aː j	b a w o ɡ aː d
+261	j > ɡ / # _	1	j a j ã s iː k	ɡ a j ã s iː k
+262	j > ɡ / _ #	2	b a w o ɡ aː j	b a w o ɡ aː ɡ
 263	j > i / C _	3	a d j aː d	a d i aː d
 264	j > :null: / C _ V #	1	i k ʔ e r j a	i k ʔ e r a
 265	j > r / V _ V	1	a k e l e j a p a	a k e l e r a p a
 266	j > s / # _	1	j a j ã s iː k	s a j ã s iː k
 267	t j > ts 	1	j u t j a ts i	j u ts a ts i
-268	j > t / _ #	1	b a w o g aː j	b a w o g aː t
+268	j > t / _ #	1	b a w o ɡ aː j	b a w o ɡ aː t
 269	j > w / _ o	6	j e j o v i j	j e w o v i j
 270	j > :null: / # _	1	j a j ã s iː k	a j ã s iː k
 271	j > :null: / # _ V	1	j a j ã s iː k	a j ã s iː k
@@ -299,13 +299,13 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 297	j e > o / V _	1	k l o j e k j a	k l o o k j a
 298	k > c / V _ V	1	a k a n k m i k s	a c a n k m i k s
 299	k > c / _ #	1	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ c
-300	k > g / _ #	2	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ g
-301	k > g / _ V r	1	a z a x k y r	a z a x g y r
-302	k > g / _ L|j	4	k l o j e k j a	g l o j e g j a
-303	k > g / _ w|j	2	k l o j e k j a	k l o j e g j a
-304	k > g / _ ʔ	1	i k ʔ e r j a	i g ʔ e r j a
-305	k > g / a _ a	1	a k a n k m i k s	a g a n k m i k s
-306	k > g / n _	3	a k a n k m i k s	a k a n g m i k s
+300	k > ɡ / _ #	2	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ ɡ
+301	k > ɡ / _ V r	1	a z a x k y r	a z a x ɡ y r
+302	k > ɡ / _ L|j	4	k l o j e k j a	ɡ l o j e ɡ j a
+303	k > ɡ / _ w|j	2	k l o j e k j a	k l o j e ɡ j a
+304	k > ɡ / _ ʔ	1	i k ʔ e r j a	i ɡ ʔ e r j a
+305	k > ɡ / a _ a	1	a k a n k m i k s	a ɡ a n k m i k s
+306	k > ɡ / n _	3	a k a n k m i k s	a k a n ɡ m i k s
 307	k > h / _ #	1	a ə ɔ̃ l ɔ k	a ə ɔ̃ l ɔ h
 308	k > h / _ m	1	a k a n k m i k s	a k a n h m i k s
 309	k > h / _ t|ts|s|ʃ	1	a k a n k m i k s	a k a n k m i h s
@@ -348,7 +348,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 346	l > j / # _ i C	1	l i l k aː r kʷ a	j i l k aː r kʷ a
 347	l > j / a _ i	1	kʷ l i n l a l i	kʷ l i n l a j i
 348	l > j / p _	10	l a b j o p l ɔ l	l a b j o p j ɔ l
-349	l > j / k|g _	1	k l o j e k j a	k j o j e k j a
+349	l > j / k|ɡ _	1	k l o j e k j a	k j o j e k j a
 350	l > n / # _	2	l a b j o p l ɔ l	n a b j o p l ɔ l
 351	l > n / # _ V C	1	l a b j o p l ɔ l	n a b j o p l ɔ l
 352	l > n / # _ V N	2	l a m b r i ŋ	n a m b r i ŋ
@@ -364,7 +364,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 362	l > w / V _ C V	1	i l b i r m a	i w b i r m a
 363	l > w / V _ s	1	m i ŋ a l s	m i ŋ a w s
 364	l > :null: / _ m|s|k	1	l i l k aː r kʷ a	l i k aː r kʷ a
-365	l > lˠ / V _ V	6	a k e l e j a p a	a k e lˠ e j a p a
+365	l > ɫ / V _ V	6	a k e l e j a p a	a k e ɫ e j a p a
 366	l > ɬ / _ t|d	1	dz i ẽ l d	dz i ẽ ɬ d
 367	l > ɭ / V _ #	1	d j u d ẽ l	d j u d ẽ ɭ
 368	l > ɾ / V _ V	4	a k e l e j a p a	a k e ɾ e j a p a
@@ -378,7 +378,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 376	m > n / _ #	2	a p m b i r o m	a p m b i r o n
 377	m > n / _ f	2	n aː h i m f	n aː h i n f
 378	m > n / _ i	1	a k a n k m i k s	a k a n k n i k s
-379	m > w / # _ V	3	m a g h i	w a g h i
+379	m > w / # _ V	3	m a ɡ h i	w a ɡ h i
 380	m > w / B _ #	1	a p m b i r o m	a p m b i r o w
 381	m > w / V _ #	1	a p m b i r o m	a p m b i r o w
 382	m > w / _ B	1	a m u f a u	a w u f a u
@@ -388,7 +388,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 386	n > m / # _	2	n aː h i m f	m aː h i m f
 387	n > m / u _ V	1	i n ɾ u n o	i n ɾ u m o
 388	n ɾ > r	1	i n ɾ u n o	i r u n o
-389	n > r / g|p _	1	m a g n o g	m a g r o g
+389	n > r / ɡ|p _	1	m a ɡ n o ɡ	m a ɡ r o ɡ
 390	n > t / # _	1	n aː h i m f	t aː h i m f
 391	n > :null: / _ r|ɾ	1	i n ɾ u n o	i ɾ u n o
 392	n > :null: / _ s	10	a n t i n s	a n t i s
@@ -402,7 +402,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 400	ð > n / _ ã|ẽ|õ	7	ð ẽ n ã n	n ẽ n ã n
 401	n > ŋ / _ #	3	a k θ u n	a k θ u ŋ
 402	n > ŋ / _ j|w	1	n w a n ũ i n a	ŋ w a n ũ i n a
-403	n > ŋ / _ k|g	3	a k a n k m i k s	a k a ŋ k m i k s
+403	n > ŋ / _ k|ɡ	3	a k a n k m i k s	a k a ŋ k m i k s
 404	n > ŋ / _ ũ	1	n w a n ũ i n a	n w a ŋ ũ i n a
 405	n > ɲ / _ E 	1	d n i c t r i a	d ɲ i c t r i a
 406	n > ɲ / i _ o|a	1	n w a n ũ i n a	n w a n ũ i ɲ a
@@ -415,15 +415,15 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 413	o > e / _ #	1	i m l i m k o	i m l i m k e
 414	o > e / _ l	1	s o l o s	s e l o s
 415	o > e / _ s	2	s o l o s	s o l e s
-416	o > e / _ ŋ	1	a g r o ŋ g	a g r e ŋ g
+416	o > e / _ ŋ	1	a ɡ r o ŋ ɡ	a ɡ r e ŋ ɡ
 417	o > w / V _	1	o a l a o v r i q	o a l a w v r i q
 418	o > u / _ #	5	i m l i m k o	i m l i m k u
-419	o > u / _ N	2	a g r o ŋ g	a g r u ŋ g
+419	o > u / _ N	2	a ɡ r o ŋ ɡ	a ɡ r u ŋ ɡ
 420	o > u / _ a	1	o a l a o v r i q	u a l a o v r i q
 421	o > :null: / _ C r	1	o a l a o v r i q	o a l a v r i q
 422	o > :null: / _ u	2	o k a v o u	o k a v u
 423	o > :null: / u _	1	u o b o ɾ o ɣ oː	u b o ɾ o ɣ oː
-424	o > ɔ / _ N	1	a g r o ŋ g	a g r ɔ ŋ g
+424	o > ɔ / _ N	1	a ɡ r o ŋ ɡ	a ɡ r ɔ ŋ ɡ
 425	o i > ɔː	1	i k u l o i	i k u l ɔː
 426	o > ə / _ n	1	b o n b j a r i b l i	b ə n b j a r i b l i
 427	o > ʌ / P _ r|ɾ	1	u o b o ɾ o ɣ oː	u o b ʌ ɾ o ɣ oː
@@ -458,11 +458,11 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 456	r > a d / k _ 	1	k r a s r e x r i	k a d a s r e x r i
 457	r > d / s _	1	a h s r i r	a h s d i r
 458	r > d / x _	1	k r a s r e x r i	k r a s r e x d i
-459	r > h / C _	5	a g r o ŋ g	a g h o ŋ g
+459	r > h / C _	5	a ɡ r o ŋ ɡ	a ɡ h o ŋ ɡ
 460	r > h / s _	1	a h s r i r	a h s h i r
 461	r > h / ʃ _	1	o n p s iː ʃ r a	o n p s iː ʃ h a
 462	r > j / _ #	1	a h s r i r	a h s r i j
-463	r|ɾ > l / K _	1	a g r o ŋ g	a g l o ŋ g
+463	r|ɾ > l / K _	1	a ɡ r o ŋ ɡ	a ɡ l o ŋ ɡ
 464	r|ɾ > l / _ #	1	a h s r i r	a h s r i l
 465	r|ɾ > l / _ V l	1	o r k a ɾ iː l	o r k a l iː l
 466	r|ɾ > n / _ C	1	i k ʔ e r j a	i k ʔ e n j a
@@ -587,7 +587,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 585	v > m / # _ V	1	v i h r w a	m i h r w a
 586	v > p / # _	1	v i h r w a	p i h r w a
 587	v > p / _ s	3	u v u e v s	u v u e p s
-588	w > v / V _ V	20	b a w o g aː j	b a v o g aː j
+588	w > v / V _ V	20	b a w o ɡ aː j	b a v o ɡ aː j
 589	v > u / V _ V	1	e v e m i e	e u e m i e
 590	v > w / # _	2	v i h r w a	w i h r w a
 591	u v > w / _ V	1	u v a u v i x v o	w a w i x v o
@@ -598,7 +598,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 596	v > :null: / aː|oː|uː _	1	t w a uː v	t w a uː
 597	w > b / # _	2	w a w r i x s	b a w r i x s
 598	w > b / C _	1	d w a j d ŋ e d	d b a j d ŋ e d
-599	w > b / V _ V 	4	b a w o g aː j	b a b o g aː j
+599	w > b / V _ V 	4	b a w o ɡ aː j	b a b o ɡ aː j
 600	w > b / i _ #	1	l a i l i w	l a i l i b
 601	w > f / # _	1	w a w r i x s	f a w r i x s
 602	w > j / _ i	1	i b n a i w i	i b n a i j i
@@ -608,16 +608,16 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 606	w > p / _ t	1	k w a h o w t	k w a h o p t
 607	w > u / t _ V	1	t w a uː v	t u a uː v
 608	w > v / # _	1	w a w r i x s	v a w r i x s
-609	w > v / V _	1	b a w o g aː j	b a v o g aː j
+609	w > v / V _	1	b a w o ɡ aː j	b a v o ɡ aː j
 610	w > v / _ #	1	l a i l i w	l a i l i v
 611	w > :null: / # _	4	w a w r i x s	a w r i x s
 612	w > :null: / # _ i	1	w i t i k	i t i k
 613	w > :null: / # k _ V	1	k w a h o w t	k a h o w t
-614	w > :null: / V _ V	1	b a w o g aː j	b a o g aː j
-615	w > :null: / V _ V|#	1	b a w o g aː j	b a o g aː j
-616	w > :null: / _ o	2	b a w o g aː j	b a o g aː j
+614	w > :null: / V _ V	1	b a w o ɡ aː j	b a o ɡ aː j
+615	w > :null: / V _ V|#	1	b a w o ɡ aː j	b a o ɡ aː j
+616	w > :null: / _ o	2	b a w o ɡ aː j	b a o ɡ aː j
 617	w > :null: / _ t	2	k w a h o w t	k w a h o t
-618	w > :null: / _ o|i|õ|ĩ	1	b a w o g aː j	b a o g aː j
+618	w > :null: / _ o|i|õ|ĩ	1	b a w o ɡ aː j	b a o ɡ aː j
 619	w > :null: / _ r|#	1	l a i l i w	l a i l i
 620	w > :null: / _ r	1	w a w r i x s	w a r i x s
 621	w > :null: / i _ #	2	l a i l i w	l a i l i
@@ -646,35 +646,35 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 644	j z > ts / V _	2	z u j z l o	z u ts l o
 645	y > ts / r _ 	1	s v a n k r y	s v a n k r ts
 646	d|ɣ > @1[+voiceless] / _ #	1	a d j aː d	a d j aː t
-647	k|g > @1[+alveolar] / n|r _ r	1	s v a n k r y	s v a n t r y
-648	k|g > @1[+palatal] / _ E	1	a k a n k m i k s	a c a n k m i k s
-649	k|g > @1[+palatal] / _ j|E	1	a k a n k m i k s	a c a n k m i k s
-650	k|g > @1[+alveolar] / _ j|E	3	a k a n k m i k s	a t a n k m i k s
-651	k|g > @1[+alveolar] / _ a	1	a k a n k m i k s	a t a n k m i k s
-652	k|g > @1[+alveolar] / _ i	2	k i k t a k s u	t i k t a k s u
+647	k|ɡ > @1[+alveolar] / n|r _ r	1	s v a n k r y	s v a n t r y
+648	k|ɡ > @1[+palatal] / _ E	1	a k a n k m i k s	a c a n k m i k s
+649	k|ɡ > @1[+palatal] / _ j|E	1	a k a n k m i k s	a c a n k m i k s
+650	k|ɡ > @1[+alveolar] / _ j|E	3	a k a n k m i k s	a t a n k m i k s
+651	k|ɡ > @1[+alveolar] / _ a	1	a k a n k m i k s	a t a n k m i k s
+652	k|ɡ > @1[+alveolar] / _ i	2	k i k t a k s u	t i k t a k s u
 653	k|x > @1[+palatal] / _ j|E	1	a k a n k m i k s	a c a n k m i k s
-654	k|ts > @1[+voiced] / n _	1	a k a n k m i k s	a k a n g m i k s
+654	k|ts > @1[+voiced] / n _	1	a k a n k m i k s	a k a n ɡ m i k s
 655	m|p > @1[+velar] / _ w	2	p r i p w u p	p r i k w u p
 656	n|l > @1[+palatal] / _ C	1	a k a n k m i k s	a k a ɲ k m i k s
-657	p|k > @1[+voiced] / V _ V	4	a k a n k m i k s	a g a n k m i k s
-658	p|t|k > @1[+voiced] / N _	6	a k a n k m i k s	a k a n g m i k s
+657	p|k > @1[+voiced] / V _ V	4	a k a n k m i k s	a ɡ a n k m i k s
+658	p|t|k > @1[+voiced] / N _	6	a k a n k m i k s	a k a n ɡ m i k s
 659	p|t|k > @1[+voiced] / V _ r	1	s k i t r a t n i	s k i d r a t n i
 660	p|t > @1[+voiced] / V _ V	1	a k e l e j a p a	a k e l e j a b a
-661	v|g|ɟ > @1[+voiceless] / V _ V	1	b a w o g aː j	b a w o k aː j
+661	v|ɡ|ɟ > @1[+voiceless] / V _ V	1	b a w o ɡ aː j	b a w o k aː j
 662	v|ɟ > @1[+voiceless] / # _	1	v i h r w a	f i h r w a
-663	v|ʁ > @1[+stop] / s _	4	s v a n k r y	s b̪ a n k r y
-664	ɣ|ʁ > @1[+stop] / # _	1	ɣ j a ɣ r ɪ r	g j a ɣ r ɪ r
-665	ɣ|ʁ > @1[+stop] / _ #	4	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ g
+663	v|ʁ > @1[+plosive,-non-sibilant] / s _	4	s v a n k r y	s b̪ a n k r y
+664	ɣ|ʁ > @1[+plosive,-non-sibilant] / # _	1	ɣ j a ɣ r ɪ r	ɡ j a ɣ r ɪ r
+665	ɣ|ʁ > @1[+plosive,-non-sibilant] / _ #	4	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ ɡ
 666	ɣ|ʁ > @1[+voiceless] / _ #	1	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ x
-667	β|ð|ɣ > @1[+stop] / # _	1	ð ẽ n ã n	d̪ ẽ n ã n
-668	β|ɣ > @1[+stop] / r _	1	æ r β æ ɹ i ç m a	æ r b æ ɹ i ç m a
+667	β|v|ɣ > @1[+plosive] / # _	1	β ẽ n ã n	b ẽ n ã n
+668	β|ɣ > @1[+plosive] / r _	1	æ r β æ ɹ i ç m a	æ r b æ ɹ i ç m a
 669	ã > a / C w _	2	ɣ w ã ʁ	ɣ w a ʁ
 670	æ > e / _ ð|r	1	æ r β æ ɹ i ç m a	e r β æ ɹ i ç m a
 671	æ > ɛ / _ ɹ	1	æ r β æ ɹ i ç m a	æ r β ɛ ɹ i ç m a
-672	ç > z g / _ r	1	ŋ u ç r	ŋ u z g r
+672	ç > z ɡ / _ r	1	ŋ u ç r	ŋ u z ɡ r
 673	ç > ʂ / _ m	1	æ r β æ ɹ i ç m a	æ r β æ ɹ i ʂ m a
 674	ç > ʃ / _ N	1	æ r β æ ɹ i ç m a	æ r β æ ɹ i ʃ m a
-675	ŋ > g / # _ u	1	ŋ u ç r	g u ç r
+675	ŋ > ɡ / # _ u	1	ŋ u ç r	ɡ u ç r
 676	ŋ > k / # _ VN	1	ŋ ã ŋ i ɾ	k ã ŋ i ɾ
 677	ŋ > m / # _ æ|y	1	ŋ æ t u θ u j	m æ t u θ u j
 678	ŋ > n / # _ a|o|e	1	ŋ a ŋ t œ m	n a ŋ t œ m
@@ -682,10 +682,10 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 680	ŋ > n / _ i	3	ŋ ã ŋ i ɾ	ŋ ã n i ɾ
 681	ŋ > n / _ t	1	ŋ a ŋ t œ m	ŋ a n t œ m
 682	ŋ > w / C _ V	1	d w a j d ŋ e d	d w a j d w e d
-683	ŋ > w / V _ C	1	a g r o ŋ g	a g r o w g
+683	ŋ > w / V _ C	1	a ɡ r o ŋ ɡ	a ɡ r o w ɡ
 684	ŋ > n / _ #	1	l a m b r i ŋ	l a m b r i n
 685	ŋ > ɲ / _ i|e	1	d w a j d ŋ e d	d w a j d ɲ e d
-686	ŋ > ɳ / o|a _	1	a g r o ŋ g	a g r o ɳ g
+686	ŋ > ɳ / o|a _	1	a ɡ r o ŋ ɡ	a ɡ r o ɳ ɡ
 687	œ > iː / _ N	1	ŋ a ŋ t œ m	ŋ a ŋ t iː m
 688	œ > ɛː / _ C C	1	œ r t ɔ ɤ ɣ	ɛː r t ɔ ɤ ɣ
 689	ɒ > ɔ / _ C C	1	œ m ɒ s t r ɔ n k	œ m ɔ s t r ɔ n k
@@ -708,11 +708,11 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 706	ɛ > ɪ / _ N 	1	ɛ n ə i ə	ɪ n ə i ə
 707	ɛ̃ > ɛ / _ #|l|lˠ	1	ɛ̃ l ɛ l k	ɛ l ɛ l k
 708	ɟ > j / V _ V	1	m ɣ a ɟ a ɾ v	m ɣ a j a ɾ v
-709	ɣ > g / # _	4	ɣ j a ɣ r ɪ r	g j a ɣ r ɪ r
-710	ɣ > g / C _ V	1	m ɣ a ɟ a ɾ v	m g a ɟ a ɾ v
-711	ɣ > g / _ E|j	1	m ɣ a ɟ a ɾ v	m g a ɟ a ɾ v
-712	ɣ > g / _ r|ʀ|θ|ð	1	ɣ j a ɣ r ɪ r	ɣ j a g r ɪ r
-713	ɣ > gː / _ j	1	ɣ j a ɣ r ɪ r	gː j a ɣ r ɪ r
+709	ɣ > ɡ / # _	4	ɣ j a ɣ r ɪ r	ɡ j a ɣ r ɪ r
+710	ɣ > ɡ / C _ V	1	m ɣ a ɟ a ɾ v	m ɡ a ɟ a ɾ v
+711	ɣ > ɡ / _ E|j	1	m ɣ a ɟ a ɾ v	m ɡ a ɟ a ɾ v
+712	ɣ > ɡ / _ r|ʀ|θ|ð	1	ɣ j a ɣ r ɪ r	ɣ j a ɡ r ɪ r
+713	ɣ > ɡː / _ j	1	ɣ j a ɣ r ɪ r	ɡː j a ɣ r ɪ r
 714	ɣ > w / a|u|i|o _	1	u o b o ɾ o ɣ oː	u o b o ɾ o w oː
 715	ɣ > ə / _ #	1	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ ə
 716	ɨ > ə / P _	1	b ɨ i ɲ i ʀ	b ə i ɲ i ʀ

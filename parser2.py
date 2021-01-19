@@ -172,9 +172,6 @@ def parse_modifier(mod_str):
     return modifiers
 
 
-# an atom can be
-# - a grapheme
-# - a back reference
 def parse_atom(atom_str):
     # Internal function for parsing an atom
     atom_str = atom_str.strip()
@@ -199,7 +196,7 @@ def parse_atom(atom_str):
         # Note that we substract one unit as our lists indexed from 1 (unlike Python,
         # which indexes from zero)
         # TODO: deal with modifiers
-        mod = parse_modifier(match.group("mod"))
+        mod = match.group("mod")
         index = int(match.group("index")) - 1
         return BackRef(index, mod)
     elif (match := re.match(RE_BACKREF_NOMOD, atom_str)) is not None:
@@ -398,7 +395,13 @@ def _forward_translate(sequence, rule, match_list):
         elif entry.type == "backref":
             # TODO: deal with "correspondence"
             # TODO: apply any modifier
+
             token = sequence[entry.index]
+            if entry.modifier:
+                # TODO: drop-in solution for the +
+                mod = entry.modifier.replace("+","")
+                token.sounds[0] += mod
+
             post_seq.append(token)
 
     return post_seq
@@ -447,6 +450,10 @@ def main():
     # Read resources and try to parse them all
     with open("resources/sound_changes2.tsv") as tsvfile:
         for row in csv.DictReader(tsvfile, delimiter="\t"):
+            # skip negations
+            if "!" in row["RULE"]:
+                continue
+
             print()
             print(row)
             ante = maniphono.parse_sequence(row["TEST_ANTE"])
@@ -461,7 +468,7 @@ def main():
                 fw_str = fw_str[:-2]
             # fw = maniphono.Sequence(fw)
             print("FW", fw_str, fw_str == row["TEST_POST"].replace("g", "ɡ"))
-            input()
+            #input()
 
 
 if __name__ == "__main__":
