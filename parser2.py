@@ -127,14 +127,14 @@ class Set(Token):
 # named segment token to distinguish from the maniphono Segment
 class SegmentToken(Token):
     def __init__(self, grapheme):
-        self.grapheme = maniphono.parse_segment(grapheme)
+        self.segment = maniphono.parse_segment(grapheme)
         self.type = "segment"
 
     def __str__(self):
-        return str(self.grapheme)
+        return str(self.segment)
 
     def __hash__(self):
-        return hash(self.grapheme)
+        return hash(self.segment)
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -352,8 +352,9 @@ def check_match(sequence, pattern):
                 ret = False
             else:
                 ret = alt_matches.index(True) + 1
-        elif ref.type == "grapheme":
-            ret = token != ref.grapheme
+        elif ref.type == "segment":
+            print("========", token, ref.segment, type(token), type(ref.segment), token==ref.segment)
+            ret = token == ref.segment
         elif ref.type == "boundary":
             ret = token == "#"
         # TODO: sound classes, partial match
@@ -379,13 +380,13 @@ def _forward_translate(sequence, rule, match_list):
     for entry in rule.post:
         # Note that this will, as intended, skip over `null`s
         # TODO: deal with sound classes
-        if entry.type == "grapheme":
-            post_seq.append(entry.grapheme)
+        if entry.type == "segment":
+            post_seq.append(entry.segment)
         elif entry.type == "set":
             # The -1 in the `match` index is there to offset the +1 applied by
             # `check_match()`, so that we can differentiate False from zero.
             idx = indexes.pop(0) - 1
-            post_seq.append(entry.choices[idx].grapheme)
+            post_seq.append(entry.choices[idx].segment)
         elif entry.type == "backref":
             # TODO: deal with "correspondence"
             # TODO: apply any modifier
@@ -400,6 +401,13 @@ def forward(ante_seq, rule):
     Apply forward transformation to a sequence given a rule.
     """
 
+    # Build a sequence with boundaries, if that is the case (as in most cases),
+    # as they are "dummy" graphemes
+    if ante_seq.boundaries:
+        iter_seq = ["#"] + ante_seq[:] + ["#"]
+    else:
+        iter_seq = ante_seq[:]
+
     # Iterate over the sequence, checking if subsequences match the specified `ante`.
     # We operate inside a `while True` loop because we don't allow overlapping
     # matches, and, as such, the `idx` might be updated either with +1 (looking for
@@ -409,17 +417,21 @@ def forward(ante_seq, rule):
     idx = 0
     post_seq = []
     while True:
-        sub_seq = ante_seq[idx : idx + len(rule.ante)]
+        sub_seq = iter_seq[idx : idx + len(rule.ante)]
+        print("***", sub_seq, rule.ante, "%%%", type(iter_seq))
         match = check_match(sub_seq, rule.ante)
         if all(match):
             post_seq += _forward_translate(sub_seq, rule, match)
             idx += len(rule.ante)
         else:
-            post_seq.append(ante_seq[idx])
+            post_seq.append(iter_seq[idx])
             idx += 1
 
-        if idx == len(ante_seq):
+        if idx == len(iter_seq):
             break
+
+    # TODO: post_seq should be a sequence, and we should take care of setting
+    #.boudaries if necessary
 
     return post_seq
 
@@ -428,19 +440,16 @@ def main():
     # Read resources and try to parse them all
     with open("resources/sound_changes2.tsv") as tsvfile:
         for row in csv.DictReader(tsvfile, delimiter="\t"):
+            print()
             print(row)
             ante = maniphono.parse_sequence(row["TEST_ANTE"])
             post = maniphono.parse_sequence(row["TEST_POST"])
             rule = Rule(row["RULE"])
 
-            print(forward(ante, rule))
-
-
-#            ante_seq, post_seq = parse_rule(source)
-#            print("--", [source])
-#            print("  --", ante_seq)
-#            print("  --", post_seq)
-#            print("  --", r)
+            fw = forward(ante, rule)
+            #fw = maniphono.Sequence(fw)
+            print("FW", [str(v) for v in fw])
+            input()
 
 
 if __name__ == "__main__":
