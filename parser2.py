@@ -353,8 +353,18 @@ def check_match(sequence, pattern):
             else:
                 ret = alt_matches.index(True) + 1
         elif ref.type == "segment":
-            print("========", token, ref.segment, type(token), type(ref.segment), token==ref.segment)
-            ret = token == ref.segment
+            # TODO: currently working only with monosonic segments
+            # If the reference segment is not partial, we can just compare `token` to
+            # `ref.segment`; if it is partial, we can compare the sounds in each
+            # with the `>=` overloaded operator, which also involves making sure
+            # `token` itself is a segment
+            if not ref.segment.sounds[0].partial:
+                ret = token == ref.segment
+            else:
+                if not isinstance(token, maniphono.Segment):
+                    ret = False
+                else:
+                    ret = token.sounds[0] >= ref.segment.sounds[0]
         elif ref.type == "boundary":
             ret = token == "#"
         # TODO: sound classes, partial match
@@ -368,8 +378,6 @@ def check_match(sequence, pattern):
 
 
 def _forward_translate(sequence, rule, match_list):
-    print("  --", sequence)
-    print("  --", rule.post)
     post_seq = []
 
     # Build a list of indexes from `match_list`, which will be used in sequence in
@@ -418,7 +426,6 @@ def forward(ante_seq, rule):
     post_seq = []
     while True:
         sub_seq = iter_seq[idx : idx + len(rule.ante)]
-        print("***", sub_seq, rule.ante, "%%%", type(iter_seq))
         match = check_match(sub_seq, rule.ante)
         if all(match):
             post_seq += _forward_translate(sub_seq, rule, match)
@@ -431,7 +438,7 @@ def forward(ante_seq, rule):
             break
 
     # TODO: post_seq should be a sequence, and we should take care of setting
-    #.boudaries if necessary
+    # .boudaries if necessary
 
     return post_seq
 
@@ -447,8 +454,13 @@ def main():
             rule = Rule(row["RULE"])
 
             fw = forward(ante, rule)
-            #fw = maniphono.Sequence(fw)
-            print("FW", [str(v) for v in fw])
+            fw_str = " ".join([str(v) for v in fw])
+            if fw_str[0] == "#":
+                fw_str = fw_str[2:]
+            if fw_str[-1] == "#":
+                fw_str = fw_str[:-2]
+            # fw = maniphono.Sequence(fw)
+            print("FW", fw_str, fw_str == row["TEST_POST"].replace("g", "ɡ"))
             input()
 
 
