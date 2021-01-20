@@ -1,16 +1,49 @@
-import alteruphono
 import csv
-import pprint
 
-parser = alteruphono.parser.Parser()
+import alteruphono
+import maniphono
 
-# with open("resources/sound_changes.tsv") as tsvfile:
-#    for row in csv.DictReader(tsvfile, delimiter="\t"):
-#        print("==", [row])
 
-rule_text = "d|ɣ -> @1[+voiceless] / _ #"
-ast = parser(rule_text)
-print(ast)
-rule = alteruphono.old_parser.Rule(rule_text, ast)
-ret = alteruphono.backward("a d j aː t", rule)
-print(ret)
+def main():
+    # Read resources and try to parse them all
+    with open("resources/sound_changes2.tsv") as tsvfile:
+        for row in csv.DictReader(tsvfile, delimiter="\t"):
+            # skip negations
+            if "!" in row["RULE"]:
+                continue
+
+            print()
+            print(row)
+            ante = maniphono.parse_sequence(row["TEST_ANTE"])
+            post = maniphono.parse_sequence(row["TEST_POST"])
+            rule = alteruphono.Rule(row["RULE"])
+
+            fw = alteruphono.forward(ante, rule)
+            fw_str = " ".join([str(v) for v in fw])
+
+            fw_match = fw_str == "# " + row["TEST_POST"] + " #"
+
+            bw = alteruphono.backward(post, rule)
+            bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
+
+            # TODO: deal with [ and ] currently stripped with [1:-1]
+            bw_rules = [
+                alteruphono.parse_seq_as_rule(str(maniphono.Sequence(cand))[1:-1])
+                for cand in bw
+            ]
+            bw_match = any(
+                [
+                    all(alteruphono.check_match(list(ante), bw_rule))
+                    for bw_rule in bw_rules
+                ]
+            )
+
+            print("FW", fw_match, "|", fw_str, "|")
+            print("BW", bw_match, "|", bw_strs, "|")
+
+            if not all([fw_match, bw_match]):
+                input()
+
+
+if __name__ == "__main__":
+    main()

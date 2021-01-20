@@ -10,37 +10,8 @@ __author__ = "Tiago Tresoldi"
 __email__ = "tresoldi@shh.mpg.de"
 
 # Build the namespace
-from alteruphono import utils
-from alteruphono.parser import Parser, AST
-from alteruphono.model import Model
-from alteruphono.sequence import Sequence
-from alteruphono.rule import Rule, make_rule
-
-
-# Define essential function for forward and backward
-def forward(sequence, rule):
-    """
-    Simple function for performing forward transformation.
-    """
-
-    model = Model()
-
-    if isinstance(rule, str):
-        parser = Parser()
-        rule = make_rule(rule, parser)
-
-    return model.forward(sequence, rule)
-
-
-def backward(sequence, rule):
-    """
-    Simple function for performing backward transformation.
-    """
-
-    model = Model()
-
-    if isinstance(rule, str):
-        parser = Parser()
-        rule = make_rule(rule, parser)
-
-    return model.backward(sequence, rule)
+from alteruphono.model import Boundary, Focus, Empty, BackRef, Choice, Set, SegmentToken
+from alteruphono.parser import Rule, parse_rule, parse_seq_as_rule
+from alteruphono.common import check_match
+from alteruphono.forward import forward
+from alteruphono.backward import backward
