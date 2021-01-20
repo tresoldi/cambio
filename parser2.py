@@ -370,7 +370,7 @@ def check_match(sequence, pattern):
                 else:
                     ret = token.sounds[0] >= ref.segment.sounds[0]
         elif ref.type == "boundary":
-            ret = token == "#"
+            ret = str(token) == "#"
         # TODO: sound classes, partial match
 
         # Append to the return list, so that we carry extra information like which
@@ -419,14 +419,7 @@ def forward(ante_seq, rule):
     Apply forward transformation to a sequence given a rule.
     """
 
-    # Build a sequence with boundaries, if that is the case (as in most cases),
-    # as they are "dummy" graphemes
-    #    if ante_seq.boundaries:
-    #        iter_seq = ["#"] + ante_seq[:] + ["#"]
-    #    else:
-    #        iter_seq = ante_seq[:]
-
-    iter_seq = ante_seq.as_list()
+    iter_seq = list(ante_seq)
 
     # Iterate over the sequence, checking if subsequences match the specified `ante`.
     # We operate inside a `while True` loop because we don't allow overlapping
@@ -493,7 +486,7 @@ def _backward_translate(sequence, rule, match_list):
 # TODO: make sure it works with repeated backreferences, such as "V s > @1 z @1",
 # which we *cannot* have mapped only as "V z V"
 def backward(post_seq, rule):
-    post_seq = post_seq.as_list()
+    post_seq = list(post_seq)
 
     # This method makes a copy of the original AST ante-tokens and applies
     # the modifiers from the post sequence; in a way, it "fakes" the
@@ -532,7 +525,9 @@ def backward(post_seq, rule):
             ante_seqs.append(_backward_translate(sub_seq, rule, match))
             idx += len(post_ast)
         else:
-            ante_seqs.append(maniphono.Sequence([post_seq[idx]], boundaries=False))
+            # ante_seqs.append(  maniphono.Sequence([post_seq[idx]], boundaries=None)  )
+            # TODO: remove these nested lists if possible
+            ante_seqs.append([[post_seq[idx]]])
             idx += 1
 
         if idx == len(post_seq):
@@ -545,7 +540,7 @@ def backward(post_seq, rule):
     ret = []
     for i, a in enumerate(ante_seqs):
         chain = list(itertools.chain.from_iterable(a))
-        chain = [t for t in chain if t != "#"]
+        chain = [t for t in chain if str(t) != "#"]
         ret.append(chain)
 
     return ret
@@ -567,12 +562,8 @@ def main():
 
             fw = forward(ante, rule)
             fw_str = " ".join([str(v) for v in fw])
-            if fw_str[0] == "#":
-                fw_str = fw_str[2:]
-            if fw_str[-1] == "#":
-                fw_str = fw_str[:-2]
 
-            fw_match = fw_str == row["TEST_POST"].replace("g", "ɡ")
+            fw_match = fw_str == "# " + row["TEST_POST"] + " #"
 
             bw = backward(post, rule)
             bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
@@ -582,7 +573,7 @@ def main():
                 parse_seq_as_rule(str(maniphono.Sequence(cand))[1:-1]) for cand in bw
             ]
             bw_match = any(
-                [all(check_match(ante.as_list(), bw_rule)) for bw_rule in bw_rules]
+                [all(check_match(list(ante), bw_rule)) for bw_rule in bw_rules]
             )
 
             print("FW", fw_match, "|", fw_str, "|")
