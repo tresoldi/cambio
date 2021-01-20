@@ -125,7 +125,7 @@ class Set(Token):
         return hash(self) != hash(other)
 
 
-# named segment token to distinguish from the maniphono Segment
+# named segment token to distinguish from the maniphono SoundSegment
 class SegmentToken(Token):
     def __init__(self, grapheme):
         self.segment = maniphono.parse_segment(grapheme)
@@ -365,7 +365,7 @@ def check_match(sequence, pattern):
             if not ref.segment.sounds[0].partial:
                 ret = token == ref.segment
             else:
-                if not isinstance(token, maniphono.Segment):
+                if not isinstance(token, maniphono.SoundSegment):
                     ret = False
                 else:
                     ret = token.sounds[0] >= ref.segment.sounds[0]
