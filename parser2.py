@@ -3,6 +3,7 @@
 import csv
 import re
 import unicodedata
+import itertools
 
 import maniphono
 
@@ -157,6 +158,7 @@ def preprocess(rule):
     return rule
 
 
+# TODO: is this still used?
 def parse_modifier(mod_str):
     modifiers = {"-": [], "+": []}
 
@@ -210,6 +212,11 @@ def parse_atom(atom_str):
         return SegmentToken(atom_str)
 
     return ""
+
+
+def parse_seq_as_rule(seq):
+    seq = preprocess(seq)
+    return [parse_atom(atom) for atom in seq.strip().split()]
 
 
 def parse_rule(rule):
@@ -399,7 +406,7 @@ def _forward_translate(sequence, rule, match_list):
             token = sequence[entry.index]
             if entry.modifier:
                 # TODO: drop-in solution for the +
-                mod = entry.modifier.replace("+","")
+                mod = entry.modifier.replace("+", "")
                 token.sounds[0] += mod
 
             post_seq.append(token)
@@ -414,10 +421,12 @@ def forward(ante_seq, rule):
 
     # Build a sequence with boundaries, if that is the case (as in most cases),
     # as they are "dummy" graphemes
-    if ante_seq.boundaries:
-        iter_seq = ["#"] + ante_seq[:] + ["#"]
-    else:
-        iter_seq = ante_seq[:]
+    #    if ante_seq.boundaries:
+    #        iter_seq = ["#"] + ante_seq[:] + ["#"]
+    #    else:
+    #        iter_seq = ante_seq[:]
+
+    iter_seq = ante_seq.as_list()
 
     # Iterate over the sequence, checking if subsequences match the specified `ante`.
     # We operate inside a `while True` loop because we don't allow overlapping
@@ -446,6 +455,102 @@ def forward(ante_seq, rule):
     return post_seq
 
 
+def _backward_translate(sequence, rule, match_list):
+    # Collects all information we have on what was matched, in terms of back-references
+    # and classes/features, from what we have in the reflex
+    value = {}
+    no_nulls = [token for token in rule.post if token.type != "null"]
+    for post_entry, token in zip(no_nulls, sequence):
+        if post_entry.type == "backref":
+            # TODO: apply modifier inverse
+            value[post_entry.index] = token
+
+    # NOTE: `ante_seq` is here the modified one for reconstruction, not the one in the rule
+    ante_seq = []
+    for idx, (ante_entry, match) in enumerate(zip(rule.ante, match_list)):
+        if ante_entry.type == "choice":
+            ante_seq.append(value.get(idx, "C|V"))
+        elif ante_entry.type == "set":
+            ante_seq.append(value.get(idx, "C|V"))
+        elif ante_entry.type == "segment":
+            ante_seq.append(ante_entry.segment)
+
+    # Depending on the type of rule that was applied, the `ante_seq` list
+    # might at this point have elements expressing more than one
+    # sound and expressing alternatives that need to be computed
+    # with a product (e.g., `['#'], ['d'], ['i w', 'j u'], ['d'] ['#']`).
+    # This correction is performed by the calling function, also allowing
+    # to return a `Sequence` instead of a plain string (so that we also
+    # deal with missing boundaries, etc.). We also return the unaltered,
+    # original `sequence`, expressing cases where no changes were
+    # applied.
+    return [
+        sequence,
+        ante_seq,
+    ]
+
+
+# TODO: make sure it works with repeated backreferences, such as "V s > @1 z @1",
+# which we *cannot* have mapped only as "V z V"
+def backward(post_seq, rule):
+    post_seq = post_seq.as_list()
+
+    # This method makes a copy of the original AST ante-tokens and applies
+    # the modifiers from the post sequence; in a way, it "fakes" the
+    # rule being applied, so that something like "d > @1[+voiceless]"
+    # is transformed in the equivalent "t > @1".
+    # TODO: add modifiers, as per previous implementarion
+    def _add_modifier(ante_token, post_token):
+        return ante_token
+
+    # Compute the `post_ast`, applying modifiers and skipping nulls
+    post_ast = [token for token in rule.post if token.type != "null"]
+    post_ast = [
+        token
+        if token.type != "backref"
+        else _add_modifier(rule.ante[token.index], token)
+        for token in post_ast
+    ]
+
+    # Iterate over the sequence, checking if subsequences match the specified `post`.
+    # We operate inside a `while True` loop because we don't allow overlapping
+    # matches, and, as such, the `idx` might be updated either with +1 (looking for
+    # the next position) or with the match length. While the whole logic could be
+    # performed with a more Python list comprehension, for easier conversion to
+    # other languages it is better to keep it as dumb loop.
+    # TODO: note same comment as `forward`, maybe join methods?
+    idx = 0
+    ante_seqs = []
+    while True:
+        # TODO: address comment from original implementation
+        sub_seq = post_seq[idx : idx + len(post_ast)]
+        match = check_match(sub_seq, post_ast)
+
+        if len(match) == 0:
+            break
+        if all(match):
+            ante_seqs.append(_backward_translate(sub_seq, rule, match))
+            idx += len(post_ast)
+        else:
+            ante_seqs.append(maniphono.Sequence([post_seq[idx]], boundaries=False))
+            idx += 1
+
+        if idx == len(post_seq):
+            break
+
+    # Computes the product of possibilities
+    # TODO: organize and do it properly
+    ante_seqs = [candidate for candidate in itertools.product(*ante_seqs)]
+
+    ret = []
+    for i, a in enumerate(ante_seqs):
+        chain = list(itertools.chain.from_iterable(a))
+        chain = [t for t in chain if t != "#"]
+        ret.append(chain)
+
+    return ret
+
+
 def main():
     # Read resources and try to parse them all
     with open("resources/sound_changes2.tsv") as tsvfile:
@@ -466,9 +571,26 @@ def main():
                 fw_str = fw_str[2:]
             if fw_str[-1] == "#":
                 fw_str = fw_str[:-2]
-            # fw = maniphono.Sequence(fw)
-            print("FW", fw_str, fw_str == row["TEST_POST"].replace("g", "ɡ"))
-            #input()
+
+            fw_match = fw_str == row["TEST_POST"].replace("g", "ɡ")
+
+            bw = backward(post, rule)
+            bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
+
+            # TODO: deal with [ and ] currently stripped with [1:-1]
+            bw_rules = [
+                parse_seq_as_rule(str(maniphono.Sequence(cand))[1:-1]) for cand in bw
+            ]
+            bw_match = any(
+                [check_match(ante.as_list(), bw_rule) for bw_rule in bw_rules]
+            )
+            print("FW", fw_match, "|", fw_str, "|")
+            print("BW", bw_match, "|", bw_strs, "|")
+
+            if not all([fw_match, bw_match]):
+                input()
+
+            input()
 
 
 if __name__ == "__main__":
