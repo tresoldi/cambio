@@ -582,15 +582,14 @@ def main():
                 parse_seq_as_rule(str(maniphono.Sequence(cand))[1:-1]) for cand in bw
             ]
             bw_match = any(
-                [check_match(ante.as_list(), bw_rule) for bw_rule in bw_rules]
+                [all(check_match(ante.as_list(), bw_rule)) for bw_rule in bw_rules]
             )
+
             print("FW", fw_match, "|", fw_str, "|")
             print("BW", bw_match, "|", bw_strs, "|")
 
             if not all([fw_match, bw_match]):
                 input()
-
-            input()
 
 
 if __name__ == "__main__":
