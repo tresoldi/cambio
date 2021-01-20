@@ -157,23 +157,6 @@ def preprocess(rule):
 
     return rule
 
-
-# TODO: is this still used?
-def parse_modifier(mod_str):
-    modifiers = {"-": [], "+": []}
-
-    # TODO: use splitter from maniphono
-    for mod in mod_str.split(","):
-        if mod[0] == "-":
-            modifiers["-"].append(mod[1:])
-        elif mod[0] == "+":
-            modifiers["+"].append(mod[1:])
-        else:
-            modifiers["+"].append(mod)
-
-    return modifiers
-
-
 def parse_atom(atom_str):
     # Internal function for parsing an atom
     atom_str = atom_str.strip()
@@ -494,6 +477,15 @@ def backward(post_seq, rule):
     # is transformed in the equivalent "t > @1".
     # TODO: add modifiers, as per previous implementarion
     def _add_modifier(ante_token, post_token):
+        # we know post_token is a backref here
+        if post_token.modifier:
+            if ante_token.type == "segments": # TODO: only monosonic...
+                return maniphono.SoundSegment(ante_token.sounds[0] + post_token.modifier)
+            elif ante_token.type in ["set", "choice"]:
+                pass
+
+
+        # return non-modified
         return ante_token
 
     # Compute the `post_ast`, applying modifiers and skipping nulls
