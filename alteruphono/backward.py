@@ -19,9 +19,13 @@ def _backward_translate(sequence, rule, match_list):
     ante_seq = []
     for idx, (ante_entry, match) in enumerate(zip(rule.ante, match_list)):
         if ante_entry.type == "choice":
-            ante_seq.append(value.get(idx, "C|V"))
+            ante_seq.append(
+                value.get(idx, maniphono.SoundSegment("t"))
+            )  # TODO: correct
         elif ante_entry.type == "set":
-            ante_seq.append(value.get(idx, "C|V"))
+            ante_seq.append(
+                value.get(idx, maniphono.SoundSegment("t"))
+            )  # TODO: correct
         elif ante_entry.type == "segment":
             ante_seq.append(ante_entry.segment)
 
@@ -49,7 +53,6 @@ def _carry_backref_modifier(ante_token, post_token):
     # we know post_token is a backref here
     if post_token.modifier:
         if ante_token.type == "segment":  # TODO: only monosonic...
-            print(ante_token, dir(ante_token))
             return maniphono.SoundSegment(
                 ante_token.segment.add_fvalues(post_token.modifier)
             )
@@ -99,14 +102,12 @@ def backward(post_seq, rule):
         if idx == len(post_seq):
             break
 
-    # Computes the product of possibilities
     # TODO: organize and do it properly
-    ante_seqs = [candidate for candidate in itertools.product(*ante_seqs)]
+    ante_seqs = [
+        maniphono.Sequence(
+            list(itertools.chain.from_iterable(candidate)), boundaries=True
+        )
+        for candidate in itertools.product(*ante_seqs)
+    ]
 
-    ret = []
-    for i, a in enumerate(ante_seqs):
-        chain = list(itertools.chain.from_iterable(a))
-        chain = [t for t in chain if str(t) != "#"]
-        ret.append(chain)
-
-    return ret
+    return ante_seqs

@@ -26,9 +26,8 @@ def main():
             bw = alteruphono.backward(post, rule)
             bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
 
-            # TODO: deal with [ and ] currently stripped with [1:-1]
             bw_rules = [
-                alteruphono.parse_seq_as_rule(str(maniphono.Sequence(cand))[1:-1])
+                alteruphono.parse_seq_as_rule(str(maniphono.Sequence(cand)))
                 for cand in bw
             ]
             bw_match = any(
@@ -41,8 +40,7 @@ def main():
             print("FW", fw_match, "|", fw_str, "|")
             print("BW", bw_match, "|", bw_strs, "|")
 
-            #            if not all([fw_match, bw_match]):
-            if not fw_match:
+            if not all([fw_match, bw_match]):
                 input()
 
 
