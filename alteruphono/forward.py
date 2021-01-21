@@ -1,3 +1,7 @@
+"""
+Module with functions for forward reconstruction.
+"""
+
 from .common import check_match
 
 
@@ -5,13 +9,14 @@ def _forward_translate(sequence, rule, match_list):
     post_seq = []
 
     # Build a list of indexes from `match_list`, which will be used in sequence in
-    # case of sets
-    indexes = [v for v in match_list if v is not True]
+    # case of sets. This list is the return value from `check_match()`, which will
+    # hold `True` value in all cases except for backreference matches, when it will
+    # hold the index of the backreference shifted by one.
+    indexes = [idx for idx in match_list if idx is not True]
 
     # Iterate over all entries
     for entry in rule.post:
         # Note that this will, as intended, skip over `null`s
-        # TODO: deal with sound classes
         if entry.type == "segment":
             post_seq.append(entry.segment)
         elif entry.type == "set":
@@ -21,14 +26,10 @@ def _forward_translate(sequence, rule, match_list):
             post_seq.append(entry.choices[idx].segment)
         elif entry.type == "backref":
             # TODO: deal with "correspondence"
-            # TODO: apply any modifier
-
+            # Copy the backreference, adding the modifier (even if empty, the
+            # phonomodel would only skip over it)
             token = sequence[entry.index]
-            if entry.modifier:
-                # TODO: drop-in solution for the +
-                mod = entry.modifier.replace("+", "")
-                token.sounds[0] += mod
-
+            token.add_fvalues(entry.modifier)
             post_seq.append(token)
 
     return post_seq
@@ -39,7 +40,9 @@ def forward(ante_seq, rule):
     Apply forward transformation to a sequence given a rule.
     """
 
-    iter_seq = list(ante_seq)
+    # Cache the lengths of `ante_seq` and `rule.ante` for speed
+    len_seq = len(ante_seq)
+    len_rule = len(rule.ante)
 
     # Iterate over the sequence, checking if subsequences match the specified `ante`.
     # We operate inside a `while True` loop because we don't allow overlapping
@@ -50,16 +53,17 @@ def forward(ante_seq, rule):
     idx = 0
     post_seq = []
     while True:
-        sub_seq = iter_seq[idx : idx + len(rule.ante)]
+        sub_seq = ante_seq[idx : idx + len_rule]
+
         match = check_match(sub_seq, rule.ante)
         if all(match):
             post_seq += _forward_translate(sub_seq, rule, match)
-            idx += len(rule.ante)
+            idx += len_rule
         else:
-            post_seq.append(iter_seq[idx])
+            post_seq.append(ante_seq[idx])
             idx += 1
 
-        if idx == len(iter_seq):
+        if idx == len_seq:
             break
 
     # TODO: post_seq should be a sequence, and we should take care of setting

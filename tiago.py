@@ -14,14 +14,14 @@ def main():
 
             print()
             print(row)
-            ante = maniphono.parse_sequence(row["TEST_ANTE"])
-            post = maniphono.parse_sequence(row["TEST_POST"])
+            ante = maniphono.parse_sequence(row["TEST_ANTE"], boundaries=True)
+            post = maniphono.parse_sequence(row["TEST_POST"], boundaries=True)
             rule = alteruphono.Rule(row["RULE"])
 
             fw = alteruphono.forward(ante, rule)
             fw_str = " ".join([str(v) for v in fw])
 
-            fw_match = fw_str == "# " + row["TEST_POST"] + " #"
+            fw_match = fw_str == str(post)
 
             bw = alteruphono.backward(post, rule)
             bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
@@ -41,7 +41,8 @@ def main():
             print("FW", fw_match, "|", fw_str, "|")
             print("BW", bw_match, "|", bw_strs, "|")
 
-            if not all([fw_match, bw_match]):
+            #            if not all([fw_match, bw_match]):
+            if not fw_match:
                 input()
 
 
