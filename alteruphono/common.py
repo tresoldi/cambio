@@ -39,13 +39,18 @@ def check_match(sequence, pattern):
             # Check the sub-match for each alternative; if the alternative is a grapheme,
             # carry any modifier. We need to pass lists recursively to `check_match`
             # because the choice could have multiple segments.
-            alt_matches = [
-                all(check_match([token], [choice])) for choice in ref.choices
-            ]
+            # TODO: carry modifiers?
+            #        alt_matches = [
+            #            all(check_match([token], [choice])) for choice in ref.choices
+            #        ]
+
+            alt_matches = [check_match([token], [choice])[0] for choice in ref.choices]
 
             # TODO: address negation
             if not any(alt_matches):
                 ret = False
+            else:
+                ret = alt_matches.index(True) + 1
         elif ref.type == "set":
             # Check if it is a set correspondence, which effectively works as a
             # choice here (but we need to keep track of) which set alternative

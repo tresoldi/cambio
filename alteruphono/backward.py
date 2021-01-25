@@ -12,10 +12,8 @@ def _backward_translate(sequence, rule, match_list):
     no_nulls = [token for token in rule.post if token.type != "null"]
     for post_entry, token in zip(no_nulls, sequence):
         if post_entry.type == "backref":
-
             # parse modifier and invert it
             if post_entry.modifier:
-
                 # invert
                 # TODO: rename _split_fvalues as it is used externally
                 # TODO: have own function?
@@ -36,8 +34,12 @@ def _backward_translate(sequence, rule, match_list):
     ante_seq = []
     for idx, (ante_entry, match) in enumerate(zip(rule.ante, match_list)):
         if ante_entry.type == "choice":
+            # TODO: this was already parsed, do we really need to run a .split()?
+            # TODO: allow indexing in Choice
+            # TODO: comment on -1 due to `all`/`any` etc.
+            grapheme = ante_entry.choices[match - 1]
             ante_seq.append(
-                value.get(idx, maniphono.SoundSegment("t"))
+                value.get(idx, maniphono.SoundSegment(grapheme))
             )  # TODO: correct
         elif ante_entry.type == "set":
             ante_seq.append(
