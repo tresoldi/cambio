@@ -58,6 +58,7 @@ def forward(ante_seq, rule):
         sub_seq = ante_seq[idx : idx + len_rule]
 
         match, match_info = check_match(sub_seq, rule.ante)
+
         if match:
             post_seq += _forward_translate(sub_seq, rule, match_info)
             idx += len_rule

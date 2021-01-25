@@ -24,6 +24,11 @@ def check_match(sequence, pattern):
     if len(sequence) != len(pattern):
         return False, [False] * len(sequence)
 
+    # Deal with problematic rules, like 'C > :null: / _ #'
+    # TODO: fix this
+    if len(pattern) == 1 and pattern[0].type == "boundary":
+        return False, [False]
+
     # Iterate over pairs of tokens from the sequence and references from the pattern,
     # building a `ret_list`. The latter will contain `False` in case there is no
     # match for a position, or either the index of the backreference or `True` in
@@ -37,10 +42,16 @@ def check_match(sequence, pattern):
         if ref.type == "choice":
             match_segment = False
             for choice in ref.choices:
-                match, segment = check_match([token], [choice])
-                if match:
-                    match_segment = segment
-                    break
+                # manually check for boundaries, as the problematic check above willfail
+                if choice.type == "boundary":
+                    if token.type == "boundary":
+                        match_segment = "#"
+                        break
+                else:
+                    match, segment = check_match([token], [choice])
+                    if match:
+                        match_segment = segment
+                        break
 
             ret_list.append(match_segment)
         elif ref.type == "set":
@@ -76,4 +87,5 @@ def check_match(sequence, pattern):
         # ret_list.append(ret)
 
     # make sure we treat zeros (that might be indexes) differently fromFalse
+    # TODO: return only ret_list and have the user check?
     return all([v is not False for v in ret_list]), ret_list

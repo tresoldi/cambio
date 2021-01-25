@@ -19,7 +19,9 @@ class Rule:
         self.ante, self.post = parse_rule(source)
 
     def __repr__(self):
-        return repr(self.source)
+        ante_str = " ".join([repr(v) for v in self.ante])
+        post_str = " ".join([repr(v) for v in self.post])
+        return "%s >>> %s" % (ante_str, post_str)
 
     def __str__(self):
         return str(self.source)

@@ -23,7 +23,7 @@ def main():
 
             fw_match = fw_str == str(post)
 
-            #            bw = alteruphono.backward(post, rule)
+            bw = alteruphono.backward(post, rule)
             #            bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
             #
             #            bw_rules = [

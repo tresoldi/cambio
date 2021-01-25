@@ -30,17 +30,39 @@ def _backward_translate(sequence, rule, match_list):
 
             value[post_entry.index] = token
 
+    print("SEQ", sequence, len(sequence))
+    print("RUL", repr(rule))
+    print("NNL", no_nulls, len(no_nulls))
+    print("VAL", value)
+
+    no_nulls_copy = []
+    for v in no_nulls:
+        if v.type != "backref":
+            no_nulls_copy.append(v)
+        else:
+            print("BRX", v.index)
+            no_nulls_copy.append(value[v.index])
+    print("NNC", no_nulls_copy, len(no_nulls_copy))
+
     # NOTE: `ante_seq` is here the modified one for reconstruction, not the one in the rule
     ante_seq = []
-    for idx, (ante_entry, match) in enumerate(zip(rule.ante, match_list)):
+    for idx, (ante_entry, nnc, match) in enumerate(
+        zip(rule.ante, no_nulls_copy, match_list)
+    ):
         if ante_entry.type == "choice":
             # TODO: this was already parsed, do we really need to run a .split()?
             # TODO: allow indexing in Choice
             # TODO: comment on -1 due to `all`/`any` etc.
-            grapheme = ante_entry.choices[match - 1]
-            ante_seq.append(
-                value.get(idx, maniphono.SoundSegment(grapheme))
-            )  # TODO: correct
+            print("AEE", ante_entry, ante_entry.choices, type(ante_entry))
+            print("MTC", match)
+            print("NNC", nnc, type(nnc))
+
+            ante_seq.append(nnc)
+
+        #         grapheme = ante_entry.choices[match - 1]
+        #         ante_seq.append(
+        #             value.get(idx, maniphono.SoundSegment(grapheme))
+        #         )  # TODO: correct
         elif ante_entry.type == "set":
             ante_seq.append(
                 value.get(idx, maniphono.SoundSegment("t"))
@@ -107,11 +129,15 @@ def backward(post_seq, rule):
         # TODO: address comment from original implementation
         sub_seq = post_seq[idx : idx + len(post_ast)]
 
-        match = check_match(sub_seq, post_ast)
-        if len(match) == 0:
+        match, match_list = check_match(sub_seq, post_ast)
+        print("SSEQ", sub_seq)
+        print("PAST", post_ast)
+        print("CKM", match, match_list)
+        if len(match_list) == 0:
             break
-        elif all(match):
-            ante_seqs.append(_backward_translate(sub_seq, rule, match))
+
+        if match:
+            ante_seqs.append(_backward_translate(sub_seq, rule, match_list))
             idx += len(post_ast)
         else:
             # TODO: remove these nested lists if possible
