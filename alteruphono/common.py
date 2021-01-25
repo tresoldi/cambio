@@ -40,10 +40,6 @@ def check_match(sequence, pattern):
             # carry any modifier. We need to pass lists recursively to `check_match`
             # because the choice could have multiple segments.
             # TODO: carry modifiers?
-            #        alt_matches = [
-            #            all(check_match([token], [choice])) for choice in ref.choices
-            #        ]
-
             alt_matches = [check_match([token], [choice])[0] for choice in ref.choices]
 
             # TODO: address negation
