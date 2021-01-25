@@ -12,7 +12,24 @@ def _backward_translate(sequence, rule, match_list):
     no_nulls = [token for token in rule.post if token.type != "null"]
     for post_entry, token in zip(no_nulls, sequence):
         if post_entry.type == "backref":
-            # TODO: apply modifier inverse
+
+            # parse modifier and invert it
+            if post_entry.modifier:
+
+                # invert
+                # TODO: rename _split_fvalues as it is used externally
+                # TODO: have own function?
+                modifiers = []
+                for mod in maniphono._split_fvalues(post_entry.modifier):
+                    if mod[0] == "-":
+                        modifiers.append(mod[1:])
+                    elif mod[0] == "+":
+                        modifiers.append("-" + mod[1:])
+                    else:
+                        modifiers.append("-" + mod)
+
+                token += modifiers
+
             value[post_entry.index] = token
 
     # NOTE: `ante_seq` is here the modified one for reconstruction, not the one in the rule

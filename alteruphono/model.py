@@ -55,9 +55,10 @@ class Empty(Token):
 
 class BackRef(Token):
     def __init__(self, index, modifier=None):
+        self.type = "backref"
+
         self.index = index
         self.modifier = modifier
-        self.type = "backref"
 
     def __str__(self):
         if self.modifier:
