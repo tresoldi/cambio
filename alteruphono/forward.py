@@ -4,7 +4,7 @@ Module with functions for forward reconstruction.
 
 from .common import check_match
 
-
+# TODO: rename match_list to match_info
 def _forward_translate(sequence, rule, match_list):
     post_seq = []
 
@@ -12,7 +12,9 @@ def _forward_translate(sequence, rule, match_list):
     # case of sets. This list is the return value from `check_match()`, which will
     # hold `True` value in all cases except for backreference matches, when it will
     # hold the index of the backreference shifted by one.
-    indexes = [idx for idx in match_list if idx is not True]
+    # NOTE: yes, we do need to check with type() because, as the values might be
+    # our custom types, the `isinstace(idx, int)` will fail as we implement __add__
+    indexes = [idx for idx in match_list if type(idx) == int]
 
     # Iterate over all entries
     for entry in rule.post:
@@ -22,7 +24,7 @@ def _forward_translate(sequence, rule, match_list):
         elif entry.type == "set":
             # The -1 in the `match` index is there to offset the +1 applied by
             # `check_match()`, so that we can differentiate False from zero.
-            idx = indexes.pop(0) - 1
+            idx = indexes.pop(0)
             post_seq.append(entry.choices[idx].segment)
         elif entry.type == "backref":
             # TODO: deal with "correspondence"
@@ -55,9 +57,9 @@ def forward(ante_seq, rule):
     while True:
         sub_seq = ante_seq[idx : idx + len_rule]
 
-        match = check_match(sub_seq, rule.ante)
-        if all(match):
-            post_seq += _forward_translate(sub_seq, rule, match)
+        match, match_info = check_match(sub_seq, rule.ante)
+        if match:
+            post_seq += _forward_translate(sub_seq, rule, match_info)
             idx += len_rule
         else:
             post_seq.append(ante_seq[idx])
