@@ -9,7 +9,7 @@ def _backward_translate(sequence, rule, match_list):
     # Collects all information we have on what was matched, in terms of back-references
     # and classes/features, from what we have in the reflex
     value = {}
-    no_nulls = [token for token in rule.post if token.type != "null"]
+    no_nulls = [token for token in rule.post if token.type != "empty"]
     for post_entry, token in zip(no_nulls, sequence):
         if post_entry.type == "backref":
             # parse modifier and invert it
@@ -24,25 +24,18 @@ def _backward_translate(sequence, rule, match_list):
                     elif mod[0] == "+":
                         modifiers.append("-" + mod[1:])
                     else:
-                        modifiers.append("-" + mod)
+                        modifiers.append("-" + mod)  #
 
-                token += modifiers
+                token += modifiers  #
 
             value[post_entry.index] = token
-
-    print("SEQ", sequence, len(sequence))
-    print("RUL", repr(rule))
-    print("NNL", no_nulls, len(no_nulls))
-    print("VAL", value)
 
     no_nulls_copy = []
     for v in no_nulls:
         if v.type != "backref":
             no_nulls_copy.append(v)
         else:
-            print("BRX", v.index)
             no_nulls_copy.append(value[v.index])
-    print("NNC", no_nulls_copy, len(no_nulls_copy))
 
     # NOTE: `ante_seq` is here the modified one for reconstruction, not the one in the rule
     ante_seq = []
@@ -53,16 +46,8 @@ def _backward_translate(sequence, rule, match_list):
             # TODO: this was already parsed, do we really need to run a .split()?
             # TODO: allow indexing in Choice
             # TODO: comment on -1 due to `all`/`any` etc.
-            print("AEE", ante_entry, ante_entry.choices, type(ante_entry))
-            print("MTC", match)
-            print("NNC", nnc, type(nnc))
 
             ante_seq.append(nnc)
-
-        #         grapheme = ante_entry.choices[match - 1]
-        #         ante_seq.append(
-        #             value.get(idx, maniphono.SoundSegment(grapheme))
-        #         )  # TODO: correct
         elif ante_entry.type == "set":
             ante_seq.append(
                 value.get(idx, maniphono.SoundSegment("t"))
@@ -114,15 +99,6 @@ def _carry_backref_modifier(ante_token, post_token):
 def backward(post_seq, rule):
     # Compute the `post_ast`, applying modifiers and skipping nulls
     post_ast = [token for token in rule.post if token.type != "empty"]
-    print("1>>>", post_ast)
-    for idx, token in enumerate(post_ast):
-        if token.type != "backref":
-            print("  --", idx, token)
-        else:
-            print(
-                "  --", idx, "|", token, token.index, rule.ante, rule.ante[token.index]
-            )
-            print("   ----", _carry_backref_modifier(rule.ante[token.index], token))
 
     post_ast = [
         token
@@ -144,10 +120,6 @@ def backward(post_seq, rule):
         sub_seq = post_seq[idx : idx + len(post_ast)]
 
         match, match_list = check_match(sub_seq, post_ast)
-        print("SSEQ", sub_seq)
-        print("RULE", rule.post)
-        print("PAST", post_ast)
-        print("CKM", match, match_list)
         if len(match_list) == 0:
             break
 

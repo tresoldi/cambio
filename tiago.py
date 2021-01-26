@@ -24,23 +24,21 @@ def main():
             fw_match = fw_str == str(post)
 
             bw = alteruphono.backward(post, rule)
-            #            bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
-            #
-            #            bw_rules = [
-            #                alteruphono.parse_seq_as_rule(str(maniphono.Sequence(cand)))
-            #                for cand in bw
-            #            ]
-            #            bw_match = any(
-            #                [
-            #                    all(alteruphono.check_match(list(ante), bw_rule))
-            #                    for bw_rule in bw_rules
-            #                ]
-            #            )
+            bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
+            bw_rules = [
+                alteruphono.parse_seq_as_rule(str(maniphono.Sequence(cand)))
+                for cand in bw
+            ]
+            bw_match = any(
+                [
+                    all(alteruphono.check_match(list(ante), bw_rule))
+                    for bw_rule in bw_rules
+                ]
+            )
 
             print("FW", fw_match, "|", fw_str, "|")
-            #            print("BW", bw_match, "|", bw_strs, "|")
+            print("BW", bw_match, "|", bw_strs, "|")
 
-            bw_match = True
             if not all([fw_match, bw_match]):
                 input()
 
