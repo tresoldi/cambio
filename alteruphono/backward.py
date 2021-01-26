@@ -94,9 +94,13 @@ def _carry_backref_modifier(ante_token, post_token):
     # we know post_token is a backref here
     if post_token.modifier:
         if ante_token.type == "segment":  # TODO: only monosonic...
-            return maniphono.SoundSegment(
-                ante_token.segment.add_fvalues(post_token.modifier)
-            )
+            if len(ante_token.segment.sounds) != 1:
+                raise ValueError("only monosonic")
+
+            # make a copy
+            x = ante_token.segment.sounds[0]
+            return x + post_token.modifier
+
         elif ante_token.type in ["set", "choice"]:
             # TODO: implement
             return ante_token
@@ -110,6 +114,16 @@ def _carry_backref_modifier(ante_token, post_token):
 def backward(post_seq, rule):
     # Compute the `post_ast`, applying modifiers and skipping nulls
     post_ast = [token for token in rule.post if token.type != "empty"]
+    print("1>>>", post_ast)
+    for idx, token in enumerate(post_ast):
+        if token.type != "backref":
+            print("  --", idx, token)
+        else:
+            print(
+                "  --", idx, "|", token, token.index, rule.ante, rule.ante[token.index]
+            )
+            print("   ----", _carry_backref_modifier(rule.ante[token.index], token))
+
     post_ast = [
         token
         if token.type != "backref"
@@ -131,6 +145,7 @@ def backward(post_seq, rule):
 
         match, match_list = check_match(sub_seq, post_ast)
         print("SSEQ", sub_seq)
+        print("RULE", rule.post)
         print("PAST", post_ast)
         print("CKM", match, match_list)
         if len(match_list) == 0:
