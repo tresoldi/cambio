@@ -110,4 +110,18 @@ def backward(post_seq, rule):
         for candidate in itertools.product(*ante_seqs)
     ]
 
-    return ante_seqs
+    # Due to difficulties in dealing with rules composed only of boundaries (especially
+    # when they involve deletions, like `C > :null: / _ #`, we need to make sure no
+    # proto-form with internal boundaries are generated here. This code might not seem
+    # so elegant, but makes it easier to understand what we are doing, and allows us
+    # to follow the established practices of using a single symbol ("#") for both
+    # leading and trailing boundaries (compare with regular expressions with "^" and "$")
+    filtered = []
+    for seq in ante_seqs:
+        # Check for internal boundaries
+        if not any([token.type == "boundary" for token in seq[1:-1]]):
+            filtered.append(seq)
+
+    # TODO: sort using representation?
+    # TODO: take set?
+    return filtered

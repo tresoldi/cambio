@@ -39,7 +39,8 @@ def main():
             print("FW", fw_match, "|", fw_str, "|")
             print("BW", bw_match, "|", bw_strs, "|")
 
-            if not all([fw_match, bw_match]):
+            #            if not all([fw_match, bw_match]):
+            if True:
                 input()
 
 
