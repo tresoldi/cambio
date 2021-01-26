@@ -26,8 +26,8 @@ def check_match(sequence, pattern):
 
     # Deal with problematic rules, like 'C > :null: / _ #'
     # TODO: fix this
-    if len(pattern) == 1 and pattern[0].type == "boundary":
-        return False, [False]
+    #    if len(pattern) == 1 and pattern[0].type == "boundary":
+    #        return False, [False]
 
     # Iterate over pairs of tokens from the sequence and references from the pattern,
     # building a `ret_list`. The latter will contain `False` in case there is no

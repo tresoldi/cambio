@@ -1,73 +1,40 @@
 import itertools
+import copy
 
 import maniphono
 
 from .common import check_match
 
 
-def _backward_translate(sequence, rule, match_list):
-    # Collects all information we have on what was matched, in terms of back-references
-    # and classes/features, from what we have in the reflex
-    value = {}
-    no_nulls = [token for token in rule.post if token.type != "empty"]
-    for post_entry, token in zip(no_nulls, sequence):
-        if post_entry.type == "backref":
-            # parse modifier and invert it
-            if post_entry.modifier:
-                # invert
-                # TODO: rename _split_fvalues as it is used externally
-                # TODO: have own function?
-                modifiers = []
-                for mod in maniphono._split_fvalues(post_entry.modifier):
-                    if mod[0] == "-":
-                        modifiers.append(mod[1:])
-                    elif mod[0] == "+":
-                        modifiers.append("-" + mod[1:])
-                    else:
-                        modifiers.append("-" + mod)  #
+def _backward_translate(sequence, rule, match_info):
+    # Make a copy of the ANTE as a "recons"tructed sequence; this will later be
+    # modified by back-references from the sequence that was matched
+    recons = []
+    set_index = []
+    for idx, t in enumerate(rule.ante):
+        if t.type == "boundary":
+            recons.append(t)
+        elif t.type == "segment":
+            recons.append(t)
+        elif t.type == "choice":
+            recons.append(t)
+        elif t.type == "set":
+            recons.append(t)
+            set_index.append(idx)
 
-                token += modifiers  #
+    # Remove empty tokens that might be in the POST rule (and that are obviously
+    # missing from the matched subtring) and iterate over pairs of POST tokens and
+    # matched sequence tokens, filling "recons"tructed seq
+    no_empty = [token for token in rule.post if token.type != "empty"]
+    for post_token, seq_token, match in zip(no_empty, sequence, match_info):
+        if post_token.type == "backref":
+            recons[post_token.index] = seq_token
+        elif post_token.type == "set":
+            # grab the index of the next set
+            idx = set_index.pop(0)
+            recons[idx] = recons[idx].choices[match]
 
-            value[post_entry.index] = token
-
-    no_nulls_copy = []
-    for v in no_nulls:
-        if v.type != "backref":
-            no_nulls_copy.append(v)
-        else:
-            no_nulls_copy.append(value[v.index])
-
-    # NOTE: `ante_seq` is here the modified one for reconstruction, not the one in the rule
-    ante_seq = []
-    for idx, (ante_entry, nnc, match) in enumerate(
-        zip(rule.ante, no_nulls_copy, match_list)
-    ):
-        if ante_entry.type == "choice":
-            # TODO: this was already parsed, do we really need to run a .split()?
-            # TODO: allow indexing in Choice
-            # TODO: comment on -1 due to `all`/`any` etc.
-
-            ante_seq.append(nnc)
-        elif ante_entry.type == "set":
-            ante_seq.append(
-                value.get(idx, maniphono.SoundSegment("t"))
-            )  # TODO: correct
-        elif ante_entry.type == "segment":
-            ante_seq.append(ante_entry.segment)
-
-    # Depending on the type of rule that was applied, the `ante_seq` list
-    # might at this point have elements expressing more than one
-    # sound and expressing alternatives that need to be computed
-    # with a product (e.g., `['#'], ['d'], ['i w', 'j u'], ['d'] ['#']`).
-    # This correction is performed by the calling function, also allowing
-    # to return a `Sequence` instead of a plain string (so that we also
-    # deal with missing boundaries, etc.). We also return the unaltered,
-    # original `sequence`, expressing cases where no changes were
-    # applied.
-    return [
-        sequence,
-        ante_seq,
-    ]
+    return [sequence, recons]
 
 
 # This method makes a copy of the original AST ante-tokens and applies
@@ -120,6 +87,7 @@ def backward(post_seq, rule):
         sub_seq = post_seq[idx : idx + len(post_ast)]
 
         match, match_list = check_match(sub_seq, post_ast)
+
         if len(match_list) == 0:
             break
 
