@@ -8,7 +8,7 @@ def main():
     # Read resources and try to parse them all
     with open("resources/sound_changes2.tsv", encoding="utf-8") as tsvfile:
         for row in csv.DictReader(tsvfile, delimiter="\t"):
-            #if int(row["ID"]) < 646:
+            #if int(row["ID"]) != 580:
             #    continue
 
             # skip negations
@@ -26,6 +26,7 @@ def main():
 
             fw_match = fw_str == str(post)
 
+            ante = maniphono.parse_sequence(row["TEST_ANTE"], boundaries=True)
             bw = alteruphono.backward(post, rule)
             bw_strs = [" ".join([str(v) for v in bw_str]) for bw_str in bw]
             bw_rules = [

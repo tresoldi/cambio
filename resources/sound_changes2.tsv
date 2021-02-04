@@ -23,12 +23,12 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 21	P > p / s _	1	s b u r h i	s p u r h i
 22	R h > h / _ V	1	h a z h ã	h a h ã
 23	S > @1[+fricative] / _ S	1	a s p t i s	a s ɸ t i s
-24	S > @1[+voiceless] / _ #	1	a d j aː d	a d j aː t
+24	S > @1[-voiced,+voiceless] / _ #	1	a d j aː d	a d j aː t
 25	S f > fː	1	p f o p t a	fː o p t a
 26	F > :null: / # S _	4	p f o p t a	p o p t a
 27	N SV > @1	1	a b ts a r i m b s u	a b ts a r i m s u
 28	SV N > @2	1	d n i c t r i a	n i c t r i a
-29	V > @1[+rounded] / w _	3	d w a j d ŋ e d	d w ɶ j d ŋ e d
+29	V > @1[-unrounded,+rounded] / w _	3	d w a j d ŋ e d	d w ɶ j d ŋ e d
 30	a > aː / V C _	1	a k a n k m i k s	a k aː n k m i k s
 31	a > aː / _ C #	1	a r i a m	a r i aː m
 32	a > aː / _ i	1	a i a tʃ i h e	aː i a tʃ i h e
@@ -645,7 +645,7 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 643	j z > dʒ / V _	1	z u j z l o	z u dʒ l o
 644	j z > ts / V _	2	z u j z l o	z u ts l o
 645	y > ts / r _	1	s v a n k r y	s v a n k r ts
-646	d|ɣ > @1[+voiceless] / _ #	1	a d j aː d	a d j aː t
+646	d|ɣ > @1[-voiced,+voiceless] / _ #	1	a d j aː d	a d j aː t
 647	k|ɡ > @1[+alveolar] / n|r _ r	1	s v a n k r y	s v a n t r y
 648	k|ɡ > @1[+palatal] / _ E	1	a k a n k m i k s	a c a n k m i k s
 649	k|ɡ > @1[+palatal] / _ j|E	1	a k a n k m i k s	a c a n k m i k s
@@ -653,16 +653,16 @@ ID	RULE	WEIGHT	TEST_ANTE	TEST_POST
 651	k|ɡ > @1[+alveolar] / _ a	1	a k a n k m i k s	a t a n k m i k s
 652	k|ɡ > @1[+alveolar] / _ i	2	k i k t a k s u	t i k t a k s u
 653	k|x > @1[+palatal] / _ j|E	1	a k a n k m i k s	a c a n k m i k s
-654	k|ts > @1[+voiced] / n _	1	a k a n k m i k s	a k a n ɡ m i k s
+654	k|ts > @1[-voiceless,+voiced] / n _	1	a k a n k m i k s	a k a n ɡ m i k s
 655	m|p > @1[+velar] / _ w	2	p r i p w u p	p r i k w u p
 656	n|l > @1[+palatal] / _ C	1	a k a n k m i k s	a k a ɲ k m i k s
-657	p|k > @1[+voiced] / V _ V	4	a k a n k m i k s	a ɡ a n k m i k s
-658	p|t|k > @1[+voiced] / N _	6	a k a n k m i k s	a k a n ɡ m i k s
-659	p|t|k > @1[+voiced] / V _ r	1	s k i t r a t n i	s k i d r a t n i
-660	p|t > @1[+voiced] / V _ V	1	a k e l e j a p a	a k e l e j a b a
-661	v|ɡ|ɟ > @1[+voiceless] / V _ V	1	b a w o ɡ aː j	b a w o k aː j
-662	v|ɟ > @1[+voiceless] / # _	1	v i h r w a	f i h r w a
-666	ɣ|ʁ > @1[+voiceless] / _ #	1	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ x
+657	p|k > @1[-voiceless,+voiced] / V _ V	4	a k a n k m i k s	a ɡ a n k m i k s
+658	p|t|k > @1[-voiceless,+voiced] / N _	6	a k a n k m i k s	a k a n ɡ m i k s
+659	p|t|k > @1[-voiceless,+voiced] / V _ r	1	s k i t r a t n i	s k i d r a t n i
+660	p|t > @1[-voiceless,+voiced] / V _ V	1	a k e l e j a p a	a k e l e j a b a
+661	v|ɡ|ɟ > @1[-voiced,+voiceless] / V _ V	1	b a w o ɡ aː j	b a w o k aː j
+662	v|ɟ > @1[-voiced,+voiceless] / # _	1	v i h r w a	f i h r w a
+666	ɣ|ʁ > @1[-voiced,+voiceless] / _ #	1	œ r t ɔ ɤ ɣ	œ r t ɔ ɤ x
 667	β|v|ɣ > @1[+plosive] / # _	1	β ẽ n ã n	b ẽ n ã n
 668	β|ɣ > @1[+plosive] / r _	1	æ r β æ ɹ i ç m a	æ r b æ ɹ i ç m a
 669	ã > a / C w _	2	ɣ w ã ʁ	ɣ w a ʁ
