@@ -4,6 +4,7 @@ import copy
 import maniphono
 
 from .common import check_match
+from .model import Set, Choice, SegmentToken
 
 
 def _backward_translate(sequence, rule, match_info):
@@ -28,7 +29,26 @@ def _backward_translate(sequence, rule, match_info):
     no_empty = [token for token in rule.post if token.type != "empty"]
     for post_token, seq_token, match in zip(no_empty, sequence, match_info):
         if post_token.type == "backref":
+
+            # build modifier to be "inverted"
+            # TODO: move this operation to maniphono
             recons[post_token.index] = seq_token
+            if post_token.modifier:
+                modifiers = []
+                for mod in post_token.modifier.split(","):
+                    if mod[0] == "-":
+                        modifiers.append("+"+mod[1:])
+                    elif mod[0] == "+":
+                        modifiers.append("-"+mod[1:])
+                    else:
+                        modifiers.append("-"+mod)
+
+                # TODO: fix this horrible hack that uses graphemes to circumvent difficulties with copies
+                gr = str(seq_token)
+                snd = maniphono.sound.Sound(gr)
+                snd += ",".join(modifiers)
+                recons[post_token.index] = maniphono.SoundSegment([snd])
+
         elif post_token.type == "set":
             # grab the index of the next set
             idx = set_index.pop(0)
@@ -53,9 +73,14 @@ def _carry_backref_modifier(ante_token, post_token):
             x = ante_token.segment.sounds[0]
             return x + post_token.modifier
 
-        elif ante_token.type in ["set", "choice"]:
-            # TODO: implement
-            return ante_token
+        # TODO: can we join choice and set into a single signature?
+        elif ante_token.type == "set":
+            for choice in ante_token.choices:
+                choice.add_modifier(post_token.modifier)
+
+        elif ante_token.type == "choice":
+            for choice in ante_token.choices:
+                choice.add_modifier(post_token.modifier)
 
     # return non-modified
     return ante_token
@@ -123,5 +148,5 @@ def backward(post_seq, rule):
             filtered.append(seq)
 
     # TODO: sort using representation?
-    # TODO: take set?
+    # TODO: must take set, as the rule might lead to the same pattern
     return filtered

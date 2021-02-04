@@ -24,21 +24,6 @@ def check_match(sequence, pattern):
     if len(sequence) != len(pattern):
         return False, [False] * len(sequence)
 
-    # Deal with boundaries: if a boundary is in first position in the pattern, it
-    # can only match the first position in the sequence; if it is in the last position
-    # in the pattern, it can only match the last position in the sequence. There would
-    # be other ways to deal with this issue, including using different symbols for
-    # leading/trailing boundary, but it is simpler to just treat this here.
-    #    print("PAT", [t.type for t in pattern])
-    #    print("SEQ", [t.type for t in sequence])
-    #
-    #    if pattern[0].type == "boundary" and sequence[0].type != "boundary":
-    #        print(">> FALSE")
-    #        return False, [False]*len(sequence)
-    #    if pattern[-1].type == "boundary" and sequence[-1].type != "boundary":
-    #        print(">> FALSE")
-    #        return False, [False]*len(sequence)
-
     # Iterate over pairs of tokens from the sequence and references from the pattern,
     # building a `ret_list`. The latter will contain `False` in case there is no
     # match for a position, or either the index of the backreference or `True` in
@@ -88,6 +73,16 @@ def check_match(sequence, pattern):
                     ret_list.append(False)
                 else:
                     ret_list.append(token.sounds[0] >= ref.segment.sounds[0])
+        elif isinstance(ref, maniphono.sound.Sound):
+            # TODO: check how similar to the above (ref.type==segment)
+            # TODO: check why it is capturing as maniphono.sound.Sound and not SoundSegment
+            if not ref.partial:
+                ret_list.append(token == ref)
+            else:
+                if not isinstance(token, maniphono.SoundSegment):
+                    ret_list.append(False)
+                else:
+                    ret_list.append(token.sounds[0] >= ref)
         elif ref.type == "boundary":
             ret_list.append(str(token) == "#")
 

@@ -132,3 +132,11 @@ class SegmentToken(Token):
 
     def __ne__(self, other):
         return hash(self) == hash(other)
+
+    def add_modifier(self, modifier):
+        # TODO: properly implement with the __add__ operation from maniphono
+        # hack using graphemic representation...
+        grapheme = str(self.segment.sounds[0])
+        sound = maniphono.Sound(grapheme) + modifier
+        segment = maniphono.SoundSegment(sound)
+        self.segment = segment
