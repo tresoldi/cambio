@@ -4,7 +4,7 @@ from typing import List, Union
 from maniphono import SegSequence, Sound, SoundSegment, Segment
 
 from .common import check_match
-from .model import Token
+from .model import Token, BackRefToken, EmptyToken, BoundaryToken, SegmentToken, ChoiceToken, SetToken
 from .parser import Rule
 
 
@@ -14,22 +14,22 @@ def _backward_translate(sequence: List[Segment], rule: Rule, match_info: List[Un
     recons = []
     set_index = []
     for idx, t in enumerate(rule.ante):
-        if t.type == "boundary":
+        if isinstance(t, BoundaryToken):
             recons.append(t)
-        elif t.type == "segment":
+        elif isinstance(t, SegmentToken):
             recons.append(t)
-        elif t.type == "choice":
+        elif isinstance(t, ChoiceToken):
             recons.append(t)
-        elif t.type == "set":
+        elif isinstance(t, SetToken):
             recons.append(t)
             set_index.append(idx)
 
     # Remove empty tokens that might be in the POST rule (and that are obviously
     # missing from the matched subtring) and iterate over pairs of POST tokens and
     # matched sequence tokens, filling "recons"tructed seq
-    no_empty = [token for token in rule.post if token.type != "empty"]
+    no_empty = [token for token in rule.post if not isinstance(token, EmptyToken)]
     for post_token, seq_token, match in zip(no_empty, sequence, match_info):
-        if post_token.type == "backref":
+        if isinstance(post_token, BackRefToken):
 
             # build modifier to be "inverted"
             # TODO: move this operation to maniphono
@@ -50,7 +50,7 @@ def _backward_translate(sequence: List[Segment], rule: Rule, match_info: List[Un
                 snd += ",".join(modifiers)
                 recons[post_token.index] = SoundSegment([snd])
 
-        elif post_token.type == "set":
+        elif isinstance(post_token, SetToken):
             # grab the index of the next set
             idx = set_index.pop(0)
             recons[idx] = recons[idx].choices[match]
@@ -72,7 +72,8 @@ def _carry_backref_modifier(ante_token: Token, post_token: Token) -> Token:
     """
     # we know post_token is a backref here
     if post_token.modifier:
-        if ante_token.type == "segment":  # TODO: only monosonic...
+        if  isinstance(ante_token, SegmentToken):  # TODO: only
+            # monosonic...
             if len(ante_token.segment.sounds) != 1:
                 raise ValueError("only monosonic")
 
@@ -81,11 +82,11 @@ def _carry_backref_modifier(ante_token: Token, post_token: Token) -> Token:
             return x + post_token.modifier
 
         # TODO: can we join choice and set into a single signature?
-        elif ante_token.type == "set":
+        elif isinstance(ante_token, SetToken):
             for choice in ante_token.choices:
                 choice.add_modifier(post_token.modifier)
 
-        elif ante_token.type == "choice":
+        elif isinstance(ante_token, ChoiceToken):
             for choice in ante_token.choices:
                 choice.add_modifier(post_token.modifier)
 
@@ -97,11 +98,11 @@ def _carry_backref_modifier(ante_token: Token, post_token: Token) -> Token:
 # which we *cannot* have mapped only as "V z V"
 def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
     # Compute the `post_ast`, applying modifiers and skipping nulls
-    post_ast = [token for token in rule.post if token.type != "empty"]
+    post_ast = [token for token in rule.post if not isinstance(token, EmptyToken)]
 
     post_ast = [
         token
-        if token.type != "backref"
+        if not isinstance(token, BackRefToken)
         else _carry_backref_modifier(rule.ante[token.index], token)
         for token in post_ast
     ]
@@ -151,7 +152,7 @@ def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
     filtered = []
     for seq in ante_seqs:
         # Check for internal boundaries
-        if not any([token.type == "boundary" for token in seq[1:-1]]):
+        if not any([isinstance(token, BoundaryToken) for token in seq[1:-1]]):
             filtered.append(seq)
 
     # TODO: sort using representation?

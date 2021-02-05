@@ -10,7 +10,7 @@ __author__ = "Tiago Tresoldi"
 __email__ = "tresoldi@shh.mpg.de"
 
 # Build the namespace
-from alteruphono.model import BoundaryToken, FocusToken, EmptyToken, BackRefToken, ChoiceToken, Set, SegmentToken
+from alteruphono.model import BoundaryToken, FocusToken, EmptyToken, BackRefToken, ChoiceToken, SetToken, SegmentToken
 from alteruphono.parser import Rule, parse_rule, parse_seq_as_rule
 from alteruphono.common import check_match
 from alteruphono.forward import forward

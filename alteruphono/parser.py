@@ -2,7 +2,7 @@ import re
 import unicodedata
 from typing import List, Tuple
 
-from .model import Token, BoundaryToken, FocusToken, EmptyToken, BackRefToken, ChoiceToken, Set, SegmentToken
+from .model import Token, BoundaryToken, FocusToken, EmptyToken, BackRefToken, ChoiceToken, SetToken, SegmentToken
 
 # TODO: context must have a focus
 
@@ -59,7 +59,7 @@ def parse_atom(atom_str: str) -> Token:
         # a set
         # TODO: what if it is a set with modifiers?
         choices = [parse_atom(choice) for choice in atom_str[1:-1].split("|")]
-        return Set(choices)
+        return SetToken(choices)
     elif "|" in atom_str:
         # If we have a choice, we parse it just like a sequence
         choices = [parse_atom(choice) for choice in atom_str.split("|")]
@@ -123,7 +123,7 @@ def parse_rule(rule:str) -> Tuple[List[Token], List[Token]]:
     if context:
         cntx_seq = [parse_atom(atom) for atom in context.strip().split()]
         for idx, token in enumerate(cntx_seq):
-            if token.type == "focus":
+            if isinstance(token, FocusToken):
                 left_seq, right_seq = cntx_seq[:idx], cntx_seq[idx + 1:]
                 break
 
@@ -137,11 +137,11 @@ def parse_rule(rule:str) -> Tuple[List[Token], List[Token]]:
         # left context (`p @2 / a _` --> `a p @3`)
         if left_seq:
             ante_seq = [
-                token if token.type != "backref" else token + offset_left
+                token if not isinstance(token, BackRefToken) else token + offset_left
                 for token in ante_seq
             ]
             post_seq = [
-                token if token.type != "backref" else token + offset_left
+                token if not isinstance(token, BackRefToken) else token + offset_left
                 for token in post_seq
             ]
 
@@ -150,7 +150,8 @@ def parse_rule(rule:str) -> Tuple[List[Token], List[Token]]:
         # items in 'right_seq` also shifting backref indexes if necessary
         ante_seq = left_seq + ante_seq
         ante_seq += [
-            token if token.type != "backref" else token + offset_left + offset_ante
+            token if not isinstance(token, BackRefToken)
+            else token + offset_left + offset_ante
             for token in right_seq
         ]
 

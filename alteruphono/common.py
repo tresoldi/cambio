@@ -6,7 +6,7 @@ from typing import List, Tuple, Union
 
 from maniphono import Segment, SoundSegment, Sound
 
-from .model import Token
+from .model import Token, ChoiceToken, SetToken, SegmentToken, BoundaryToken
 
 
 # Note that we need to return a list because in the check_match we are retuning
@@ -35,7 +35,7 @@ def check_match(sequence: List[Segment], pattern: List[Token]) -> Tuple[bool, Li
     # case of a match.
     ret_list = []
     for token, ref in zip(sequence, pattern):
-        if ref.type == "choice":
+        if isinstance(ref, ChoiceToken):
             match_segment = False
             for choice in ref.choices:
                 # Matches all segments, such as boundaries and sounds
@@ -44,7 +44,7 @@ def check_match(sequence: List[Segment], pattern: List[Token]) -> Tuple[bool, Li
                     match_segment = token
                     break
             ret_list.append(match_segment)
-        elif ref.type == "set":
+        elif isinstance(ref, SetToken):
             # Check if it is a set correspondence, which effectively works as a
             # choice here (but we need to keep track of) which set alternative
             # was matched
@@ -55,7 +55,7 @@ def check_match(sequence: List[Segment], pattern: List[Token]) -> Tuple[bool, Li
                 ret_list.append(False)
             else:
                 ret_list.append(alt_matches.index(True))
-        elif ref.type == "segment":
+        elif isinstance(ref, SegmentToken):
             # TODO: currently working only with monosonic segments
             # If the reference segment is not partial, we can just compare `token` to
             # `ref.segment`; if it is partial, we can compare the sounds in each
@@ -78,7 +78,7 @@ def check_match(sequence: List[Segment], pattern: List[Token]) -> Tuple[bool, Li
                     ret_list.append(False)
                 else:
                     ret_list.append(token.sounds[0] >= ref)
-        elif ref.type == "boundary":
+        elif isinstance(ref, BoundaryToken):
             ret_list.append(str(token) == "#")
 
     # make sure we treat zeros (that might be indexes) differently fromFalse

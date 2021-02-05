@@ -6,10 +6,9 @@ from typing import Union
 
 from maniphono import parse_segment, Sound, SoundSegment
 
-
 class Token:
     def __init__(self):
-        self.type = None
+        pass
 
     def __str__(self) -> str:
         raise ValueError("Not implemented")
@@ -30,7 +29,6 @@ class Token:
 class BoundaryToken(Token):
     def __init__(self):
         super().__init__()
-        self.type = "boundary"
 
     def __str__(self) -> str:
         return "#"
@@ -43,7 +41,6 @@ class BoundaryToken(Token):
 class FocusToken(Token):
     def __init__(self):
         super().__init__()
-        self.type = "focus"
 
     def __str__(self) -> str:
         return "_"
@@ -52,7 +49,6 @@ class FocusToken(Token):
 class EmptyToken(Token):
     def __init__(self):
         super().__init__()
-        self.type = "empty"
 
     def __str__(self) -> str:
         return ":null:"
@@ -61,7 +57,6 @@ class EmptyToken(Token):
 class BackRefToken(Token):
     def __init__(self, index: int, modifier=None):
         super().__init__()
-        self.type = "backref"
 
         self.index = index
         self.modifier = modifier
@@ -76,7 +71,7 @@ class BackRefToken(Token):
         return BackRefToken(self.index + other, self.modifier)
 
     def __hash__(self):
-        return hash(tuple(self.index, self.modifier))
+        return hash(tuple(self.index)) ^ hash(tuple(self.modifier))
 
     def __eq__(self, other) -> bool:
         return hash(self) == hash(other)
@@ -87,8 +82,8 @@ class BackRefToken(Token):
 
 class ChoiceToken(Token):
     def __init__(self, choices):
+        super().__init__()
         self.choices = choices
-        self.type = "choice"
 
     def __str__(self) -> str:
         return "|".join([str(choice) for choice in self.choices])
@@ -103,11 +98,10 @@ class ChoiceToken(Token):
         return hash(self) != hash(other)
 
 
-class Set(Token):
+class SetToken(Token):
     def __init__(self, choices):
         super().__init__()
         self.choices = choices
-        self.type = "set"
 
     def __str__(self) -> str:
         return "{" + "|".join([str(choice) for choice in self.choices]) + "}"
@@ -126,7 +120,6 @@ class Set(Token):
 class SegmentToken(Token):
     def __init__(self, segment: Union[str, SoundSegment]):
         super().__init__()
-        self.type = "segment"
 
         if isinstance(segment, str):
             self.segment = parse_segment(segment)
