@@ -11,8 +11,9 @@ from .parser import Rule
 from .model import SegmentToken, SetToken, BackRefToken
 
 # TODO: return always a list of segments, even of a single element (easier signature)
-def _forward_translate(sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]) -> List[
-    Union[Segment, List[Segment]]]:
+def _forward_translate(
+    sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]
+) -> List[Union[Segment, List[Segment]]]:
     """
     @param sequence:
     @param rule:
@@ -74,7 +75,9 @@ def forward(ante_seq: SegSequence, rule: Rule) -> List[Segment]:
     post_seq = []
     while True:
         # TODO: implement a better subsetting of sequence, as a normal python Sequence
-        sub_seq: List[Segment] = [ante_seq[i] for i in range(idx, min(len_seq, idx + len_rule))]
+        sub_seq: List[Segment] = [
+            ante_seq[i] for i in range(idx, min(len_seq, idx + len_rule))
+        ]
 
         match, match_info = check_match(sub_seq, rule.ante)
 

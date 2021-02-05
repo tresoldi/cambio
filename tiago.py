@@ -8,7 +8,7 @@ def main():
     # Read resources and try to parse them all
     with open("resources/sound_changes2.tsv", encoding="utf-8") as tsvfile:
         for row in csv.DictReader(tsvfile, delimiter="\t"):
-            #if int(row["ID"]) != 580:
+            # if int(row["ID"]) != 580:
             #    continue
 
             # skip negations
@@ -44,7 +44,7 @@ def main():
             print("BW", bw_match, "|", bw_strs, "|")
 
             if not all([fw_match, bw_match]):
-            #if True:
+                # if True:
                 input()
 
 

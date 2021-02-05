@@ -2,7 +2,16 @@ import re
 import unicodedata
 from typing import List, Tuple
 
-from .model import Token, BoundaryToken, FocusToken, EmptyToken, BackRefToken, ChoiceToken, SetToken, SegmentToken
+from .model import (
+    Token,
+    BoundaryToken,
+    FocusToken,
+    EmptyToken,
+    BackRefToken,
+    ChoiceToken,
+    SetToken,
+    SegmentToken,
+)
 
 # TODO: context must have a focus
 
@@ -94,7 +103,7 @@ def parse_seq_as_rule(seq):
     return [parse_atom(atom) for atom in seq.strip().split()]
 
 
-def parse_rule(rule:str) -> Tuple[List[Token], List[Token]]:
+def parse_rule(rule: str) -> Tuple[List[Token], List[Token]]:
     # Pre-process the rule and then split into `ante`, `post`, and `context`, which
     # are stripped of leading/trailing spaces. As features, feature values, and graphemes
     # cannot have the reserved ">" and "/" characters, this is very straightforward:
@@ -124,7 +133,7 @@ def parse_rule(rule:str) -> Tuple[List[Token], List[Token]]:
         cntx_seq = [parse_atom(atom) for atom in context.strip().split()]
         for idx, token in enumerate(cntx_seq):
             if isinstance(token, FocusToken):
-                left_seq, right_seq = cntx_seq[:idx], cntx_seq[idx + 1:]
+                left_seq, right_seq = cntx_seq[:idx], cntx_seq[idx + 1 :]
                 break
 
         # cache the length of the context left, of ante, and of post, used for
@@ -150,7 +159,8 @@ def parse_rule(rule:str) -> Tuple[List[Token], List[Token]]:
         # items in 'right_seq` also shifting backref indexes if necessary
         ante_seq = left_seq + ante_seq
         ante_seq += [
-            token if not isinstance(token, BackRefToken)
+            token
+            if not isinstance(token, BackRefToken)
             else token + offset_left + offset_ante
             for token in right_seq
         ]

@@ -6,6 +6,7 @@ from typing import Union
 
 from maniphono import parse_segment, Sound, SoundSegment
 
+
 class Token:
     def __init__(self):
         pass

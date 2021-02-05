@@ -4,11 +4,21 @@ from typing import List, Union
 from maniphono import SegSequence, Sound, SoundSegment, Segment
 
 from .common import check_match
-from .model import Token, BackRefToken, EmptyToken, BoundaryToken, SegmentToken, ChoiceToken, SetToken
+from .model import (
+    Token,
+    BackRefToken,
+    EmptyToken,
+    BoundaryToken,
+    SegmentToken,
+    ChoiceToken,
+    SetToken,
+)
 from .parser import Rule
 
 
-def _backward_translate(sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]):
+def _backward_translate(
+    sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]
+):
     # Make a copy of the ANTE as a "recons"tructed sequence; this will later be
     # modified by back-references from the sequence that was matched
     recons = []
@@ -72,7 +82,7 @@ def _carry_backref_modifier(ante_token: Token, post_token: Token) -> Token:
     """
     # we know post_token is a backref here
     if post_token.modifier:
-        if  isinstance(ante_token, SegmentToken):  # TODO: only
+        if isinstance(ante_token, SegmentToken):  # TODO: only
             # monosonic...
             if len(ante_token.segment.sounds) != 1:
                 raise ValueError("only monosonic")
@@ -117,7 +127,9 @@ def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
     ante_seqs = []
     while True:
         # TODO: implement a better subsetting of sequence, as a normal python Sequence
-        sub_seq: List[Segment] = [post_seq[i] for i in range(idx, min(len(post_seq), idx + len(post_ast)))]
+        sub_seq: List[Segment] = [
+            post_seq[i] for i in range(idx, min(len(post_seq), idx + len(post_ast)))
+        ]
 
         match, match_list = check_match(sub_seq, post_ast)
 
@@ -137,9 +149,7 @@ def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
 
     # TODO: organize and do it properly
     ante_seqs = [
-        SegSequence(
-            list(itertools.chain.from_iterable(candidate)), boundaries=True
-        )
+        SegSequence(list(itertools.chain.from_iterable(candidate)), boundaries=True)
         for candidate in itertools.product(*ante_seqs)
     ]
 
