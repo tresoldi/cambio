@@ -1,13 +1,14 @@
 import itertools
-import copy
+from typing import List, Union
 
-import maniphono
+from maniphono import SegSequence, Sound, SoundSegment, Segment
 
 from .common import check_match
-from .model import Set, Choice, SegmentToken
+from .model import Token
+from .parser import Rule
 
 
-def _backward_translate(sequence, rule, match_info):
+def _backward_translate(sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]):
     # Make a copy of the ANTE as a "recons"tructed sequence; this will later be
     # modified by back-references from the sequence that was matched
     recons = []
@@ -37,17 +38,17 @@ def _backward_translate(sequence, rule, match_info):
                 modifiers = []
                 for mod in post_token.modifier.split(","):
                     if mod[0] == "-":
-                        modifiers.append("+"+mod[1:])
+                        modifiers.append("+" + mod[1:])
                     elif mod[0] == "+":
-                        modifiers.append("-"+mod[1:])
+                        modifiers.append("-" + mod[1:])
                     else:
-                        modifiers.append("-"+mod)
+                        modifiers.append("-" + mod)
 
                 # TODO: fix this horrible hack that uses graphemes to circumvent difficulties with copies
                 gr = str(seq_token)
-                snd = maniphono.sound.Sound(gr)
+                snd = Sound(gr)
                 snd += ",".join(modifiers)
-                recons[post_token.index] = maniphono.SoundSegment([snd])
+                recons[post_token.index] = SoundSegment([snd])
 
         elif post_token.type == "set":
             # grab the index of the next set
@@ -61,8 +62,14 @@ def _backward_translate(sequence, rule, match_info):
 # the modifiers from the post sequence; in a way, it "fakes" the
 # rule being applied, so that something like "d > @1[+voiceless]"
 # is transformed in the equivalent "t > @1".
-# TODO: add modifiers, as per previous implementarion
-def _carry_backref_modifier(ante_token, post_token):
+def _carry_backref_modifier(ante_token: Token, post_token: Token) -> Token:
+    """
+    Internal function for applying the modifier of a back-reference to its source.
+
+    @param ante_token:
+    @param post_token:
+    @return:
+    """
     # we know post_token is a backref here
     if post_token.modifier:
         if ante_token.type == "segment":  # TODO: only monosonic...
@@ -88,7 +95,7 @@ def _carry_backref_modifier(ante_token, post_token):
 
 # TODO: make sure it works with repeated backreferences, such as "V s > @1 z @1",
 # which we *cannot* have mapped only as "V z V"
-def backward(post_seq, rule):
+def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
     # Compute the `post_ast`, applying modifiers and skipping nulls
     post_ast = [token for token in rule.post if token.type != "empty"]
 
@@ -108,8 +115,8 @@ def backward(post_seq, rule):
     idx = 0
     ante_seqs = []
     while True:
-        # TODO: address comment from original implementation
-        sub_seq = post_seq[idx : idx + len(post_ast)]
+        # TODO: implement a better subsetting of sequence, as a normal python Sequence
+        sub_seq: List[Segment] = [post_seq[i] for i in range(idx, min(len(post_seq), idx + len(post_ast)))]
 
         match, match_list = check_match(sub_seq, post_ast)
 
@@ -129,7 +136,7 @@ def backward(post_seq, rule):
 
     # TODO: organize and do it properly
     ante_seqs = [
-        maniphono.Sequence(
+        SegSequence(
             list(itertools.chain.from_iterable(candidate)), boundaries=True
         )
         for candidate in itertools.product(*ante_seqs)

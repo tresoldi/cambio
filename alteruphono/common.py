@@ -2,7 +2,12 @@
 Module with functions and values shared across different parts of the library.
 """
 
-import maniphono
+from typing import List, Tuple, Union
+
+from maniphono import Segment, SoundSegment, Sound
+
+from .model import Token
+
 
 # Note that we need to return a list because in the check_match we are retuning
 # not only a boolean of whether there is a match, but also the index of the
@@ -11,7 +16,7 @@ import maniphono
 # TODO: to solve the problem of returning lists, perhaps return a match boolean
 #       *and* a list of indexes?
 # TODO: add type checks for `sequence` and `pattern`, perhaps casting?
-def check_match(sequence, pattern):
+def check_match(sequence: List[Segment], pattern: List[Token]) -> Tuple[bool, List[Union[Segment, bool, int]]]:
     """
     Check if a sequence matches a given pattern.
     """
@@ -28,26 +33,16 @@ def check_match(sequence, pattern):
     # building a `ret_list`. The latter will contain `False` in case there is no
     # match for a position, or either the index of the backreference or `True` in
     # case of a match.
-    # TODO: we could return immediately when a `[False]` is found, instead of
-    #       compiling the entire list -- at least it would be faster. No logic depends
-    #       on the length of the return list when there is a `False`, but perhaps we
-    #       can have just a non-default flag to compile the full list if really wished.
     ret_list = []
     for token, ref in zip(sequence, pattern):
         if ref.type == "choice":
             match_segment = False
             for choice in ref.choices:
-                # manually check for boundaries, as the problematic check above willfail
-                if choice.type == "boundary":
-                    if token.type == "boundary":
-                        match_segment = "#"
-                        break
-                else:
-                    match, segment = check_match([token], [choice])
-                    if match:
-                        match_segment = segment
-                        break
-
+                # Matches all segments, such as boundaries and sounds
+                match, segment = check_match([token], [choice])
+                if match:
+                    match_segment = token
+                    break
             ret_list.append(match_segment)
         elif ref.type == "set":
             # Check if it is a set correspondence, which effectively works as a
@@ -69,27 +64,22 @@ def check_match(sequence, pattern):
             if not ref.segment.sounds[0].partial:
                 ret_list.append(token == ref.segment)
             else:
-                if not isinstance(token, maniphono.SoundSegment):
+                if not isinstance(token, SoundSegment):
                     ret_list.append(False)
                 else:
                     ret_list.append(token.sounds[0] >= ref.segment.sounds[0])
-        elif isinstance(ref, maniphono.sound.Sound):
+        elif isinstance(ref, Sound):
             # TODO: check how similar to the above (ref.type==segment)
             # TODO: check why it is capturing as maniphono.sound.Sound and not SoundSegment
             if not ref.partial:
                 ret_list.append(token == ref)
             else:
-                if not isinstance(token, maniphono.SoundSegment):
+                if not isinstance(token, SoundSegment):
                     ret_list.append(False)
                 else:
                     ret_list.append(token.sounds[0] >= ref)
         elif ref.type == "boundary":
             ret_list.append(str(token) == "#")
-
-        # Append to the return list, so that we carry extra information like which
-        # element of a set matched. Most of the time, this list will be composed
-        # only of booleans.
-        # ret_list.append(ret)
 
     # make sure we treat zeros (that might be indexes) differently fromFalse
     # TODO: return only ret_list and have the user check?

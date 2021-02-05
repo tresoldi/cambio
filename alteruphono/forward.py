@@ -2,19 +2,32 @@
 Module with functions for forward reconstruction.
 """
 
-from .common import check_match
+from typing import List, Union
 
-# TODO: rename match_list to match_info
-def _forward_translate(sequence, rule, match_list):
+from maniphono import Segment, SegSequence
+
+from .common import check_match
+from .parser import Rule
+
+
+# TODO: return always a list of segments, even of a single element (easier signature)
+def _forward_translate(sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]) -> List[
+    Union[Segment, List[Segment]]]:
+    """
+    @param sequence:
+    @param rule:
+    @param match_info:
+    @return:
+    """
     post_seq = []
 
-    # Build a list of indexes from `match_list`, which will be used in sequence in
+    # Build a list of indexes from `match_info`, which will be used in sequence in
     # case of sets. This list is the return value from `check_match()`, which will
     # hold `True` value in all cases except for backreference matches, when it will
     # hold the index of the backreference shifted by one.
     # NOTE: yes, we do need to check with type() because, as the values might be
     # our custom types, the `isinstace(idx, int)` will fail as we implement __add__
-    indexes = [idx for idx in match_list if type(idx) == int]
+    indexes = [idx for idx in match_info if type(idx) == int]
 
     # Iterate over all entries
     for entry in rule.post:
@@ -37,9 +50,14 @@ def _forward_translate(sequence, rule, match_list):
     return post_seq
 
 
-def forward(ante_seq, rule):
+# TODO: should cast the result to a SegSequence?
+def forward(ante_seq: SegSequence, rule: Rule) -> List[Segment]:
     """
     Apply forward transformation to a sequence given a rule.
+
+    @param ante_seq:
+    @param rule:
+    @return:
     """
 
     # Cache the lengths of `ante_seq` and `rule.ante` for speed
@@ -55,7 +73,8 @@ def forward(ante_seq, rule):
     idx = 0
     post_seq = []
     while True:
-        sub_seq = ante_seq[idx : idx + len_rule]
+        # TODO: implement a better subsetting of sequence, as a normal python Sequence
+        sub_seq: List[Segment] = [ante_seq[i] for i in range(idx, min(len_seq, idx + len_rule))]
 
         match, match_info = check_match(sub_seq, rule.ante)
 
