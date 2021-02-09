@@ -10,6 +10,7 @@ from .common import check_match
 from .parser import Rule
 from .model import SegmentToken, SetToken, BackRefToken
 
+
 # TODO: return always a list of segments, even of a single element (easier signature)
 def _forward_translate(
     sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]

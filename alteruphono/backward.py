@@ -40,7 +40,6 @@ def _backward_translate(
     no_empty = [token for token in rule.post if not isinstance(token, EmptyToken)]
     for post_token, seq_token, match in zip(no_empty, sequence, match_info):
         if isinstance(post_token, BackRefToken):
-
             # build modifier to be "inverted"
             # TODO: move this operation to maniphono
             recons[post_token.index] = seq_token
@@ -54,7 +53,8 @@ def _backward_translate(
                     else:
                         modifiers.append("-" + mod)
 
-                # TODO: fix this horrible hack that uses graphemes to circumvent difficulties with copies
+                # TODO: fix this horrible hack that uses graphemes to circumvent
+                #  difficulties with copies
                 gr = str(seq_token)
                 snd = Sound(gr)
                 snd += ",".join(modifiers)
@@ -65,6 +65,8 @@ def _backward_translate(
             idx = set_index.pop(0)
             recons[idx] = recons[idx].choices[match]
 
+        # TODO: map tokens (from alteruphono) to segments (maniphono)
+
     return [sequence, recons]
 
 
@@ -72,7 +74,7 @@ def _backward_translate(
 # the modifiers from the post sequence; in a way, it "fakes" the
 # rule being applied, so that something like "d > @1[+voiceless]"
 # is transformed in the equivalent "t > @1".
-def _carry_backref_modifier(ante_token: Token, post_token: Token) -> Token:
+def _carry_backref_modifier(ante_token: Token, post_token: BackRefToken) -> Token:
     """
     Internal function for applying the modifier of a back-reference to its source.
 
@@ -148,6 +150,10 @@ def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
             break
 
     # TODO: organize and do it properly
+    for candidate in itertools.product(*ante_seqs):
+        print(type(candidate), candidate)
+        print("--", list(itertools.chain.from_iterable(candidate)))
+
     ante_seqs = [
         SegSequence(list(itertools.chain.from_iterable(candidate)), boundaries=True)
         for candidate in itertools.product(*ante_seqs)

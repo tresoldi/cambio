@@ -14,9 +14,6 @@ class Token:
     def __str__(self) -> str:
         raise ValueError("Not implemented")
 
-    def __repr__(self) -> str:
-        return f"{self.type}:{str(self)}"
-
     def __hash__(self):
         raise ValueError("Not implemented")
 
@@ -34,7 +31,10 @@ class BoundaryToken(Token):
     def __str__(self) -> str:
         return "#"
 
-    def __hash__(self):
+    def __repr__(self) -> str:
+        return f"boundary_tok:{str(self)}"
+
+    def __hash__(self) -> int:
         # TODO: all boundaries are equal here, but we should differentiate ^ and $
         return 1
 
@@ -46,6 +46,9 @@ class FocusToken(Token):
     def __str__(self) -> str:
         return "_"
 
+    def __repr__(self) -> str:
+        return f"focus_tok:{str(self)}"
+
 
 class EmptyToken(Token):
     def __init__(self):
@@ -53,6 +56,9 @@ class EmptyToken(Token):
 
     def __str__(self) -> str:
         return ":null:"
+
+    def __repr__(self) -> str:
+        return f"empty_tok:{str(self)}"
 
 
 class BackRefToken(Token):
@@ -68,11 +74,14 @@ class BackRefToken(Token):
 
         return f"@{self.index}"
 
+    def __repr__(self) -> str:
+        return f"backref_tok:{str(self)}"
+
     def __add__(self, other):
         return BackRefToken(self.index + other, self.modifier)
 
     def __hash__(self):
-        return hash(tuple(self.index)) ^ hash(tuple(self.modifier))
+        return hash(tuple([tuple(self.modifier), self.index]))
 
     def __eq__(self, other) -> bool:
         return hash(self) == hash(other)
@@ -88,6 +97,9 @@ class ChoiceToken(Token):
 
     def __str__(self) -> str:
         return "|".join([str(choice) for choice in self.choices])
+
+    def __repr__(self) -> str:
+        return f"choice_tok:{str(self)}"
 
     def __hash__(self):
         return hash(tuple(self.choices))
@@ -106,6 +118,9 @@ class SetToken(Token):
 
     def __str__(self) -> str:
         return "{" + "|".join([str(choice) for choice in self.choices]) + "}"
+
+    def __repr__(self) -> str:
+        return f"set_tok:{str(self)}"
 
     def __hash__(self):
         return hash(tuple(self.choices))
@@ -129,6 +144,9 @@ class SegmentToken(Token):
 
     def __str__(self) -> str:
         return str(self.segment)
+
+    def __repr__(self) -> str:
+        return f"segment_tok:{str(self)}"
 
     def __hash__(self):
         return hash(self.segment)
