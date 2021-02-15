@@ -152,11 +152,6 @@ def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
         if idx == len(post_seq):
             break
 
-    # TODO: organize and do it properly
-    for candidate in itertools.product(*ante_seqs):
-        print(type(candidate), candidate)
-        print("--", list(itertools.chain.from_iterable(candidate)))
-
     ante_seqs = [
         SegSequence(list(itertools.chain.from_iterable(candidate)), boundaries=True)
         for candidate in itertools.product(*ante_seqs)
