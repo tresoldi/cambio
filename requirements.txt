@@ -1,2 +1,2 @@
 arpeggio
-git+git://github.com/tresoldi/maniphono@alteruphono#egg=maniphono
+git+git://github.com/tresoldi/maniphono@main#egg=maniphono
