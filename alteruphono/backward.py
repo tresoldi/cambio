@@ -174,6 +174,6 @@ def backward(post_seq: SegSequence, rule: Rule) -> List[SegSequence]:
         if not any([isinstance(token, BoundaryToken) for token in seq[1:-1]]):
             filtered.append(seq)
 
-    # TODO: sort using representation?
-    # TODO: must take set, as the rule might lead to the same pattern
+    # TODO: must take set, as the rule might lead to the same pattern multiple times
+    filtered = sorted(filtered, key=str)
     return filtered
