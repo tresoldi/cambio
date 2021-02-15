@@ -21,7 +21,7 @@ import urllib.request
 # Import the library to compute the graphemes
 import alteruphono
 
-# Set the resource directory
+# SetToken the resource directory
 RESOURCE_DIR = Path(__file__).parent / "resources"
 
 # Hard-coded urls for files
@@ -150,7 +150,7 @@ def main():
     Entry point.
     """
 
-    # Set logger
+    # SetToken logger
     logging.basicConfig(level=logging.INFO)
 
     # Download the list of features; unfortunately we cannot pass urllib's
