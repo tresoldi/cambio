@@ -32,6 +32,7 @@ setup(
     long_description=README_FILE,
     name="alteruphono",
     packages=find_packages() + ["resources"],
+    python_requires=">=3.8",
     test_suite="tests",
     tests_require=[],
     url="https://github.com/tresoldi/alteruphono",
