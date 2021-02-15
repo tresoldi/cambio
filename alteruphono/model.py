@@ -91,6 +91,9 @@ class BackRefToken(Token):
         return BackRefToken(self.index + other, self.modifier)
 
     def __hash__(self):
+        if not self.modifier:
+            return hash(self.index)
+
         return hash(tuple([tuple(self.modifier), self.index]))
 
     def __eq__(self, other) -> bool:
