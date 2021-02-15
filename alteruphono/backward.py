@@ -1,7 +1,7 @@
 import itertools
-from typing import List, Union
+from typing import List, Union, Tuple
 
-from maniphono import SegSequence, Sound, SoundSegment, Segment
+from maniphono import SegSequence, Sound, SoundSegment, Segment, BoundarySegment
 
 from .common import check_match
 from .model import (
@@ -18,17 +18,18 @@ from .parser import Rule
 
 def _backward_translate(
     sequence: List[Segment], rule: Rule, match_info: List[Union[Segment, bool, int]]
-):
+): # ->Tuple[List[Segment], List[Segment]]
     # Make a copy of the ANTE as a "recons"tructed sequence; this will later be
     # modified by back-references from the sequence that was matched
     recons = []
     set_index = []
     for idx, t in enumerate(rule.ante):
         if isinstance(t, BoundaryToken):
-            recons.append(t)
+            recons.append(BoundarySegment())
         elif isinstance(t, SegmentToken):
-            recons.append(t)
+            recons.append(t.segment)
         elif isinstance(t, ChoiceToken):
+            # TODO: can we get the right one? If not, make a partial sound?
             recons.append(t)
         elif isinstance(t, SetToken):
             recons.append(t)
@@ -84,14 +85,16 @@ def _carry_backref_modifier(ante_token: Token, post_token: BackRefToken) -> Toke
     """
     # we know post_token is a backref here
     if post_token.modifier:
-        if isinstance(ante_token, SegmentToken):  # TODO: only
-            # monosonic...
+        if isinstance(ante_token, SegmentToken):  # TODO: only monosonic...
             if len(ante_token.segment.sounds) != 1:
                 raise ValueError("only monosonic")
 
             # make a copy
-            x = ante_token.segment.sounds[0]
-            return x + post_token.modifier
+            # TODO: can address directly .segment instead of .segment.sound[0]?
+            snd = ante_token.segment.sounds[0] + post_token.modifier
+            return SegmentToken(snd)
+            #x = ante_token.segment.sounds[0]
+            #return x + post_token.modifier
 
         # TODO: can we join choice and set into a single signature?
         elif isinstance(ante_token, SetToken):

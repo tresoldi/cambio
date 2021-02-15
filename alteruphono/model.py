@@ -6,10 +6,12 @@ from typing import Union
 
 from maniphono import parse_segment, Sound, SoundSegment
 
+# TODO: all tokens should have a method to return a corresponding segment
 
 class Token:
     def __init__(self):
-        pass
+        # TODO: applies only to back-ref or should we reuse if possible for set/choice?
+        self.index = None
 
     def __str__(self) -> str:
         raise ValueError("Not implemented")
@@ -36,7 +38,7 @@ class BoundaryToken(Token):
 
     def __hash__(self) -> int:
         # TODO: all boundaries are equal here, but we should differentiate ^ and $
-        return 1
+        return hash(1)
 
 
 class FocusToken(Token):
@@ -49,6 +51,10 @@ class FocusToken(Token):
     def __repr__(self) -> str:
         return f"focus_tok:{str(self)}"
 
+    def __hash__(self) -> int:
+        # TODO: all focus are equal here
+        return hash(2)
+
 
 class EmptyToken(Token):
     def __init__(self):
@@ -59,6 +65,10 @@ class EmptyToken(Token):
 
     def __repr__(self) -> str:
         return f"empty_tok:{str(self)}"
+
+    def __hash__(self) -> int:
+        # TODO: all empty are equal here (but should they be?)
+        return hash(3)
 
 
 class BackRefToken(Token):
@@ -107,7 +117,7 @@ class ChoiceToken(Token):
     def __eq__(self, other) -> bool:
         return hash(self) == hash(other)
 
-    def __nq__(self, other) -> bool:
+    def __ne__(self, other) -> bool:
         return hash(self) != hash(other)
 
 
@@ -133,12 +143,15 @@ class SetToken(Token):
 
 
 # named segment token to distinguish from the maniphono SoundSegment
+# TODO: rename `segment` argument
 class SegmentToken(Token):
-    def __init__(self, segment: Union[str, SoundSegment]):
+    def __init__(self, segment: Union[str, Sound, SoundSegment]):
         super().__init__()
 
         if isinstance(segment, str):
             self.segment = parse_segment(segment)
+        elif isinstance(segment, Sound):
+            self.segment = SoundSegment(segment)
         else:
             self.segment = segment
 

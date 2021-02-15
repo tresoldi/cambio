@@ -92,7 +92,7 @@ def forward(ante_seq: SegSequence, rule: Rule) -> List[Segment]:
         if idx == len_seq:
             break
 
-    # TODO: post_seq should be a sequence, and we should take care of setting
+    # TODO: post_seq should be a segsequence, and we should take care of setting
     # .boudaries if necessary
 
     return post_seq

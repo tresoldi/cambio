@@ -16,6 +16,7 @@ from .model import Token, ChoiceToken, SetToken, SegmentToken, BoundaryToken
 # TODO: to solve the problem of returning lists, perhaps return a match boolean
 #       *and* a list of indexes?
 # TODO: add type checks for `sequence` and `pattern`, perhaps casting?
+# TODO: accept SeqSequence as `sequence`
 def check_match(
     sequence: List[Segment], pattern: List[Token]
 ) -> Tuple[bool, List[Union[Segment, bool, int]]]:

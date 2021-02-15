@@ -26,7 +26,11 @@ RE_BACKREF_MOD = re.compile(r"^@(?P<index>\d+)\[(?P<mod>[^\]]+)\]$")
 class Rule:
     def __init__(self, source: str):
         self.source = source
-        self.ante, self.post = parse_rule(source)
+
+        # Parse source, also taking care of type ints
+        _ante, _post = parse_rule(source)
+        self.ante: List[Token] = _ante
+        self.post: List[Token] = _post
 
     def __repr__(self) -> str:
         ante_str = " ".join([repr(token) for token in self.ante])
@@ -133,7 +137,7 @@ def parse_rule(rule: str) -> Tuple[List[Token], List[Token]]:
         cntx_seq = [parse_atom(atom) for atom in context.strip().split()]
         for idx, token in enumerate(cntx_seq):
             if isinstance(token, FocusToken):
-                left_seq, right_seq = cntx_seq[:idx], cntx_seq[idx + 1 :]
+                left_seq, right_seq = cntx_seq[:idx], cntx_seq[idx + 1:]
                 break
 
         # cache the length of the context left, of ante, and of post, used for
