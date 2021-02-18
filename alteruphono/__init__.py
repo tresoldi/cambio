@@ -5,9 +5,9 @@ __init__ module for the `alteruphono` package.
 """
 
 # Version of the alteruphono package
-__version__ = "0.4"
+__version__ = "0.5rc1"
 __author__ = "Tiago Tresoldi"
-__email__ = "tresoldi@shh.mpg.de"
+__email__ = "tiago.tresoldi@lingfil.uu.se"
 
 # Build the namespace
 from alteruphono.model import (

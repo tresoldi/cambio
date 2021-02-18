@@ -14,7 +14,7 @@ with open("requirements.txt") as fp:
 
 # This call to setup() does all the work
 setup(
-    author_email="tresoldi@shh.mpg.de",
+    author_email="tiago.tresoldi@lingfil.uu.se",
     author="Tiago Tresoldi",
     classifiers=[
         "License :: OSI Approved :: MIT License",
@@ -36,6 +36,6 @@ setup(
     test_suite="tests",
     tests_require=[],
     url="https://github.com/tresoldi/alteruphono",
-    version="0.4",
+    version="0.5rc1", # remember to sync with __init__.py
     zip_safe=False,
 )
