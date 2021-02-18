@@ -1,8 +1,8 @@
 # alteruphono
 
+[![PyPI](https://img.shields.io/pypi/v/alteruphono.svg)](https://pypi.org/project/alteruphono)
+![Python package](https://github.com/tresoldi/alteruphono/workflows/Python%20package/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1c6218b0741d453c96c72e9504acd757)](https://app.codacy.com/manual/tresoldi/alteruphono?utm_source=github.com&utm_medium=referral&utm_content=tresoldi/alteruphono&utm_campaign=Badge_Grade_Dashboard)
-[![Build Status](https://travis-ci.org/tresoldi/alteruphono.svg?branch=master)](https://travis-ci.org/tresoldi/alteruphono)
-[![codecov](https://codecov.io/gh/tresoldi/alteruphono/branch/master/graph/badge.svg)](https://codecov.io/gh/tresoldi/alteruphono)
 
 `alteruphono` is a Python library for applying sound changes to phonetic and
 phonological representations, intended for use in simulations of language
